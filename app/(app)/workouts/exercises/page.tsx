@@ -42,7 +42,7 @@ export default async function ExercisesPage({
     <div className="space-y-6">
       <header>
         <div className="mono-label">{t("ex.library1324")}</div>
-        <h1 className="font-display text-4xl mt-1">{t("ex.title")}</h1>
+        <h1 className="font-display text-5xl mt-1">{t("ex.title")}</h1>
       </header>
 
       <form className="flex flex-wrap gap-3 items-end">
@@ -52,7 +52,7 @@ export default async function ExercisesPage({
             name="q"
             defaultValue={q}
             placeholder="bench press, squat…"
-            className="w-full bg-transparent border-b border-[color:var(--border-visible)] py-3 px-1 font-body text-base text-[color:var(--text-display)] focus:outline-none focus:border-[color:var(--accent)]"
+            className="w-full bg-transparent border-b border-[color:var(--border-visible)] py-3 px-1 font-body text-lg text-[color:var(--text-display)] focus:outline-none focus:border-[color:var(--accent)]"
           />
         </div>
         <div>
@@ -60,7 +60,7 @@ export default async function ExercisesPage({
           <select
             name="body_part"
             defaultValue={bodyPart}
-            className="bg-transparent border-b border-[color:var(--border-visible)] py-3 px-1 font-body text-base text-[color:var(--text-display)]"
+            className="bg-transparent border-b border-[color:var(--border-visible)] py-3 px-1 font-body text-lg text-[color:var(--text-display)]"
           >
             <option value="">{t("ex.all")}</option>
             {bodyParts

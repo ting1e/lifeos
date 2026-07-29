@@ -60,7 +60,7 @@ export function WhoopStrainCard({ workoutId }: { workoutId: string }) {
       <div className="flex items-center justify-between gap-3">
         <div>
           <CardLabel>{t("whoopStrain.title")}</CardLabel>
-          <div className="font-mono text-[10px] text-[color:var(--text-disabled)] mt-1">
+          <div className="font-mono text-[12px] text-[color:var(--text-disabled)] mt-1">
             {t("whoopStrain.displayOnly")}
           </div>
         </div>
@@ -70,11 +70,11 @@ export function WhoopStrainCard({ workoutId }: { workoutId: string }) {
       </div>
 
       {data === undefined && (
-        <div className="font-mono text-[11px] text-[color:var(--text-disabled)]">…</div>
+        <div className="font-mono text-[13px] text-[color:var(--text-disabled)]">…</div>
       )}
 
       {data === null && (
-        <div className="font-mono text-[11px] text-[color:var(--text-secondary)]">
+        <div className="font-mono text-[13px] text-[color:var(--text-secondary)]">
           {t("whoopStrain.noMatch")}
         </div>
       )}
@@ -95,7 +95,7 @@ export function WhoopStrainCard({ workoutId }: { workoutId: string }) {
       )}
 
       {error && (
-        <div className="font-mono text-[11px] text-[color:var(--accent)] uppercase">
+        <div className="font-mono text-[13px] text-[color:var(--accent)] uppercase">
           → {error}
         </div>
       )}

@@ -21,7 +21,7 @@ export function MacroBar({
         <div style={{ width: `${cp}%`, background: "var(--warning)" }} />
         <div style={{ width: `${fp}%`, background: "var(--accent)" }} />
       </div>
-      <div className="flex justify-between font-mono text-[10px] text-[color:var(--text-secondary)]">
+      <div className="flex justify-between font-mono text-[12px] text-[color:var(--text-secondary)]">
         <span>P {Math.round(protein)}g</span>
         <span>C {Math.round(carbs)}g</span>
         <span>F {Math.round(fat)}g</span>

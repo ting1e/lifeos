@@ -231,7 +231,7 @@ export function ProgramEditor({
         : "var(--text-secondary)";
     return (
       <span
-        className="font-mono text-[11px] uppercase tracking-[0.08em]"
+        className="font-mono text-[13px] uppercase tracking-[0.08em]"
         style={{ color }}
       >
         {statusMsg}
@@ -268,7 +268,7 @@ export function ProgramEditor({
             onBlur={() => {
               if (name.trim() && name !== initialName) saveProgramField("name", name.trim());
             }}
-            className="w-full bg-transparent border-b border-[color:var(--border-visible)] py-2 font-display text-2xl text-[color:var(--text-display)] focus:outline-none focus:border-[color:var(--accent)]"
+            className="w-full bg-transparent border-b border-[color:var(--border-visible)] py-2 font-display text-3xl text-[color:var(--text-display)] focus:outline-none focus:border-[color:var(--accent)]"
           />
         </div>
         <div>
@@ -282,7 +282,7 @@ export function ProgramEditor({
               }
             }}
             rows={2}
-            className="w-full bg-transparent border-b border-[color:var(--border-visible)] py-2 font-body text-base text-[color:var(--text-display)] focus:outline-none focus:border-[color:var(--accent)] resize-none"
+            className="w-full bg-transparent border-b border-[color:var(--border-visible)] py-2 font-body text-lg text-[color:var(--text-display)] focus:outline-none focus:border-[color:var(--accent)] resize-none"
           />
         </div>
       </Card>
@@ -303,7 +303,7 @@ export function ProgramEditor({
                     renameDay(day.id, v);
                   }
                 }}
-                className="flex-1 bg-transparent border-b border-[color:var(--border)] focus:border-[color:var(--accent)] py-1 font-display text-lg text-[color:var(--text-display)] focus:outline-none"
+                className="flex-1 bg-transparent border-b border-[color:var(--border)] focus:border-[color:var(--accent)] py-1 font-display text-xl text-[color:var(--text-display)] focus:outline-none"
               />
               <Button
                 variant="ghost"
@@ -342,7 +342,7 @@ export function ProgramEditor({
                     <div className="w-14 h-14 dot-grid-subtle border border-[color:var(--border)]" />
                   )}
                   <div className="min-w-0 space-y-1">
-                    <div className="font-body text-sm text-[color:var(--text-display)] truncate">
+                    <div className="font-body text-base text-[color:var(--text-display)] truncate">
                       {ex.name}
                     </div>
                     {ex.subtitle && (
@@ -378,7 +378,7 @@ export function ProgramEditor({
                       onBlur={(e) =>
                         updateExercise(day.id, ex.id, "notes", e.target.value)
                       }
-                      className="w-full bg-transparent border-b border-[color:var(--border)] focus:border-[color:var(--accent)] py-1 font-mono text-[11px] text-[color:var(--text-secondary)] focus:outline-none placeholder:text-[color:var(--text-disabled)]"
+                      className="w-full bg-transparent border-b border-[color:var(--border)] focus:border-[color:var(--accent)] py-1 font-mono text-[13px] text-[color:var(--text-secondary)] focus:outline-none placeholder:text-[color:var(--text-disabled)]"
                     />
                   </div>
                   <button
@@ -392,7 +392,7 @@ export function ProgramEditor({
                 </li>
               ))}
               {day.exercises.length === 0 && (
-                <li className="font-mono text-[11px] text-[color:var(--text-disabled)] uppercase tracking-[0.08em] py-2">
+                <li className="font-mono text-[13px] text-[color:var(--text-disabled)] uppercase tracking-[0.08em] py-2">
                   {t("prog.noExercisesYetInline")}
                 </li>
               )}
@@ -401,7 +401,7 @@ export function ProgramEditor({
             <button
               type="button"
               onClick={() => setPickerDayId(day.id)}
-              className="w-full flex items-center justify-center gap-2 py-3 border border-dashed border-[color:var(--border-visible)] hover:border-[color:var(--text-display)] font-mono text-[11px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)] hover:text-[color:var(--text-display)] transition-colors"
+              className="w-full flex items-center justify-center gap-2 py-3 border border-dashed border-[color:var(--border-visible)] hover:border-[color:var(--text-display)] font-mono text-[13px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)] hover:text-[color:var(--text-display)] transition-colors"
             >
               <Plus size={14} strokeWidth={1.5} />
               {t("prog.addExerciseButton")}
@@ -412,7 +412,7 @@ export function ProgramEditor({
         <button
           type="button"
           onClick={addDay}
-          className="w-full flex items-center justify-center gap-2 py-4 border border-dashed border-[color:var(--border-visible)] hover:border-[color:var(--text-display)] font-mono text-[11px] uppercase tracking-[0.1em] text-[color:var(--text-secondary)] hover:text-[color:var(--text-display)] transition-colors"
+          className="w-full flex items-center justify-center gap-2 py-4 border border-dashed border-[color:var(--border-visible)] hover:border-[color:var(--text-display)] font-mono text-[13px] uppercase tracking-[0.1em] text-[color:var(--text-secondary)] hover:text-[color:var(--text-display)] transition-colors"
         >
           <Plus size={16} strokeWidth={1.5} />
           {t("prog.addDayButton")}
@@ -456,7 +456,7 @@ function NumField({
           const current = value ?? "";
           if (next !== String(current)) onCommit(next);
         }}
-        className="w-14 bg-transparent border-b border-[color:var(--border)] focus:border-[color:var(--accent)] py-1 font-mono text-[12px] text-[color:var(--text-display)] tabular-nums focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        className="w-14 bg-transparent border-b border-[color:var(--border)] focus:border-[color:var(--accent)] py-1 font-mono text-[14px] text-[color:var(--text-display)] tabular-nums focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
       />
     </label>
   );

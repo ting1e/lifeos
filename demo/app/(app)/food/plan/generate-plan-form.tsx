@@ -30,11 +30,11 @@ export function GeneratePlanForm() {
         </Button>
       </div>
       {status && (
-        <div className="font-mono text-[11px] text-[color:var(--text-secondary)] uppercase tracking-[0.06em]">
+        <div className="font-mono text-[13px] text-[color:var(--text-secondary)] uppercase tracking-[0.06em]">
           → {status}
         </div>
       )}
-      <div className="font-mono text-[11px] text-[color:var(--text-disabled)]">
+      <div className="font-mono text-[13px] text-[color:var(--text-disabled)]">
         Uses profile goal + preferences + pantry. Sonnet 4.6 via fal openrouter.
       </div>
     </div>

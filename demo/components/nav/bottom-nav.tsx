@@ -39,7 +39,7 @@ export function BottomNav() {
               )}
             >
               <Icon size={20} strokeWidth={1.5} />
-              <span className="font-mono text-[10px] tracking-[0.08em]">{t(it.labelKey)}</span>
+              <span className="font-mono text-[12px] tracking-[0.08em]">{t(it.labelKey)}</span>
               {active && (
                 <span className="absolute top-0 h-[2px] w-8 bg-[color:var(--text-display)]" />
               )}

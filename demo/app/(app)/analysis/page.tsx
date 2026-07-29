@@ -65,7 +65,7 @@ export default function AnalysisPage() {
     <div className="space-y-6">
       <header>
         <div className="mono-label">{t("anal.trendsInsights")}</div>
-        <h1 className="font-display text-4xl mt-1">{t("anal.title")}</h1>
+        <h1 className="font-display text-5xl mt-1">{t("anal.title")}</h1>
       </header>
 
       <WeeklyInsights />
@@ -75,7 +75,7 @@ export default function AnalysisPage() {
         {weightSeries.length > 0 ? (
           <LineChart data={weightSeries} xKey="date" yKey="weight" />
         ) : (
-          <div className="font-mono text-sm text-[color:var(--text-secondary)] py-6">{t("anal.noData")}</div>
+          <div className="font-mono text-base text-[color:var(--text-secondary)] py-6">{t("anal.noData")}</div>
         )}
       </Card>
 
@@ -84,7 +84,7 @@ export default function AnalysisPage() {
         {kcalSeries.length > 0 ? (
           <BarChart data={kcalSeries} xKey="date" yKey="kcal" />
         ) : (
-          <div className="font-mono text-sm text-[color:var(--text-secondary)] py-6">{t("anal.noData")}</div>
+          <div className="font-mono text-base text-[color:var(--text-secondary)] py-6">{t("anal.noData")}</div>
         )}
       </Card>
 
@@ -93,7 +93,7 @@ export default function AnalysisPage() {
         {recSeries.length > 0 ? (
           <LineChart data={recSeries} xKey="date" yKey="score" color="var(--success)" />
         ) : (
-          <div className="font-mono text-sm text-[color:var(--text-secondary)] py-6">
+          <div className="font-mono text-base text-[color:var(--text-secondary)] py-6">
             {t("anal.noWhoopRecoveryData")}
           </div>
         )}
@@ -104,7 +104,7 @@ export default function AnalysisPage() {
         {volumeByMuscle.length > 0 ? (
           <BarChart data={volumeByMuscle} xKey="muscle" yKey="volume" />
         ) : (
-          <div className="font-mono text-sm text-[color:var(--text-secondary)] py-6">{t("anal.noWorkouts")}</div>
+          <div className="font-mono text-base text-[color:var(--text-secondary)] py-6">{t("anal.noWorkouts")}</div>
         )}
       </Card>
     </div>

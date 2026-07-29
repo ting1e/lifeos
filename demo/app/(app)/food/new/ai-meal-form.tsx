@@ -55,7 +55,7 @@ export function AiMealForm() {
             onChange={(e) => setText(e.target.value)}
             rows={4}
             placeholder='e.g. "for breakfast: a lavash wrap with 1 boiled egg, half an avocado and yogurt-lemon sauce, plus an extra boiled egg, some greens, a matchbox of white cheese, 3 black olives"'
-            className="w-full bg-transparent border-b border-[color:var(--border-visible)] py-2 font-body text-base text-[color:var(--text-display)] focus:outline-none focus:border-[color:var(--accent)] resize-none placeholder:text-[color:var(--text-disabled)]"
+            className="w-full bg-transparent border-b border-[color:var(--border-visible)] py-2 font-body text-lg text-[color:var(--text-display)] focus:outline-none focus:border-[color:var(--accent)] resize-none placeholder:text-[color:var(--text-disabled)]"
           />
           <HistoryMatchHint text={text} mealHint={defaultMeal} />
         </div>
@@ -80,7 +80,7 @@ export function AiMealForm() {
       </div>
 
       {status && (
-        <div className="font-mono text-[11px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)] leading-relaxed">
+        <div className="font-mono text-[13px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)] leading-relaxed">
           {status}
         </div>
       )}

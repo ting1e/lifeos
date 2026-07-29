@@ -167,7 +167,7 @@ export function EditFoodForm({ id, initial }: { id: string; initial: Initial }) 
           onChange={(e) => setAiText(e.target.value)}
           rows={3}
           placeholder={t("food.aiReestimatePlaceholder")}
-          className="w-full bg-transparent border-b border-[color:var(--border-visible)] py-2 font-body text-base text-[color:var(--text-display)] focus:outline-none focus:border-[color:var(--accent)] resize-none placeholder:text-[color:var(--text-disabled)]"
+          className="w-full bg-transparent border-b border-[color:var(--border-visible)] py-2 font-body text-lg text-[color:var(--text-display)] focus:outline-none focus:border-[color:var(--accent)] resize-none placeholder:text-[color:var(--text-disabled)]"
         />
         <div className="flex flex-wrap items-center gap-3">
           <Button
@@ -179,12 +179,12 @@ export function EditFoodForm({ id, initial }: { id: string; initial: Initial }) 
             {parsing ? t("food.parsing") : t("food.parseWithAi")}
           </Button>
           {aiStatus && !aiError && (
-            <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)]">
+            <span className="font-mono text-[13px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)]">
               {aiStatus}
             </span>
           )}
           {aiError && (
-            <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-[color:var(--accent)]">
+            <span className="font-mono text-[13px] uppercase tracking-[0.08em] text-[color:var(--accent)]">
               ERR · {aiError}
             </span>
           )}
@@ -258,7 +258,7 @@ export function EditFoodForm({ id, initial }: { id: string; initial: Initial }) 
       </div>
 
       {error && (
-        <div className="font-mono text-[11px] text-[color:var(--accent)]">
+        <div className="font-mono text-[13px] text-[color:var(--accent)]">
           ERR · {error}
         </div>
       )}

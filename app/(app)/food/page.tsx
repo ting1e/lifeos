@@ -102,7 +102,7 @@ export default async function FoodPage({
               <span className="ml-2 text-[color:var(--accent)]">{t("dash.viewing")}</span>
             )}
           </div>
-          <h1 className="font-display text-4xl mt-1 truncate">{dayTitle}</h1>
+          <h1 className="font-display text-5xl mt-1 truncate">{dayTitle}</h1>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <DayNav selected={selectedKey} today={today} basePath="/food" />
@@ -148,7 +148,7 @@ export default async function FoodPage({
       <section className="space-y-5">
         {entries.length === 0 ? (
           <Card>
-            <div className="font-mono text-sm text-[color:var(--text-secondary)] py-6 text-center">
+            <div className="font-mono text-base text-[color:var(--text-secondary)] py-6 text-center">
               {t("food.noEntries")}{" "}
               <Link
                 href={isToday ? "/food/new" : `/food/new?day=${selectedKey}`}
@@ -174,7 +174,7 @@ export default async function FoodPage({
                     <MealIcon size={12} strokeWidth={1.75} />
                     {mealLabels[meal]} · {items.length} {t("food.items")}
                   </CardLabel>
-                  <div className="font-mono text-[11px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)] tabular-nums">
+                  <div className="font-mono text-[13px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)] tabular-nums">
                     {Math.round(mealKcal)} kcal · P{Math.round(mealP)} C{Math.round(mealC)} F{Math.round(mealF)}
                   </div>
                 </div>
@@ -190,7 +190,7 @@ export default async function FoodPage({
                           <div className="font-body text-[color:var(--text-display)] truncate">
                             {e.name}
                           </div>
-                          <div className="font-mono text-[10px] text-[color:var(--text-secondary)] mt-1 tabular-nums">
+                          <div className="font-mono text-[12px] text-[color:var(--text-secondary)] mt-1 tabular-nums">
                             P{Math.round(Number(e.proteinG ?? 0))} · C{Math.round(Number(e.carbsG ?? 0))} · F{Math.round(Number(e.fatG ?? 0))}
                             <span className="text-[color:var(--text-disabled)] ml-2">
                               {new Date(e.consumedAt).toLocaleTimeString(bcp47For(locale), {
@@ -201,7 +201,7 @@ export default async function FoodPage({
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="font-mono text-xl text-[color:var(--text-display)] tabular-nums">
+                          <div className="font-mono text-2xl text-[color:var(--text-display)] tabular-nums">
                             {Math.round(Number(e.kcal ?? 0))}
                           </div>
                           <div className="mono-label">KCAL</div>

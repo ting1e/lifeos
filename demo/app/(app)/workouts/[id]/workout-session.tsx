@@ -149,7 +149,7 @@ export function WorkoutSession({
     <div className="space-y-6">
       {exList.length === 0 && (
         <Card>
-          <div className="font-mono text-sm text-[color:var(--text-secondary)] text-center py-6">
+          <div className="font-mono text-base text-[color:var(--text-secondary)] text-center py-6">
             {t("ex.freeSessionInline")}
           </div>
         </Card>
@@ -191,7 +191,7 @@ export function WorkoutSession({
                   <button
                     type="button"
                     onClick={() => openDetail(ex)}
-                    className="font-display text-xl md:text-2xl text-left text-[color:var(--text-display)] hover:text-[color:var(--accent)] transition"
+                    className="font-display text-2xl md:text-3xl text-left text-[color:var(--text-display)] hover:text-[color:var(--accent)] transition"
                   >
                     {displayName}
                   </button>
@@ -245,7 +245,7 @@ export function WorkoutSession({
         <button
           type="button"
           onClick={() => setPickerOpen(true)}
-          className="w-full border border-dashed border-[color:var(--border-visible)] dot-grid-subtle py-5 font-mono text-[11px] uppercase tracking-[0.12em] text-[color:var(--text-secondary)] hover:text-[color:var(--text-display)] hover:border-[color:var(--text-display)] transition"
+          className="w-full border border-dashed border-[color:var(--border-visible)] dot-grid-subtle py-5 font-mono text-[13px] uppercase tracking-[0.12em] text-[color:var(--text-secondary)] hover:text-[color:var(--text-display)] hover:border-[color:var(--text-display)] transition"
         >
           {t("ex.addExerciseFromLibrary")}
         </button>
@@ -260,7 +260,7 @@ export function WorkoutSession({
               ) : (
                 <button
                   onClick={() => setRestOpen(true)}
-                  className="font-mono text-[11px] uppercase tracking-[0.1em] text-[color:var(--text-secondary)] hover:text-[color:var(--text-display)]"
+                  className="font-mono text-[13px] uppercase tracking-[0.1em] text-[color:var(--text-secondary)] hover:text-[color:var(--text-display)]"
                 >
                   {t("ex.restTimer")}
                 </button>

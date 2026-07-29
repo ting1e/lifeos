@@ -30,7 +30,7 @@ export default function ExercisesPage() {
     <div className="space-y-6">
       <header>
         <div className="mono-label">{t("common.libraryCount", { count: state.exercises.length })}</div>
-        <h1 className="font-display text-4xl mt-1">{t("ex.libraryPage")}</h1>
+        <h1 className="font-display text-5xl mt-1">{t("ex.libraryPage")}</h1>
       </header>
 
       <form
@@ -43,7 +43,7 @@ export default function ExercisesPage() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder={t("ex.searchPlaceholder")}
-            className="w-full bg-transparent border-b border-[color:var(--border-visible)] py-3 px-1 font-body text-base text-[color:var(--text-display)] focus:outline-none focus:border-[color:var(--accent)]"
+            className="w-full bg-transparent border-b border-[color:var(--border-visible)] py-3 px-1 font-body text-lg text-[color:var(--text-display)] focus:outline-none focus:border-[color:var(--accent)]"
           />
         </div>
         <div>
@@ -51,7 +51,7 @@ export default function ExercisesPage() {
           <select
             value={bodyPart}
             onChange={(e) => setBodyPart(e.target.value)}
-            className="bg-transparent border-b border-[color:var(--border-visible)] py-3 px-1 font-body text-base text-[color:var(--text-display)]"
+            className="bg-transparent border-b border-[color:var(--border-visible)] py-3 px-1 font-body text-lg text-[color:var(--text-display)]"
           >
             <option value="">{t("ex.allLabel")}</option>
             {bodyParts.map((b) => (

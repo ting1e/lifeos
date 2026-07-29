@@ -56,7 +56,7 @@ export function NewFoodForm() {
 
   return (
     <form onSubmit={save} className="space-y-6">
-      <div className="font-mono text-[11px] text-[color:var(--text-disabled)] uppercase tracking-[0.08em]">
+      <div className="font-mono text-[13px] text-[color:var(--text-disabled)] uppercase tracking-[0.08em]">
         Demo: photo upload + AI estimate run via fal.ai in the self-hosted version.
       </div>
 
@@ -124,7 +124,7 @@ export function NewFoodForm() {
         </div>
       </div>
 
-      {error && <div className="font-mono text-[11px] text-[color:var(--accent)]">{error}</div>}
+      {error && <div className="font-mono text-[13px] text-[color:var(--accent)]">{error}</div>}
 
       <div className="flex justify-end">
         <Button type="submit" disabled={busy || !name}>

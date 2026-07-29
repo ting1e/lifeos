@@ -72,13 +72,13 @@ export default async function WhoopPage({
       <header className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-4">
         <div>
           <div className="mono-label">{t("whoop.device")}</div>
-          <h1 className="font-display text-4xl mt-1">{t("whoop.title")}</h1>
+          <h1 className="font-display text-5xl mt-1">{t("whoop.title")}</h1>
         </div>
         {connected ? <SyncWhoopButton /> : null}
       </header>
 
       {sp.connected === "1" && (
-        <div className="font-mono text-[11px] text-[color:var(--success)] uppercase tracking-[0.1em]">
+        <div className="font-mono text-[13px] text-[color:var(--success)] uppercase tracking-[0.1em]">
           {t("whoop.connected")}
         </div>
       )}
@@ -86,7 +86,7 @@ export default async function WhoopPage({
       {!connected ? (
         <Card>
           <CardLabel>{t("whoop.notConnected")}</CardLabel>
-          <p className="font-body text-sm text-[color:var(--text-secondary)] mt-2">
+          <p className="font-body text-base text-[color:var(--text-secondary)] mt-2">
             {t("whoop.connectAccount")}
           </p>
           <div className="mt-4">
@@ -154,11 +154,11 @@ export default async function WhoopPage({
                     key={w.id}
                     className="grid grid-cols-[1fr_auto_auto] gap-3 py-2 border-b border-[color:var(--border)]"
                   >
-                    <span className="font-body text-sm">{w.sport ?? t("whoop.workout")}</span>
-                    <span className="font-mono text-[11px] text-[color:var(--text-secondary)]">
+                    <span className="font-body text-base">{w.sport ?? t("whoop.workout")}</span>
+                    <span className="font-mono text-[13px] text-[color:var(--text-secondary)]">
                       {new Date(w.start).toLocaleDateString(bcp47For(locale))}
                     </span>
-                    <span className="font-mono text-[11px] text-[color:var(--text-display)]">
+                    <span className="font-mono text-[13px] text-[color:var(--text-display)]">
                       {w.strain ? `${t("whoop.strain")} ${Number(w.strain).toFixed(1)}` : ""}
                     </span>
                   </li>

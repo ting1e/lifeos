@@ -28,7 +28,7 @@ export default async function PreferencesPage() {
     <div className="space-y-6">
       <header>
         <div className="mono-label">{t("pref.tasteProfile")}</div>
-        <h1 className="font-display text-4xl mt-1">{t("pref.title")}</h1>
+        <h1 className="font-display text-5xl mt-1">{t("pref.title")}</h1>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">

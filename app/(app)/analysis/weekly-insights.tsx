@@ -41,14 +41,14 @@ export function WeeklyInsights() {
           {busy ? t("anal.analyzing") : t("anal.generate")}
         </Button>
       </div>
-      {error && <div className="font-mono text-[11px] text-[color:var(--accent)]">{error}</div>}
+      {error && <div className="font-mono text-[13px] text-[color:var(--accent)]">{error}</div>}
       {data ? (
         <div className="space-y-3 mt-2">
           <p className="font-body text-[color:var(--text-display)]">{data.summary}</p>
           {data.highlights.length > 0 && (
             <div>
               <div className="mono-label mb-1">{t("anal.highlights")}</div>
-              <ul className="text-sm space-y-1">
+              <ul className="text-base space-y-1">
                 {data.highlights.map((h, i) => (
                   <li key={i}>· {h}</li>
                 ))}
@@ -58,7 +58,7 @@ export function WeeklyInsights() {
           {data.warnings.length > 0 && (
             <div>
               <div className="mono-label mb-1 text-[color:var(--warning)]">{t("anal.warnings")}</div>
-              <ul className="text-sm space-y-1">
+              <ul className="text-base space-y-1">
                 {data.warnings.map((h, i) => (
                   <li key={i}>· {h}</li>
                 ))}
@@ -68,7 +68,7 @@ export function WeeklyInsights() {
           {data.recommendations.length > 0 && (
             <div>
               <div className="mono-label mb-1 text-[color:var(--accent)]">{t("anal.recommendations")}</div>
-              <ul className="text-sm space-y-1">
+              <ul className="text-base space-y-1">
                 {data.recommendations.map((h, i) => (
                   <li key={i}>· {h}</li>
                 ))}
@@ -77,7 +77,7 @@ export function WeeklyInsights() {
           )}
         </div>
       ) : (
-        <div className="font-mono text-sm text-[color:var(--text-secondary)]">
+        <div className="font-mono text-base text-[color:var(--text-secondary)]">
           {t("anal.clickGenerate")}
         </div>
       )}

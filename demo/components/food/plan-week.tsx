@@ -89,7 +89,7 @@ export function PlanWeek({ days, todayKey }: Props) {
             >
               <div className="flex flex-col items-center justify-center w-12 shrink-0">
                 <span
-                  className={`font-mono text-[10px] uppercase tracking-[0.1em] ${
+                  className={`font-mono text-[12px] uppercase tracking-[0.1em] ${
                     isToday
                       ? "text-[color:var(--accent)]"
                       : "text-[color:var(--text-secondary)]"
@@ -97,7 +97,7 @@ export function PlanWeek({ days, todayKey }: Props) {
                 >
                   {p.dayName}
                 </span>
-                <span className="font-display text-2xl leading-none text-[color:var(--text-display)]">
+                <span className="font-display text-3xl leading-none text-[color:var(--text-display)]">
                   {p.dom}
                 </span>
                 <span className="font-mono text-[9px] uppercase tracking-[0.08em] text-[color:var(--text-disabled)]">
@@ -105,15 +105,15 @@ export function PlanWeek({ days, todayKey }: Props) {
                 </span>
               </div>
               <div className="flex-1 min-w-0 text-left">
-                <div className="font-display text-lg text-[color:var(--text-display)]">
+                <div className="font-display text-xl text-[color:var(--text-display)]">
                   {p.dayLong}
                   {isToday && (
-                    <span className="ml-2 font-mono text-[10px] uppercase tracking-[0.1em] text-[color:var(--accent)] align-middle">
+                    <span className="ml-2 font-mono text-[12px] uppercase tracking-[0.1em] text-[color:var(--accent)] align-middle">
                       · {t("common.today")}
                     </span>
                   )}
                 </div>
-                <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)]">
+                <div className="font-mono text-[12px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)]">
                   {d.totals
                     ? `${Math.round(d.totals.kcal)} KCAL · P${Math.round(
                         d.totals.protein_g,
@@ -148,23 +148,23 @@ export function PlanWeek({ days, todayKey }: Props) {
                             className="grid grid-cols-[1fr_auto] gap-3 items-start py-1.5 border-b border-[color:var(--border)] last:border-b-0"
                           >
                             <div className="min-w-0">
-                              <div className="font-body text-sm text-[color:var(--text-display)]">
+                              <div className="font-body text-base text-[color:var(--text-display)]">
                                 {it.name}
                               </div>
                               {it.portion && (
-                                <div className="font-mono text-[10px] uppercase tracking-[0.06em] text-[color:var(--accent)] mt-0.5">
+                                <div className="font-mono text-[12px] uppercase tracking-[0.06em] text-[color:var(--accent)] mt-0.5">
                                   {it.portion}
                                 </div>
                               )}
                             </div>
                             <div className="text-right shrink-0">
-                              <div className="font-mono text-sm text-[color:var(--text-display)] tabular-nums">
+                              <div className="font-mono text-base text-[color:var(--text-display)] tabular-nums">
                                 {Math.round(it.kcal)}
-                                <span className="text-[color:var(--text-secondary)] text-[10px] ml-1">
+                                <span className="text-[color:var(--text-secondary)] text-[12px] ml-1">
                                   kcal
                                 </span>
                               </div>
-                              <div className="font-mono text-[10px] text-[color:var(--text-secondary)] tabular-nums">
+                              <div className="font-mono text-[12px] text-[color:var(--text-secondary)] tabular-nums">
                                 P{Math.round(it.protein_g)} · C{Math.round(it.carbs_g)} · F
                                 {Math.round(it.fat_g)}
                               </div>

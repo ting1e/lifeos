@@ -22,7 +22,7 @@ export function Ticker({
       {items.map((it, i) => (
         <div key={i} className="flex-shrink-0 flex items-baseline gap-2">
           <span className="mono-label">{it.label}</span>
-          <span className="font-mono text-sm text-[color:var(--text-display)] tabular-nums">{it.value}</span>
+          <span className="font-mono text-base text-[color:var(--text-display)] tabular-nums">{it.value}</span>
         </div>
       ))}
     </div>

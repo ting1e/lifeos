@@ -98,7 +98,7 @@ export function HistoryMatchHint({ text, mealHint }: { text: string; mealHint: M
 
   return (
     <div className="border border-[color:var(--accent)] bg-[color:var(--surface)] p-3 space-y-2">
-      <div className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.08em] text-[color:var(--accent)]">
+      <div className="flex items-center gap-1.5 font-mono text-[12px] uppercase tracking-[0.08em] text-[color:var(--accent)]">
         <Sparkles size={11} strokeWidth={1.75} />
         {t("food.fromHistorySkipAi")}
       </div>
@@ -106,10 +106,10 @@ export function HistoryMatchHint({ text, mealHint }: { text: string; mealHint: M
         {items.map((s) => (
           <li key={s.name + s.lastUsed} className="flex items-center gap-3">
             <div className="flex-1 min-w-0">
-              <div className="font-body text-sm text-[color:var(--text-display)] truncate">
+              <div className="font-body text-base text-[color:var(--text-display)] truncate">
                 {s.name}
               </div>
-              <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)] flex flex-wrap gap-x-3">
+              <div className="font-mono text-[12px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)] flex flex-wrap gap-x-3">
                 <span>{s.kcal ?? "?"} KCAL</span>
                 <span>
                   {s.proteinG ?? "?"}P · {s.carbsG ?? "?"}C · {s.fatG ?? "?"}F
@@ -124,7 +124,7 @@ export function HistoryMatchHint({ text, mealHint }: { text: string; mealHint: M
               type="button"
               onClick={() => log(s)}
               disabled={logging}
-              className="font-mono text-[10px] uppercase tracking-[0.08em] px-2 py-1 border border-[color:var(--accent)] text-[color:var(--accent)] hover:bg-[color:var(--accent)] hover:text-[color:var(--surface)] disabled:opacity-50"
+              className="font-mono text-[12px] uppercase tracking-[0.08em] px-2 py-1 border border-[color:var(--accent)] text-[color:var(--accent)] hover:bg-[color:var(--accent)] hover:text-[color:var(--surface)] disabled:opacity-50"
             >
               {logging ? "…" : `${t("common.log")} →`}
             </button>

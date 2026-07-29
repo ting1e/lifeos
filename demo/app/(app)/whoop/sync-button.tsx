@@ -46,7 +46,7 @@ export function SyncWhoopButton() {
         </Button>
       </div>
       {msg && (
-        <span className="font-mono text-[11px] text-[color:var(--text-secondary)] uppercase tracking-[0.08em]">
+        <span className="font-mono text-[13px] text-[color:var(--text-secondary)] uppercase tracking-[0.08em]">
           {msg}
         </span>
       )}

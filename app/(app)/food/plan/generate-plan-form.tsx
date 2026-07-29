@@ -49,8 +49,8 @@ export function GeneratePlanForm() {
           {busy ? t("plan.generatingForm") : t("plan.generateForm")}
         </Button>
       </div>
-      {error && <div className="font-mono text-[11px] text-[color:var(--accent)]">{error}</div>}
-      <div className="font-mono text-[11px] text-[color:var(--text-disabled)]">
+      {error && <div className="font-mono text-[13px] text-[color:var(--accent)]">{error}</div>}
+      <div className="font-mono text-[13px] text-[color:var(--text-disabled)]">
         {t("plan.usesProfile")}
       </div>
     </div>

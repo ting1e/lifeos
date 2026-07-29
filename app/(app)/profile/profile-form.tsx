@@ -50,7 +50,7 @@ export function ProfileForm({ initial }: { initial: Profile | undefined }) {
             maxLength={80}
             onChange={(e) => setForm({ ...form, displayName: e.target.value })}
           />
-          <div className="font-mono text-[10px] text-[color:var(--text-disabled)] mt-1">
+          <div className="font-mono text-[12px] text-[color:var(--text-disabled)] mt-1">
             {t("prof.displayNameHint")}
           </div>
         </div>

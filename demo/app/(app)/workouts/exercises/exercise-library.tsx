@@ -43,7 +43,7 @@ export function ExerciseLibrary({
                   <div className="aspect-square dot-grid-subtle border border-[color:var(--border)]" />
                 )}
                 <div>
-                  <div className="font-display text-base leading-tight">{name}</div>
+                  <div className="font-display text-lg leading-tight">{name}</div>
                   <div className="mono-label mt-1">
                     {ex.target ?? ex.bodyPart ?? "—"} · {ex.equipment ?? "—"}
                   </div>

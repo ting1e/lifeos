@@ -17,7 +17,7 @@ export function CardLabel({ className, ...props }: HTMLAttributes<HTMLDivElement
   return (
     <div
       className={cn(
-        "font-mono text-[11px] uppercase tracking-[0.1em] text-[color:var(--text-secondary)] mb-2",
+        "font-mono text-[13px] uppercase tracking-[0.1em] text-[color:var(--text-secondary)] mb-2",
         className,
       )}
       {...props}

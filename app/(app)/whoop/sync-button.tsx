@@ -90,12 +90,12 @@ export function SyncWhoopButton() {
         </Button>
       </div>
       {msg && (
-        <span className="font-mono text-[11px] text-[color:var(--text-secondary)] uppercase tracking-[0.08em]">
+        <span className="font-mono text-[13px] text-[color:var(--text-secondary)] uppercase tracking-[0.08em]">
           {msg}
         </span>
       )}
       {errors && (
-        <div className="font-mono text-[11px] text-[color:var(--accent)] uppercase tracking-[0.06em] text-right max-w-md">
+        <div className="font-mono text-[13px] text-[color:var(--accent)] uppercase tracking-[0.06em] text-right max-w-md">
           {Object.entries(errors).map(([k, v]) => (
             <div key={k}>
               → {k}: {v.slice(0, 80)}

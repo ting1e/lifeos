@@ -175,7 +175,7 @@ export function NewFoodForm({ initialDate }: { initialDate?: string } = {}) {
         </div>
       </div>
 
-      {error && <div className="font-mono text-[11px] text-[color:var(--accent)]">{error}</div>}
+      {error && <div className="font-mono text-[13px] text-[color:var(--accent)]">{error}</div>}
 
       <div className="flex justify-end">
         <Button type="submit" disabled={busy || !name}>

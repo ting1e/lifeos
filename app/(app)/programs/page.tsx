@@ -22,7 +22,7 @@ export default async function ProgramsPage() {
       <header className="flex items-baseline justify-between">
         <div>
           <div className="mono-label">{t("prog.training")}</div>
-          <h1 className="font-display text-4xl mt-1">{t("prog.title")}</h1>
+          <h1 className="font-display text-5xl mt-1">{t("prog.title")}</h1>
         </div>
         <Link href="/programs/new">
           <Button>{t("work.new")}</Button>
@@ -32,7 +32,7 @@ export default async function ProgramsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {rows.length === 0 && (
           <Card>
-            <div className="font-mono text-sm text-[color:var(--text-secondary)]">
+            <div className="font-mono text-base text-[color:var(--text-secondary)]">
               {t("prog.noProgramsYet")}
             </div>
           </Card>
@@ -41,9 +41,9 @@ export default async function ProgramsPage() {
           <Link key={p.id} href={`/programs/${p.id}`}>
             <Card className="hover:border-[color:var(--text-display)] transition">
               <div className="mono-label">{p.isTemplate ? t("prog.template") : t("prog.custom")}</div>
-              <div className="font-display text-2xl mt-1">{p.name}</div>
+              <div className="font-display text-3xl mt-1">{p.name}</div>
               {p.description && (
-                <div className="font-mono text-sm text-[color:var(--text-secondary)] mt-2 line-clamp-3">
+                <div className="font-mono text-base text-[color:var(--text-secondary)] mt-2 line-clamp-3">
                   {p.description}
                 </div>
               )}

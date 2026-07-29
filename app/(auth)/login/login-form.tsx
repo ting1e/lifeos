@@ -36,7 +36,7 @@ export function LoginForm() {
   return (
     <form onSubmit={onSubmit} className="space-y-6">
       <div>
-        <label className="block font-mono text-[11px] uppercase tracking-[0.1em] text-[color:var(--text-secondary)] mb-2">
+        <label className="block font-mono text-[13px] uppercase tracking-[0.1em] text-[color:var(--text-secondary)] mb-2">
           {t("auth.email")}
         </label>
         <input
@@ -45,11 +45,11 @@ export function LoginForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="w-full bg-transparent border-b border-[color:var(--border-visible)] py-3 font-body text-base text-[color:var(--text-display)] focus:outline-none focus:border-[color:var(--accent)] caret-[color:var(--accent)]"
+          className="w-full bg-transparent border-b border-[color:var(--border-visible)] py-3 font-body text-lg text-[color:var(--text-display)] focus:outline-none focus:border-[color:var(--accent)] caret-[color:var(--accent)]"
         />
       </div>
       <div>
-        <label className="block font-mono text-[11px] uppercase tracking-[0.1em] text-[color:var(--text-secondary)] mb-2">
+        <label className="block font-mono text-[13px] uppercase tracking-[0.1em] text-[color:var(--text-secondary)] mb-2">
           {t("auth.password")}
         </label>
         <input
@@ -58,12 +58,12 @@ export function LoginForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          className="w-full bg-transparent border-b border-[color:var(--border-visible)] py-3 font-body text-base text-[color:var(--text-display)] focus:outline-none focus:border-[color:var(--accent)] caret-[color:var(--accent)]"
+          className="w-full bg-transparent border-b border-[color:var(--border-visible)] py-3 font-body text-lg text-[color:var(--text-display)] focus:outline-none focus:border-[color:var(--accent)] caret-[color:var(--accent)]"
         />
       </div>
 
       {error && (
-        <div className="font-mono text-[11px] uppercase tracking-[0.1em] text-[color:var(--accent)]">
+        <div className="font-mono text-[13px] uppercase tracking-[0.1em] text-[color:var(--accent)]">
           → {error}
         </div>
       )}
@@ -71,7 +71,7 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={pending}
-        className="w-full bg-[color:var(--accent)] text-white font-mono font-bold text-[12px] uppercase tracking-[0.12em] py-4 hover:opacity-90 transition disabled:opacity-40 min-h-[48px]"
+        className="w-full bg-[color:var(--accent)] text-white font-mono font-bold text-[14px] uppercase tracking-[0.12em] py-4 hover:opacity-90 transition disabled:opacity-40 min-h-[48px]"
       >
         {pending ? t("common.busy") : t("auth.enter")}
       </button>

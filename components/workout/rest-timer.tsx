@@ -23,18 +23,18 @@ export function RestTimer({ seconds = 90, onDone }: { seconds?: number; onDone?:
 
   return (
     <div className="flex items-center gap-3">
-      <div className="font-mono text-3xl tabular-nums text-[color:var(--text-display)]">
+      <div className="font-mono text-4xl tabular-nums text-[color:var(--text-display)]">
         {mm}:{ss}
       </div>
       <button
         onClick={() => setRunning(!running)}
-        className="font-mono text-[11px] uppercase tracking-[0.1em] text-[color:var(--text-secondary)] hover:text-[color:var(--text-display)]"
+        className="font-mono text-[13px] uppercase tracking-[0.1em] text-[color:var(--text-secondary)] hover:text-[color:var(--text-display)]"
       >
         {running ? t("timer.pause") : t("timer.resume")}
       </button>
       <button
         onClick={() => setRemaining(seconds)}
-        className="font-mono text-[11px] uppercase tracking-[0.1em] text-[color:var(--text-secondary)] hover:text-[color:var(--text-display)]"
+        className="font-mono text-[13px] uppercase tracking-[0.1em] text-[color:var(--text-secondary)] hover:text-[color:var(--text-display)]"
       >
         {t("common.reset")}
       </button>

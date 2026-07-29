@@ -78,18 +78,18 @@ export function ExercisePicker({
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="bench press, squat, row…"
-              className="flex-1 bg-transparent py-3 font-body text-base text-[color:var(--text-display)] focus:outline-none"
+              className="flex-1 bg-transparent py-3 font-body text-lg text-[color:var(--text-display)] focus:outline-none"
             />
           </div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-2">
           {busy && rows.length === 0 ? (
-            <div className="font-mono text-[11px] text-[color:var(--text-disabled)] p-4">
+            <div className="font-mono text-[13px] text-[color:var(--text-disabled)] p-4">
               loading…
             </div>
           ) : rows.length === 0 ? (
-            <div className="font-mono text-[11px] text-[color:var(--text-disabled)] p-4">
+            <div className="font-mono text-[13px] text-[color:var(--text-disabled)] p-4">
               no match
             </div>
           ) : (
@@ -114,7 +114,7 @@ export function ExercisePicker({
                       <div className="w-16 h-16 dot-grid-subtle border border-[color:var(--border)]" />
                     )}
                     <div className="min-w-0">
-                      <div className="font-body text-sm text-[color:var(--text-display)] truncate">
+                      <div className="font-body text-base text-[color:var(--text-display)] truncate">
                         {ex.nameEn}
                       </div>
                       <div className="mono-label mt-1 truncate">

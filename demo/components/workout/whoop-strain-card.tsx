@@ -62,7 +62,7 @@ export function WhoopStrainCard({ workoutId }: { workoutId: string }) {
       <div className="flex items-center justify-between gap-3">
         <div>
           <CardLabel>WHOOP STRAIN</CardLabel>
-          <div className="font-mono text-[10px] text-[color:var(--text-disabled)] mt-1">
+          <div className="font-mono text-[12px] text-[color:var(--text-disabled)] mt-1">
             display-only — not deducted from kcal target
           </div>
         </div>
@@ -72,7 +72,7 @@ export function WhoopStrainCard({ workoutId }: { workoutId: string }) {
       </div>
 
       {!data && (
-        <div className="font-mono text-[11px] text-[color:var(--text-secondary)]">
+        <div className="font-mono text-[13px] text-[color:var(--text-secondary)]">
           No Whoop activity matches this workout&apos;s time window.
         </div>
       )}

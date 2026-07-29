@@ -50,7 +50,7 @@ export function DayNav({ selected, today, basePath = "/" }: Props) {
   const btn =
     "inline-flex items-center justify-center w-7 h-7 border border-[color:var(--border-visible)] text-[color:var(--text-secondary)] hover:border-[color:var(--text-display)] hover:text-[color:var(--text-display)]";
   const today_btn =
-    "inline-flex items-center justify-center px-2 h-7 border font-mono text-[10px] uppercase tracking-[0.08em]";
+    "inline-flex items-center justify-center px-2 h-7 border font-mono text-[12px] uppercase tracking-[0.08em]";
 
   return (
     <div className="flex items-center gap-1 shrink-0">

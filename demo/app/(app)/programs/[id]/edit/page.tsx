@@ -14,7 +14,7 @@ export default function ProgramEditPage() {
 
   if (!p || p.isTemplate || p.userId !== DEMO_USER_ID) {
     return (
-      <div className="font-mono text-sm text-[color:var(--text-secondary)] py-12 text-center">
+      <div className="font-mono text-base text-[color:var(--text-secondary)] py-12 text-center">
         not editable —{" "}
         <Link href="/programs" className="text-[color:var(--accent)]">
           back

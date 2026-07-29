@@ -126,7 +126,7 @@ export function FoodNameAutocomplete({ value, onChange, onPick, disabled }: Prop
         <button
           type="button"
           onClick={() => pick(exact)}
-          className="mt-1 inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.08em] px-2 py-1 border border-[color:var(--accent)] text-[color:var(--accent)] hover:bg-[color:var(--accent)] hover:text-[color:var(--surface)]"
+          className="mt-1 inline-flex items-center gap-1.5 font-mono text-[12px] uppercase tracking-[0.08em] px-2 py-1 border border-[color:var(--accent)] text-[color:var(--accent)] hover:bg-[color:var(--accent)] hover:text-[color:var(--surface)]"
         >
           <Sparkles size={10} strokeWidth={1.75} />
           {t("food.matchKcalUse", { kcal: exact.kcal ?? "?" })}
@@ -135,7 +135,7 @@ export function FoodNameAutocomplete({ value, onChange, onPick, disabled }: Prop
 
       {open && suggestions.length > 0 && (
         <div className="absolute z-20 left-0 right-0 mt-1 bg-[color:var(--surface)] border border-[color:var(--border-visible)] shadow-lg max-h-80 overflow-y-auto">
-          <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)] px-3 py-2 border-b border-[color:var(--border)] flex items-center gap-1.5">
+          <div className="font-mono text-[12px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)] px-3 py-2 border-b border-[color:var(--border)] flex items-center gap-1.5">
             <History size={10} strokeWidth={1.75} />
             {t("food.fromHistory")} · {suggestions.length}
           </div>
@@ -146,10 +146,10 @@ export function FoodNameAutocomplete({ value, onChange, onPick, disabled }: Prop
               onClick={() => pick(s)}
               className="w-full text-left px-3 py-2 border-b border-[color:var(--border)] last:border-b-0 hover:bg-[color:var(--border)] focus:bg-[color:var(--border)] focus:outline-none"
             >
-              <div className="font-body text-sm text-[color:var(--text-display)] line-clamp-1">
+              <div className="font-body text-base text-[color:var(--text-display)] line-clamp-1">
                 {s.name}
               </div>
-              <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)] mt-0.5 flex flex-wrap gap-x-3">
+              <div className="font-mono text-[12px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)] mt-0.5 flex flex-wrap gap-x-3">
                 <span>{s.kcal ?? "?"} KCAL</span>
                 <span>{s.proteinG ?? "?"}P</span>
                 <span>{s.carbsG ?? "?"}C</span>

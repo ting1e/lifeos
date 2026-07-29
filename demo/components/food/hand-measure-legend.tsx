@@ -29,7 +29,7 @@ export function HandMeasureLegend() {
         onClick={() => setOpen((v) => !v)}
         className="w-full flex items-center justify-between px-3 py-2 hover:bg-[color:var(--border)] focus:outline-none"
       >
-        <span className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.1em] text-[color:var(--text-secondary)]">
+        <span className="flex items-center gap-2 font-mono text-[13px] uppercase tracking-[0.1em] text-[color:var(--text-secondary)]">
           <Hand size={12} strokeWidth={1.75} />
           {t("plan.handMeasureTitle")}
         </span>
@@ -48,12 +48,12 @@ export function HandMeasureLegend() {
                 className="grid grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] gap-3 py-1 border-b border-[color:var(--border)] last:border-b-0"
               >
                 <div>
-                  <div className="font-body text-sm text-[color:var(--text-display)]">{r.idiom}</div>
-                  <div className="font-mono text-[10px] text-[color:var(--text-disabled)]">
+                  <div className="font-body text-base text-[color:var(--text-display)]">{r.idiom}</div>
+                  <div className="font-mono text-[12px] text-[color:var(--text-disabled)]">
                     {r.example}
                   </div>
                 </div>
-                <div className="font-mono text-[11px] uppercase tracking-[0.06em] text-[color:var(--accent)] self-center text-right tabular-nums">
+                <div className="font-mono text-[13px] uppercase tracking-[0.06em] text-[color:var(--accent)] self-center text-right tabular-nums">
                   {r.equiv}
                 </div>
               </div>

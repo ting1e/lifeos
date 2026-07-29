@@ -17,7 +17,7 @@ export default function WorkoutDetail() {
 
   if (!w) {
     return (
-      <div className="font-mono text-sm text-[color:var(--text-secondary)] py-12 text-center">
+      <div className="font-mono text-base text-[color:var(--text-secondary)] py-12 text-center">
         {t("work.workoutNotFound")}{" "}
         <Link href="/workouts" className="text-[color:var(--accent)]">
           {t("common.backLower")}
@@ -95,7 +95,7 @@ export default function WorkoutDetail() {
           >
             {t("work.back")}
           </Link>
-          <h1 className="font-display text-3xl md:text-4xl mt-2">
+          <h1 className="font-display text-4xl md:text-5xl mt-2">
             {new Date(w.startedAt).toLocaleString("en-US", {
               weekday: "short",
               day: "2-digit",

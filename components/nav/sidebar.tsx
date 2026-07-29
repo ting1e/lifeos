@@ -62,7 +62,7 @@ export function Sidebar() {
     <aside className="hidden md:flex md:flex-col w-64 border-r border-[color:var(--border)] bg-[color:var(--black)] sticky top-0 h-dvh">
       <div className="p-6 border-b border-[color:var(--border)]">
         <div className="mono-label">LIFETRACKER / V1</div>
-        <div className="font-display text-2xl mt-2">LifeOS</div>
+        <div className="font-display text-3xl mt-2">LifeOS</div>
       </div>
       <div className="flex-1 overflow-y-auto p-3 space-y-6">
         {SECTIONS.map((sec) => (
@@ -80,7 +80,7 @@ export function Sidebar() {
                     <Link
                       href={it.href}
                       className={cn(
-                        "flex items-center gap-3 px-3 py-2.5 text-sm transition",
+                        "flex items-center gap-3 px-3 py-2.5 text-base transition",
                         active
                           ? "text-[color:var(--text-display)] bg-[color:var(--surface-raised)]"
                           : "text-[color:var(--text-secondary)] hover:text-[color:var(--text-display)]",
@@ -106,7 +106,7 @@ export function Sidebar() {
         <form action="/api/auth/logout" method="post" className="p-3 border-t border-[color:var(--border)]">
           <button
             type="submit"
-            className="flex items-center gap-3 px-3 py-2.5 text-sm text-[color:var(--text-secondary)] hover:text-[color:var(--accent)] w-full"
+            className="flex items-center gap-3 px-3 py-2.5 text-base text-[color:var(--text-secondary)] hover:text-[color:var(--accent)] w-full"
           >
             <LogOut size={16} strokeWidth={1.5} />
             <span>{t("nav.signOut")}</span>

@@ -47,7 +47,7 @@ export function TopNav() {
         <div className="flex items-center gap-10 h-14">
           <Link
             href="/"
-            className="font-display text-2xl text-[color:var(--text-display)] leading-none shrink-0"
+            className="font-display text-3xl text-[color:var(--text-display)] leading-none shrink-0"
             aria-label="LifeOS — home"
           >
             LifeOS

@@ -269,7 +269,7 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
             onChange={(e) => setText(e.target.value)}
             rows={4}
             placeholder='e.g. "for breakfast: a lavash wrap with 1 boiled egg, half an avocado and yogurt-lemon sauce, plus an extra boiled egg, some greens, a matchbox of white cheese, 3 black olives"'
-            className="w-full bg-transparent border-b border-[color:var(--border-visible)] py-2 font-body text-base text-[color:var(--text-display)] focus:outline-none focus:border-[color:var(--accent)] resize-none placeholder:text-[color:var(--text-disabled)]"
+            className="w-full bg-transparent border-b border-[color:var(--border-visible)] py-2 font-body text-lg text-[color:var(--text-display)] focus:outline-none focus:border-[color:var(--accent)] resize-none placeholder:text-[color:var(--text-disabled)]"
           />
           {!result && <HistoryMatchHint text={text} mealHint={defaultMeal} />}
         </div>
@@ -305,12 +305,12 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
           {parsing ? t("food.parsing") : t("food.parseWithAi")}
         </Button>
         {status && !error && (
-          <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)]">
+          <span className="font-mono text-[13px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)]">
             {status}
           </span>
         )}
         {error && (
-          <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-[color:var(--accent)]">
+          <span className="font-mono text-[13px] uppercase tracking-[0.08em] text-[color:var(--accent)]">
             ERR · {error}
           </span>
         )}
@@ -320,7 +320,7 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
         <div className="space-y-3 pt-2 border-t border-[color:var(--border)]">
           <div className="flex items-baseline justify-between">
             <div className="mono-label">PREVIEW · {result.meal.toUpperCase()}</div>
-            <div className="font-mono text-[11px] text-[color:var(--text-disabled)] uppercase tracking-[0.08em]">
+            <div className="font-mono text-[13px] text-[color:var(--text-disabled)] uppercase tracking-[0.08em]">
               {result.confidence != null
                 ? `confidence ${(result.confidence * 100).toFixed(0)}%`
                 : ""}
@@ -354,15 +354,15 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
                     <input
                       value={it.name}
                       onChange={(e) => updateItem(i, { name: e.target.value })}
-                      className="w-full bg-transparent border-b border-[color:var(--border)] focus:border-[color:var(--accent)] py-1 font-body text-base text-[color:var(--text-display)] focus:outline-none"
+                      className="w-full bg-transparent border-b border-[color:var(--border)] focus:border-[color:var(--accent)] py-1 font-body text-lg text-[color:var(--text-display)] focus:outline-none"
                     />
                     {it.quantity && (
-                      <div className="font-mono text-[11px] text-[color:var(--text-secondary)] tracking-[0.04em]">
+                      <div className="font-mono text-[13px] text-[color:var(--text-secondary)] tracking-[0.04em]">
                         {it.quantity}
                       </div>
                     )}
                     {it.notes && (
-                      <div className="font-mono text-[10px] text-[color:var(--text-disabled)] italic">
+                      <div className="font-mono text-[12px] text-[color:var(--text-disabled)] italic">
                         {it.notes}
                       </div>
                     )}
@@ -451,10 +451,10 @@ function NumCell({
           min={0}
           value={Number.isFinite(value) ? value : 0}
           onChange={(e) => onChange(Number(e.target.value) || 0)}
-          className="w-full bg-transparent border-b border-[color:var(--border)] focus:border-[color:var(--accent)] py-1 font-mono text-sm text-[color:var(--text-display)] tabular-nums focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          className="w-full bg-transparent border-b border-[color:var(--border)] focus:border-[color:var(--accent)] py-1 font-mono text-base text-[color:var(--text-display)] tabular-nums focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
         />
         {unit && (
-          <span className="font-mono text-[10px] text-[color:var(--text-secondary)]">
+          <span className="font-mono text-[12px] text-[color:var(--text-secondary)]">
             {unit}
           </span>
         )}
@@ -475,9 +475,9 @@ function Totals({
   return (
     <div className="flex flex-col gap-1">
       <span className="mono-label">{label}</span>
-      <span className="font-mono text-lg text-[color:var(--text-display)] tabular-nums">
+      <span className="font-mono text-xl text-[color:var(--text-display)] tabular-nums">
         {value}
-        {unit ? <span className="text-[color:var(--text-secondary)] text-[11px] ml-1">{unit}</span> : null}
+        {unit ? <span className="text-[color:var(--text-secondary)] text-[13px] ml-1">{unit}</span> : null}
       </span>
     </div>
   );

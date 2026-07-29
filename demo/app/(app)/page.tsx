@@ -139,7 +139,7 @@ export default function Dashboard() {
             <span className="ml-2 text-[color:var(--accent)]">{t("dash.viewing")}</span>
           )}
         </div>
-        <h1 className="font-display text-4xl md:text-5xl mt-1">{greeting}</h1>
+        <h1 className="font-display text-5xl md:text-6xl mt-1">{greeting}</h1>
       </header>
 
       <div className="flex items-center gap-4 py-2 px-1 -mx-4 px-4 border-b border-[color:var(--border)]">
@@ -217,7 +217,7 @@ export default function Dashboard() {
               icon={<Moon size={12} strokeWidth={1.75} />}
             />
             {sleep?.performancePct != null && (
-              <div className="font-mono text-[10px] text-[color:var(--text-secondary)] uppercase tracking-[0.08em] mt-2">
+              <div className="font-mono text-[12px] text-[color:var(--text-secondary)] uppercase tracking-[0.08em] mt-2">
                 {t("dash.sleepPerformance")} {Number(sleep.performancePct).toFixed(0)}%
               </div>
             )}
@@ -289,7 +289,7 @@ export default function Dashboard() {
       {!whoopConnected && (
         <Link
           href="/whoop"
-          className="block border border-dashed border-[color:var(--border-visible)] px-4 py-3 text-center font-mono text-[11px] uppercase tracking-[0.1em] text-[color:var(--text-secondary)] hover:border-[color:var(--accent)] hover:text-[color:var(--accent)]"
+          className="block border border-dashed border-[color:var(--border-visible)] px-4 py-3 text-center font-mono text-[13px] uppercase tracking-[0.1em] text-[color:var(--text-secondary)] hover:border-[color:var(--accent)] hover:text-[color:var(--accent)]"
         >
           {t("dash.connectWhoop")}
         </Link>
@@ -312,7 +312,7 @@ export default function Dashboard() {
           <CardLabel>{t("dash.lastWorkout")}</CardLabel>
           {lastWorkout ? (
             <div>
-              <div className="font-display text-2xl">
+              <div className="font-display text-3xl">
                 {new Date(lastWorkout.startedAt).toLocaleDateString(bcp47, {
                   day: "2-digit",
                   month: "short",
@@ -323,13 +323,13 @@ export default function Dashboard() {
               </div>
               <Link
                 href={`/workouts/${lastWorkout.id}`}
-                className="font-mono text-[11px] uppercase tracking-[0.1em] text-[color:var(--accent)] mt-3 inline-block"
+                className="font-mono text-[13px] uppercase tracking-[0.1em] text-[color:var(--accent)] mt-3 inline-block"
               >
                 {t("common.open")} →
               </Link>
             </div>
           ) : (
-            <div className="font-mono text-sm text-[color:var(--text-secondary)]">
+            <div className="font-mono text-base text-[color:var(--text-secondary)]">
               {t("dash.noWorkoutYet")}{" "}
               <Link href="/workouts/new" className="text-[color:var(--accent)]">
                 {t("dash.startOne")}
@@ -349,7 +349,7 @@ export default function Dashboard() {
           <Link
             key={a.href}
             href={a.href}
-            className="border border-[color:var(--border-visible)] py-4 px-3 text-center font-mono text-[11px] uppercase tracking-[0.1em] hover:border-[color:var(--text-display)] hover:text-[color:var(--text-display)] text-[color:var(--text-secondary)]"
+            className="border border-[color:var(--border-visible)] py-4 px-3 text-center font-mono text-[13px] uppercase tracking-[0.1em] hover:border-[color:var(--text-display)] hover:text-[color:var(--text-display)] text-[color:var(--text-secondary)]"
           >
             {a.label} →
           </Link>

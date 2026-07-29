@@ -50,7 +50,7 @@ export function DeleteProgramButton({
 
   return (
     <div className="flex items-center gap-2">
-      <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)]">
+      <span className="font-mono text-[13px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)]">
         SURE?
       </span>
       <Button variant="ghost" size="sm" onClick={() => setConfirming(false)} disabled={busy}>
@@ -60,7 +60,7 @@ export function DeleteProgramButton({
         {busy ? "DELETING…" : "YES, DELETE"}
       </Button>
       {err && (
-        <span className="font-mono text-[11px] uppercase text-[color:var(--accent)]">
+        <span className="font-mono text-[13px] uppercase text-[color:var(--accent)]">
           {err}
         </span>
       )}

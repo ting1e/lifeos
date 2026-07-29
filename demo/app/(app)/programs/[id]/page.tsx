@@ -20,7 +20,7 @@ export default function ProgramDetail() {
 
   if (!p) {
     return (
-      <div className="font-mono text-sm text-[color:var(--text-secondary)] py-12 text-center">
+      <div className="font-mono text-base text-[color:var(--text-secondary)] py-12 text-center">
         {t("prog.programNotFound")}{" "}
         <Link href="/programs" className="text-[color:var(--accent)]">
           {t("common.backLower")}
@@ -68,7 +68,7 @@ export default function ProgramDetail() {
           <Link href="/programs" className="mono-label hover:text-[color:var(--text-display)]">
             {t("prog.editBackLink")}
           </Link>
-          <h1 className="font-display text-4xl mt-2 break-words">{p.name}</h1>
+          <h1 className="font-display text-5xl mt-2 break-words">{p.name}</h1>
           {p.description && (
             <p className="font-body text-[color:var(--text-secondary)] mt-2 max-w-prose">
               {p.description}
@@ -92,7 +92,7 @@ export default function ProgramDetail() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <div className="mono-label">{t("prog.dayLabel")} {day.dayIndex + 1}</div>
-                <div className="font-display text-xl mt-1">{day.name}</div>
+                <div className="font-display text-2xl mt-1">{day.name}</div>
               </div>
               <StartDayForm programId={p.id} programDayId={day.id} />
             </div>
@@ -119,19 +119,19 @@ export default function ProgramDetail() {
                       <div className="w-16 h-16 dot-grid-subtle border border-[color:var(--border)]" />
                     )}
                     <div className="min-w-0">
-                      <div className="font-body text-sm text-[color:var(--text-display)] truncate">
+                      <div className="font-body text-base text-[color:var(--text-display)] truncate">
                         {displayName}
                       </div>
                       <div className="mono-label mt-0.5 truncate">
                         {[e.target, e.bodyPart, e.equipment].filter(Boolean).join(" · ")}
                       </div>
                       {e.notes && (
-                        <div className="font-mono text-[10px] text-[color:var(--text-disabled)] mt-1 truncate">
+                        <div className="font-mono text-[12px] text-[color:var(--text-disabled)] mt-1 truncate">
                           {e.notes}
                         </div>
                       )}
                     </div>
-                    <div className="font-mono text-[12px] text-[color:var(--text-display)] tabular-nums text-right whitespace-nowrap">
+                    <div className="font-mono text-[14px] text-[color:var(--text-display)] tabular-nums text-right whitespace-nowrap">
                       {e.targetSets ?? "?"} × {e.targetReps ?? "?"}
                       {e.targetWeightKg ? (
                         <div className="text-[color:var(--text-secondary)]">

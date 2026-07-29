@@ -64,7 +64,7 @@ export default function FoodPage() {
       <header className="flex items-baseline justify-between">
         <div>
           <div className="mono-label">{t("food.foodLog")}</div>
-          <h1 className="font-display text-4xl mt-1">{t("food.title")}</h1>
+          <h1 className="font-display text-5xl mt-1">{t("food.title")}</h1>
         </div>
         <Link href="/food/new">
           <Button>{t("food.log")}</Button>
@@ -107,7 +107,7 @@ export default function FoodPage() {
       <section className="space-y-5">
         {today.length === 0 ? (
           <Card>
-            <div className="font-mono text-sm text-[color:var(--text-secondary)] py-6 text-center">
+            <div className="font-mono text-base text-[color:var(--text-secondary)] py-6 text-center">
               {t("food.noEntries")} —{" "}
               <Link href="/food/new" className="text-[color:var(--accent)]">
                 {t("food.addOne")}
@@ -130,7 +130,7 @@ export default function FoodPage() {
                     <MealIcon size={12} strokeWidth={1.75} />
                     {MEAL_LABELS[meal]} · {items.length} {t("food.items")}
                   </CardLabel>
-                  <div className="font-mono text-[11px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)] tabular-nums">
+                  <div className="font-mono text-[13px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)] tabular-nums">
                     {Math.round(mealKcal)} kcal · P{Math.round(mealP)} C{Math.round(mealC)} F{Math.round(mealF)}
                   </div>
                 </div>
@@ -144,7 +144,7 @@ export default function FoodPage() {
                         <div className="font-body text-[color:var(--text-display)] truncate">
                           {e.name}
                         </div>
-                        <div className="font-mono text-[10px] text-[color:var(--text-secondary)] mt-1 tabular-nums">
+                        <div className="font-mono text-[12px] text-[color:var(--text-secondary)] mt-1 tabular-nums">
                           P{Math.round(Number(e.proteinG ?? 0))} · C{Math.round(Number(e.carbsG ?? 0))} · F{Math.round(Number(e.fatG ?? 0))}
                           <span className="text-[color:var(--text-disabled)] ml-2">
                             {new Date(e.consumedAt).toLocaleTimeString("en-US", {
@@ -155,7 +155,7 @@ export default function FoodPage() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="font-mono text-xl text-[color:var(--text-display)] tabular-nums">
+                        <div className="font-mono text-2xl text-[color:var(--text-display)] tabular-nums">
                           {Math.round(Number(e.kcal ?? 0))}
                         </div>
                         <div className="mono-label">KCAL</div>

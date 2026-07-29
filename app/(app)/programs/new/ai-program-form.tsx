@@ -173,7 +173,7 @@ export function AiProgramForm() {
           onChange={(e) => setFocus(e.target.value)}
           rows={2}
           placeholder={t("prog.focusPlaceholder")}
-          className="w-full bg-transparent border-b border-[color:var(--border-visible)] py-2 font-body text-base text-[color:var(--text-display)] focus:outline-none focus:border-[color:var(--accent)] resize-none placeholder:text-[color:var(--text-disabled)]"
+          className="w-full bg-transparent border-b border-[color:var(--border-visible)] py-2 font-body text-lg text-[color:var(--text-display)] focus:outline-none focus:border-[color:var(--accent)] resize-none placeholder:text-[color:var(--text-disabled)]"
         />
       </div>
 
@@ -184,18 +184,18 @@ export function AiProgramForm() {
           onChange={(e) => setInjuries(e.target.value)}
           rows={2}
           placeholder={t("prog.injuriesPlaceholder")}
-          className="w-full bg-transparent border-b border-[color:var(--border-visible)] py-2 font-body text-base text-[color:var(--text-display)] focus:outline-none focus:border-[color:var(--accent)] resize-none placeholder:text-[color:var(--text-disabled)]"
+          className="w-full bg-transparent border-b border-[color:var(--border-visible)] py-2 font-body text-lg text-[color:var(--text-display)] focus:outline-none focus:border-[color:var(--accent)] resize-none placeholder:text-[color:var(--text-disabled)]"
         />
       </div>
 
       {status && (
-        <div className="font-mono text-[11px] uppercase tracking-[0.1em] text-[color:var(--text-secondary)]">
+        <div className="font-mono text-[13px] uppercase tracking-[0.1em] text-[color:var(--text-secondary)]">
           {status}
         </div>
       )}
 
       {warnings.length > 0 && (
-        <div className="font-mono text-[11px] uppercase tracking-[0.08em] text-[color:var(--warning)]">
+        <div className="font-mono text-[13px] uppercase tracking-[0.08em] text-[color:var(--warning)]">
           → {warnings.length} {t("prog.exercisesNotMatched")} {warnings.slice(0, 4).join(", ")}
           {warnings.length > 4 ? "…" : ""}
         </div>

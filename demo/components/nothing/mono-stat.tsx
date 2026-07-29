@@ -36,14 +36,14 @@ export function MonoStat({
       <div className="flex items-baseline gap-1.5">
         <div
           className={cn(
-            "font-mono text-3xl md:text-4xl tabular-nums leading-none",
+            "font-mono text-4xl md:text-5xl tabular-nums leading-none",
             accent ? "text-[color:var(--accent)]" : "text-[color:var(--text-display)]",
           )}
         >
           {value}
         </div>
         {unit && (
-          <div className="font-mono text-[11px] tracking-[0.08em] uppercase text-[color:var(--text-secondary)]">
+          <div className="font-mono text-[13px] tracking-[0.08em] uppercase text-[color:var(--text-secondary)]">
             {unit}
           </div>
         )}

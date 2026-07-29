@@ -46,14 +46,14 @@ export function SetRow({
         done && "opacity-60",
       )}
     >
-      <div className="font-mono text-[11px] text-[color:var(--text-secondary)]">#{setIndex + 1}</div>
+      <div className="font-mono text-[13px] text-[color:var(--text-secondary)]">#{setIndex + 1}</div>
       <input
         inputMode="decimal"
         placeholder={lastTime ? lastTime.weightKg.toString() : "kg"}
         value={weight}
         onChange={(e) => setWeight(e.target.value)}
         disabled={done || disabled}
-        className="bg-transparent border-b border-[color:var(--border-visible)] py-2 px-1 font-mono text-base text-[color:var(--text-display)] focus:outline-none focus:border-[color:var(--accent)]"
+        className="bg-transparent border-b border-[color:var(--border-visible)] py-2 px-1 font-mono text-lg text-[color:var(--text-display)] focus:outline-none focus:border-[color:var(--accent)]"
       />
       <input
         inputMode="numeric"
@@ -61,7 +61,7 @@ export function SetRow({
         value={reps}
         onChange={(e) => setReps(e.target.value)}
         disabled={done || disabled}
-        className="bg-transparent border-b border-[color:var(--border-visible)] py-2 px-1 font-mono text-base text-[color:var(--text-display)] focus:outline-none focus:border-[color:var(--accent)]"
+        className="bg-transparent border-b border-[color:var(--border-visible)] py-2 px-1 font-mono text-lg text-[color:var(--text-display)] focus:outline-none focus:border-[color:var(--accent)]"
       />
       <input
         inputMode="numeric"
@@ -69,7 +69,7 @@ export function SetRow({
         value={rpe}
         onChange={(e) => setRpe(e.target.value)}
         disabled={done || disabled}
-        className="bg-transparent border-b border-[color:var(--border-visible)] py-2 px-1 font-mono text-sm text-[color:var(--text-secondary)] focus:outline-none focus:border-[color:var(--accent)]"
+        className="bg-transparent border-b border-[color:var(--border-visible)] py-2 px-1 font-mono text-base text-[color:var(--text-secondary)] focus:outline-none focus:border-[color:var(--accent)]"
       />
       <button
         type="button"

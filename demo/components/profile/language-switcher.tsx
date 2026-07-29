@@ -30,7 +30,7 @@ export function LanguageSwitcher() {
             type="button"
             onClick={() => pick(l)}
             aria-pressed={locale === l}
-            className={`font-mono text-[11px] uppercase tracking-[0.1em] px-3 py-2 border ${
+            className={`font-mono text-[13px] uppercase tracking-[0.1em] px-3 py-2 border ${
               locale === l
                 ? "border-[color:var(--text-display)] text-[color:var(--text-display)] bg-[color:var(--surface-raised)]"
                 : "border-[color:var(--border-visible)] text-[color:var(--text-secondary)] hover:border-[color:var(--text-display)] hover:text-[color:var(--text-display)]"
@@ -40,7 +40,7 @@ export function LanguageSwitcher() {
           </button>
         ))}
       </div>
-      <div className="font-mono text-[10px] text-[color:var(--text-disabled)]">
+      <div className="font-mono text-[12px] text-[color:var(--text-disabled)]">
         {t("profile.languageHint")}
       </div>
     </div>

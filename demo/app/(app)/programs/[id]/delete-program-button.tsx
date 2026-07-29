@@ -53,7 +53,7 @@ export function DeleteProgramButton({
 
   return (
     <div className="flex items-center gap-2">
-      <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)]">
+      <span className="font-mono text-[13px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)]">
         {t("prog.deleteConfirmation")}
       </span>
       <Button variant="ghost" size="sm" onClick={() => setConfirming(false)} disabled={busy}>

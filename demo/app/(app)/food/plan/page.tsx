@@ -69,7 +69,7 @@ export default function MealPlanPage() {
     <div className="space-y-6">
       <header>
         <div className="mono-label">{t("plan.aiMealPlanner")}</div>
-        <h1 className="font-display text-4xl mt-1">{t("plan.title")}</h1>
+        <h1 className="font-display text-5xl mt-1">{t("plan.title")}</h1>
       </header>
 
       <Card>
@@ -84,7 +84,7 @@ export default function MealPlanPage() {
               <div className="mono-label">
                 {t("plan.week")} · {rangeLabel(plan.starts_on, plan.ends_on, bcp47)}
               </div>
-              <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-[color:var(--text-disabled)]">
+              <div className="font-mono text-[12px] uppercase tracking-[0.08em] text-[color:var(--text-disabled)]">
                 {t(plan.days.length === 1 ? "plan.daysCountOne" : "plan.daysCountMany", {
                   n: plan.days.length,
                 })}

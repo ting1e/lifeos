@@ -89,7 +89,7 @@ export function ShoppingChecklist({ shoppingListId }: Props) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)]">
+        <div className="flex items-center gap-2 font-mono text-[13px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)]">
           <ShoppingBasket size={12} strokeWidth={1.75} />
           {t("plan.bought", { done, total, pct })}
         </div>
@@ -97,7 +97,7 @@ export function ShoppingChecklist({ shoppingListId }: Props) {
           <button
             type="button"
             onClick={() => setHideChecked((v) => !v)}
-            className={`font-mono text-[10px] uppercase tracking-[0.08em] px-2 py-1 border ${
+            className={`font-mono text-[12px] uppercase tracking-[0.08em] px-2 py-1 border ${
               hideChecked
                 ? "border-[color:var(--text-display)] text-[color:var(--text-display)]"
                 : "border-[color:var(--border-visible)] text-[color:var(--text-secondary)]"
@@ -109,7 +109,7 @@ export function ShoppingChecklist({ shoppingListId }: Props) {
             type="button"
             onClick={reset}
             disabled={done === 0}
-            className="font-mono text-[10px] uppercase tracking-[0.08em] px-2 py-1 border border-[color:var(--border-visible)] text-[color:var(--text-secondary)] hover:border-[color:var(--accent)] hover:text-[color:var(--accent)] disabled:opacity-30"
+            className="font-mono text-[12px] uppercase tracking-[0.08em] px-2 py-1 border border-[color:var(--border-visible)] text-[color:var(--text-secondary)] hover:border-[color:var(--accent)] hover:text-[color:var(--accent)] disabled:opacity-30"
           >
             {t("common.reset")}
           </button>
@@ -158,7 +158,7 @@ export function ShoppingChecklist({ shoppingListId }: Props) {
                           onChange={() => toggle(it)}
                         />
                         <span
-                          className={`font-body text-sm flex-1 min-w-0 truncate ${
+                          className={`font-body text-base flex-1 min-w-0 truncate ${
                             it.checked
                               ? "line-through text-[color:var(--text-secondary)]"
                               : "text-[color:var(--text-display)]"
@@ -167,7 +167,7 @@ export function ShoppingChecklist({ shoppingListId }: Props) {
                           {it.name}
                         </span>
                         {(it.qty != null || it.unit) && (
-                          <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-[color:var(--text-secondary)] tabular-nums shrink-0">
+                          <span className="font-mono text-[13px] uppercase tracking-[0.06em] text-[color:var(--text-secondary)] tabular-nums shrink-0">
                             {it.qty ?? ""} {it.unit ?? ""}
                           </span>
                         )}
@@ -182,7 +182,7 @@ export function ShoppingChecklist({ shoppingListId }: Props) {
       </div>
 
       {total > 0 && done === total && (
-        <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.08em] text-[color:var(--success)] border-t border-[color:var(--border)] pt-3">
+        <div className="flex items-center gap-2 font-mono text-[13px] uppercase tracking-[0.08em] text-[color:var(--success)] border-t border-[color:var(--border)] pt-3">
           <Sparkles size={12} strokeWidth={1.75} />
           {t("plan.allBought")}
         </div>

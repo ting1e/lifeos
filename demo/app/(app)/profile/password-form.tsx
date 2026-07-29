@@ -71,7 +71,7 @@ export function PasswordForm() {
 
       {msg && (
         <div
-          className={`font-mono text-[11px] uppercase tracking-[0.1em] ${
+          className={`font-mono text-[13px] uppercase tracking-[0.1em] ${
             msg.kind === "ok" ? "text-[color:var(--success)]" : "text-[color:var(--accent)]"
           }`}
         >

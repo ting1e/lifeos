@@ -58,7 +58,7 @@ export function WeeklyInsights() {
           {data.highlights.length > 0 && (
             <div>
               <div className="mono-label mb-1">HIGHLIGHTS</div>
-              <ul className="text-sm space-y-1">
+              <ul className="text-base space-y-1">
                 {data.highlights.map((h, i) => (
                   <li key={i}>· {h}</li>
                 ))}
@@ -68,7 +68,7 @@ export function WeeklyInsights() {
           {data.warnings.length > 0 && (
             <div>
               <div className="mono-label mb-1 text-[color:var(--warning)]">WARNINGS</div>
-              <ul className="text-sm space-y-1">
+              <ul className="text-base space-y-1">
                 {data.warnings.map((h, i) => (
                   <li key={i}>· {h}</li>
                 ))}
@@ -78,19 +78,19 @@ export function WeeklyInsights() {
           {data.recommendations.length > 0 && (
             <div>
               <div className="mono-label mb-1 text-[color:var(--accent)]">RECOMMENDATIONS</div>
-              <ul className="text-sm space-y-1">
+              <ul className="text-base space-y-1">
                 {data.recommendations.map((h, i) => (
                   <li key={i}>· {h}</li>
                 ))}
               </ul>
             </div>
           )}
-          <div className="font-mono text-[10px] text-[color:var(--text-disabled)] pt-2 border-t border-[color:var(--border)]">
+          <div className="font-mono text-[12px] text-[color:var(--text-disabled)] pt-2 border-t border-[color:var(--border)]">
             Demo: canned summary. The real app generates these with Claude Sonnet via fal.ai.
           </div>
         </div>
       ) : (
-        <div className="font-mono text-sm text-[color:var(--text-secondary)]">
+        <div className="font-mono text-base text-[color:var(--text-secondary)]">
           Click GENERATE to get a Sonnet-powered review of the last 7 days.
         </div>
       )}

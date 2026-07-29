@@ -63,7 +63,7 @@ export function WeightProjection(props: Props) {
           <TrendingDown size={12} strokeWidth={1.75} />
           {t("proj.title")}
         </CardLabel>
-        <div className="font-mono text-sm text-[color:var(--text-secondary)]">
+        <div className="font-mono text-base text-[color:var(--text-secondary)]">
           {t("proj.needProfile")}
         </div>
       </Card>
@@ -99,7 +99,7 @@ export function WeightProjection(props: Props) {
             <button
               key={h.weeks}
               onClick={() => setWeeks(h.weeks)}
-              className={`font-mono text-[10px] uppercase tracking-[0.08em] px-2 py-1 border ${
+              className={`font-mono text-[12px] uppercase tracking-[0.08em] px-2 py-1 border ${
                 weeks === h.weeks
                   ? "border-[color:var(--text-display)] text-[color:var(--text-display)]"
                   : "border-[color:var(--border-visible)] text-[color:var(--text-secondary)]"
@@ -113,30 +113,30 @@ export function WeightProjection(props: Props) {
 
       <div className="grid grid-cols-3 gap-3 mb-3">
         <div>
-          <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)]">
+          <div className="font-mono text-[12px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)]">
             {t("proj.now")}
           </div>
-          <div className="font-display text-2xl">{points[0].weightKg.toFixed(1)}</div>
-          <div className="font-mono text-[10px] text-[color:var(--text-secondary)]">kg</div>
+          <div className="font-display text-3xl">{points[0].weightKg.toFixed(1)}</div>
+          <div className="font-mono text-[12px] text-[color:var(--text-secondary)]">kg</div>
         </div>
         <div>
-          <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)]">
+          <div className="font-mono text-[12px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)]">
             {t("proj.inWeeks", { weeks })}
           </div>
-          <div className="font-display text-2xl">{end.weightKg.toFixed(1)}</div>
-          <div className="font-mono text-[10px] text-[color:var(--text-secondary)]">
+          <div className="font-display text-3xl">{end.weightKg.toFixed(1)}</div>
+          <div className="font-mono text-[12px] text-[color:var(--text-secondary)]">
             {delta >= 0 ? "+" : ""}
             {delta.toFixed(1)} kg
           </div>
         </div>
         <div>
-          <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)]">
+          <div className="font-mono text-[12px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)]">
             {t("proj.deficit")}
           </div>
-          <div className="font-display text-2xl">
+          <div className="font-display text-3xl">
             {Math.round(points[0].dailyDeficitKcal)}
           </div>
-          <div className="font-mono text-[10px] text-[color:var(--text-secondary)]">
+          <div className="font-mono text-[12px] text-[color:var(--text-secondary)]">
             {t("proj.deficitUnit")}
           </div>
         </div>
@@ -157,7 +157,7 @@ export function WeightProjection(props: Props) {
       />
 
       {targetWeeks != null && props.goalWeightKg && (
-        <div className="mt-3 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.08em] text-[color:var(--accent)] border-t border-[color:var(--border)] pt-3">
+        <div className="mt-3 flex items-center gap-2 font-mono text-[13px] uppercase tracking-[0.08em] text-[color:var(--accent)] border-t border-[color:var(--border)] pt-3">
           <Target size={12} strokeWidth={1.75} />
           {t("proj.targetReached", {
             kg: props.goalWeightKg.toFixed(1),
@@ -166,7 +166,7 @@ export function WeightProjection(props: Props) {
         </div>
       )}
       {targetWeeks == null && props.goalWeightKg && props.goalWeightKg > 0 && (
-        <div className="mt-3 font-mono text-[11px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)] border-t border-[color:var(--border)] pt-3">
+        <div className="mt-3 font-mono text-[13px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)] border-t border-[color:var(--border)] pt-3">
           {t("proj.targetNotReached", { kg: props.goalWeightKg.toFixed(1), weeks })}
         </div>
       )}

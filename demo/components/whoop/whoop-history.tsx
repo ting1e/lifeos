@@ -54,7 +54,7 @@ export function WhoopHistory({ days = 30 }: { days?: number }) {
     return (
       <Card>
         <CardLabel>HISTORY · {days}D</CardLabel>
-        <div className="font-mono text-[11px] text-[color:var(--text-secondary)] uppercase tracking-[0.08em] mt-2">
+        <div className="font-mono text-[13px] text-[color:var(--text-secondary)] uppercase tracking-[0.08em] mt-2">
           → no historical data yet. run a deep sync to backfill.
         </div>
       </Card>
@@ -101,7 +101,7 @@ export function WhoopHistory({ days = 30 }: { days?: number }) {
     <Card className="space-y-6">
       <div className="flex items-baseline justify-between">
         <CardLabel>HISTORY · {days}D</CardLabel>
-        <div className="font-mono text-[10px] tracking-[0.08em] text-[color:var(--text-disabled)] uppercase">
+        <div className="font-mono text-[12px] tracking-[0.08em] text-[color:var(--text-disabled)] uppercase">
           {range[0]} → {range[range.length - 1]}
         </div>
       </div>

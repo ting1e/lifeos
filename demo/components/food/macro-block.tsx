@@ -40,16 +40,16 @@ function MacroTile({
       </div>
       <div className="flex items-baseline gap-2">
         <span
-          className="font-mono text-4xl md:text-5xl leading-none tabular-nums"
+          className="font-mono text-5xl md:text-6xl leading-none tabular-nums"
           style={{ color }}
         >
           {Math.round(value)}
         </span>
-        <span className="font-mono text-[11px] tracking-[0.08em] uppercase text-[color:var(--text-secondary)]">
+        <span className="font-mono text-[13px] tracking-[0.08em] uppercase text-[color:var(--text-secondary)]">
           {unit}
         </span>
         {safeTarget && (
-          <span className="font-mono text-[11px] tracking-[0.08em] uppercase text-[color:var(--text-disabled)] ml-auto">
+          <span className="font-mono text-[13px] tracking-[0.08em] uppercase text-[color:var(--text-disabled)] ml-auto">
             / {Math.round(safeTarget)}
           </span>
         )}
@@ -99,7 +99,7 @@ export function MacroBlock({
     <Card className="flex flex-col gap-5 h-full">
       <div className="flex flex-col gap-1 md:flex-row md:items-baseline md:justify-between">
         <CardLabel className="mb-0">TODAY'S MACROS</CardLabel>
-        <div className="font-mono text-[11px] uppercase tracking-[0.08em] tabular-nums">
+        <div className="font-mono text-[13px] uppercase tracking-[0.08em] tabular-nums">
           <span
             className={
               overTarget
@@ -159,7 +159,7 @@ export function MacroBlock({
         </div>
 
         {(pRem !== null || cRem !== null || fRem !== null || kcalRem !== null) && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-1 font-mono text-[11px] uppercase tracking-[0.08em] tabular-nums">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-1 font-mono text-[13px] uppercase tracking-[0.08em] tabular-nums">
             <RemainingCell label="KCAL LEFT" value={kcalRem} />
             <RemainingCell label="P LEFT" value={pRem} unit="g" color="var(--success)" />
             <RemainingCell label="C LEFT" value={cRem} unit="g" color="var(--warning)" />
@@ -186,12 +186,12 @@ function RemainingCell({
     <div className="flex flex-col gap-0.5">
       <span className="text-[color:var(--text-disabled)]">{label}</span>
       <span
-        className="text-base"
+        className="text-lg"
         style={{ color: color ?? "var(--text-display)" }}
       >
         {value == null ? "—" : value}
         {unit && value != null ? (
-          <span className="text-[10px] text-[color:var(--text-secondary)] ml-1">{unit}</span>
+          <span className="text-[12px] text-[color:var(--text-secondary)] ml-1">{unit}</span>
         ) : null}
       </span>
     </div>

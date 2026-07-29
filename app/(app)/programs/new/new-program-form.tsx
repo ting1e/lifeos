@@ -42,7 +42,7 @@ export function NewProgramForm() {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={3}
-          className="w-full bg-transparent border-b border-[color:var(--border-visible)] py-2 font-body text-base text-[color:var(--text-display)] focus:outline-none focus:border-[color:var(--accent)] resize-none"
+          className="w-full bg-transparent border-b border-[color:var(--border-visible)] py-2 font-body text-lg text-[color:var(--text-display)] focus:outline-none focus:border-[color:var(--accent)] resize-none"
         />
       </div>
       <div className="flex justify-end">

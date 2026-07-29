@@ -106,7 +106,7 @@ export function ExerciseDetailDrawer({
           )}
 
           <div>
-            <h2 className="font-display text-3xl text-[color:var(--text-display)] leading-tight">
+            <h2 className="font-display text-4xl text-[color:var(--text-display)] leading-tight">
               {name}
             </h2>
             <div className="mono-label mt-2">
@@ -123,9 +123,9 @@ export function ExerciseDetailDrawer({
                 {steps.map((s, i) => (
                   <li
                     key={i}
-                    className="grid grid-cols-[24px_1fr] gap-3 font-body text-sm text-[color:var(--text-primary)]"
+                    className="grid grid-cols-[24px_1fr] gap-3 font-body text-base text-[color:var(--text-primary)]"
                   >
-                    <span className="font-mono text-[11px] text-[color:var(--text-disabled)] pt-1">
+                    <span className="font-mono text-[13px] text-[color:var(--text-disabled)] pt-1">
                       {String(i + 1).padStart(2, "0")}
                     </span>
                     <span>{s}</span>
@@ -142,7 +142,7 @@ export function ExerciseDetailDrawer({
                 {exercise.secondaryMuscles.map((m) => (
                   <span
                     key={m}
-                    className="font-mono text-[10px] uppercase tracking-[0.1em] text-[color:var(--text-secondary)] border border-[color:var(--border-visible)] px-2 py-1"
+                    className="font-mono text-[12px] uppercase tracking-[0.1em] text-[color:var(--text-secondary)] border border-[color:var(--border-visible)] px-2 py-1"
                   >
                     {m}
                   </span>

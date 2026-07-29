@@ -52,7 +52,7 @@ export function PhotoDrop({
       ) : (
         <div className="space-y-2">
           <div className="mono-label">{t("photo.upload")}</div>
-          <div className="font-mono text-[11px] text-[color:var(--text-disabled)]">
+          <div className="font-mono text-[13px] text-[color:var(--text-disabled)]">
             {busy ? t("photo.compressing") : t("photo.tapCapture")}
           </div>
         </div>

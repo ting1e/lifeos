@@ -90,7 +90,7 @@ export async function WhoopHistory({
     return (
       <Card>
         <CardLabel>{t("whoopHistory.history", { days })}</CardLabel>
-        <div className="font-mono text-[11px] text-[color:var(--text-secondary)] uppercase tracking-[0.08em] mt-2">
+        <div className="font-mono text-[13px] text-[color:var(--text-secondary)] uppercase tracking-[0.08em] mt-2">
           {t("whoopHistory.noData")}
         </div>
       </Card>
@@ -138,7 +138,7 @@ export async function WhoopHistory({
     <Card className="space-y-6">
       <div className="flex items-baseline justify-between">
         <CardLabel>{t("whoopHistory.history", { days })}</CardLabel>
-        <div className="font-mono text-[10px] tracking-[0.08em] text-[color:var(--text-disabled)] uppercase">
+        <div className="font-mono text-[12px] tracking-[0.08em] text-[color:var(--text-disabled)] uppercase">
           {range[0]} → {range[range.length - 1]}
         </div>
       </div>

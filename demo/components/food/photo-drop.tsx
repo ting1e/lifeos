@@ -50,7 +50,7 @@ export function PhotoDrop({
       ) : (
         <div className="space-y-2">
           <div className="mono-label">UPLOAD MEAL PHOTO</div>
-          <div className="font-mono text-[11px] text-[color:var(--text-disabled)]">
+          <div className="font-mono text-[13px] text-[color:var(--text-disabled)]">
             {busy ? "compressing…" : "TAP TO CAPTURE / CHOOSE"}
           </div>
         </div>

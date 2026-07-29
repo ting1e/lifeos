@@ -50,10 +50,10 @@ export function PreferencesEditor({
             key={i.id}
             className="grid grid-cols-[1fr_auto] items-center py-2 border-b border-[color:var(--border)]"
           >
-            <span className="font-body text-sm text-[color:var(--text-display)]">{i.label}</span>
+            <span className="font-body text-base text-[color:var(--text-display)]">{i.label}</span>
             <button
               onClick={() => remove(i.id)}
-              className="font-mono text-[11px] text-[color:var(--text-secondary)] hover:text-[color:var(--accent)]"
+              className="font-mono text-[13px] text-[color:var(--text-secondary)] hover:text-[color:var(--accent)]"
             >
               ✕
             </button>
