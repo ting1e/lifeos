@@ -42,7 +42,7 @@ export default async function ExercisesPage({
     <div className="space-y-6">
       <header>
         <div className="mono-label">{t("ex.library1324")}</div>
-        <h1 className="font-display text-5xl mt-1">{t("ex.title")}</h1>
+        <h1 className="font-display text-4xl mt-1">{t("ex.title")}</h1>
       </header>
 
       <form className="flex flex-wrap gap-3 items-end">

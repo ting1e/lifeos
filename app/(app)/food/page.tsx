@@ -102,7 +102,7 @@ export default async function FoodPage({
               <span className="ml-2 text-[color:var(--accent)]">{t("dash.viewing")}</span>
             )}
           </div>
-          <h1 className="font-display text-5xl mt-1 truncate">{dayTitle}</h1>
+          <h1 className="font-display text-4xl mt-1 truncate">{dayTitle}</h1>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <DayNav selected={selectedKey} today={today} basePath="/food" />

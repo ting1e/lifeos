@@ -7,9 +7,9 @@ services:
       POSTGRES_USER: lifetracker
       POSTGRES_PASSWORD: lifetracker
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
-      - lt_pg:/var/lib/postgresql/data
+      - ./dbdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U lifetracker"]
       interval: 5s
@@ -27,7 +27,10 @@ services:
       SESSION_SECRET: ${SESSION_SECRET:-dev_secret_change_me_dev_secret_change_me_dev_secret_change_me}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@local}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-changeme}
-      FAL_KEY: ${FAL_KEY:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
+      OPENAI_TEXT_MODEL: ${OPENAI_TEXT_MODEL:-gpt-4o-mini}
+      OPENAI_IMAGE_MODEL: ${OPENAI_IMAGE_MODEL:-gpt-4o-mini}
+      OPENAI_AUDIO_MODEL: ${OPENAI_AUDIO_MODEL:-gpt-4o-mini}
       WHOOP_CLIENT_ID: ${WHOOP_CLIENT_ID:-}
       WHOOP_CLIENT_SECRET: ${WHOOP_CLIENT_SECRET:-}
       WHOOP_REDIRECT_URI: ${WHOOP_REDIRECT_URI:-http://localhost:3000/api/whoop/callback}
@@ -41,5 +44,4 @@ services:
       - lt_uploads:/data/uploads
 
 volumes:
-  lt_pg:
   lt_uploads:

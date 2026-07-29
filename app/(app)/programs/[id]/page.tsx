@@ -67,7 +67,7 @@ export default async function ProgramDetail({ params }: { params: Promise<{ id: 
           <Link href="/programs" className="mono-label hover:text-[color:var(--text-display)]">
             {t("prog.backToPrograms")}
           </Link>
-          <h1 className="font-display text-5xl mt-2 break-words">{p.name}</h1>
+          <h1 className="font-display text-4xl mt-2 break-words">{p.name}</h1>
           {p.description && (
             <p className="font-body text-[color:var(--text-secondary)] mt-2 max-w-prose">
               {p.description}

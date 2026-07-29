@@ -5,6 +5,7 @@ out/
 dist/
 .vercel/
 *.tsbuildinfo
+dbdata
 
 .env
 .env.local

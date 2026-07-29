@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useT } from "@/lib/i18n/client";
+import { isAiError } from "@/lib/ai/ai-error";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 
@@ -50,6 +51,11 @@ export function GeneratePlanForm() {
         </Button>
       </div>
       {error && <div className="font-mono text-[13px] text-[color:var(--accent)]">{error}</div>}
+      {error && isAiError(error) && (
+        <div className="font-mono text-[13px] text-[color:var(--text-secondary)]">
+          {t("common.checkAiConfig")}
+        </div>
+      )}
       <div className="font-mono text-[13px] text-[color:var(--text-disabled)]">
         {t("plan.usesProfile")}
       </div>

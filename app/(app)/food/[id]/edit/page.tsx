@@ -30,7 +30,7 @@ export default async function EditFoodPage({
     <div className="space-y-6">
       <header>
         <div className="mono-label">{t("food.editEntry")}</div>
-        <h1 className="font-display text-5xl mt-1">{t("food.editTitle")}</h1>
+        <h1 className="font-display text-4xl mt-1">{t("food.editTitle")}</h1>
       </header>
 
       <Card>

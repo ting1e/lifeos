@@ -4,7 +4,7 @@
 
 **Self-hosted personal life tracker — workouts, nutrition, Whoop, AI photo calories, AI diet planner.**
 
-One [fal.ai](https://fal.ai) key powers every AI feature in the app.
+One OpenAI-compatible API key powers every AI feature in the app.
 
 [**▸ Live demo**](https://lifeos-demo-nu.vercel.app)  ·  data stays in your browser, nothing is sent server-side
 
@@ -12,7 +12,7 @@ One [fal.ai](https://fal.ai) key powers every AI feature in the app.
 ![Node 20+](https://img.shields.io/badge/node-%E2%89%A520-black)
 ![Next.js 15](https://img.shields.io/badge/next.js-15-black)
 ![PostgreSQL 16](https://img.shields.io/badge/postgres-16-black)
-![fal.ai](https://img.shields.io/badge/AI-fal.ai-black)
+![AI: OpenAI-compatible](https://img.shields.io/badge/AI-OpenAI--compatible-black)
 
 ![Dashboard](docs/screenshots/dashboard.png)
 
@@ -39,35 +39,34 @@ One [fal.ai](https://fal.ai) key powers every AI feature in the app.
 
 ---
 
-LifeOS is the self-hosted personal OS I built for myself: log every workout, every meal, every Whoop recovery score, and let one AI provider — **fal.ai** — handle the smart parts (photo-to-calories, meal planning, weekly insights, voice-to-meal transcription, workout program generation).
+LifeOS is the self-hosted personal OS I built for myself: log every workout, every meal, every Whoop recovery score, and let one OpenAI-compatible AI provider handle the smart parts (photo-to-calories, meal planning, weekly insights, voice-to-meal transcription, workout program generation).
 
-It is intentionally **single-admin**: one user, one Postgres database, one Docker container, one fal.ai key. Deploy it on a $5 VPS, point a domain at it, and you own all your fitness/nutrition data. MIT licensed.
+It is intentionally **single-admin**: one user, one Postgres database, one Docker container, one OpenAI-compatible API key. Deploy it on a $5 VPS, point a domain at it, and you own all your fitness/nutrition data. MIT licensed.
 
 > The project is internally called `lifetracker` (package name, docker volumes, db name). The public/repo name is **LifeOS**.
 
-## Why fal.ai is the centerpiece
+## Why the AI layer is provider-agnostic
 
-Every AI surface in this app — without exception — runs through a single [`FAL_KEY`](https://fal.ai/dashboard/keys). One key, one bill, one provider, the entire feature set lights up:
+Every AI surface in this app — without exception — calls a single OpenAI-compatible `/chat/completions` endpoint. One base URL + API key, the entire feature set lights up. Models are configurable per usage (text / image / audio) from your Profile page, or via `OPENAI_*` env vars as a server fallback (default `gpt-4o-mini`):
 
-| Feature | fal.ai endpoint | Model | What it does |
+| Feature | Endpoint | Model | What it does |
 |---|---|---|---|
-| **Food photo → macros** | `openrouter/router/vision` | `anthropic/claude-sonnet-4.6` | Snap a meal, get kcal/protein/carbs/fat breakdown |
-| **Free-form meal parser** | `openrouter/router` | `anthropic/claude-sonnet-4.6` | "two eggs and toast" → structured macros |
-| **Voice → meal log** | `fal-ai/wizper` v3 | Wizper (multilingual, TR/EN) | Record audio, parse the meal from speech |
-| **Meal planner (3–14 days)** | `openrouter/router` | `anthropic/claude-sonnet-4.6` | Goal + preferences + pantry → full plan + shopping list |
-| **Workout program generator** | `openrouter/router` | `anthropic/claude-sonnet-4.6` | Goal/level/equipment → multi-day periodised program |
-| **Weekly insights** | `openrouter/router` | `anthropic/claude-sonnet-4.6` | Highlights / warnings / recommendations from 30d data |
-| **File storage (uploaded photos)** | `fal.storage.upload()` | — | Persistent CDN URLs for vision inputs |
-| **Web-search augmentation** | `openrouter/router` (`:online` suffix) | OpenRouter web variant | Up-to-date brand/portion lookups when needed |
+| **Food photo → macros** | `/chat/completions` (vision) | `OPENAI_IMAGE_MODEL` | Snap a meal, get kcal/protein/carbs/fat breakdown |
+| **Free-form meal parser** | `/chat/completions` | `OPENAI_TEXT_MODEL` | "two eggs and toast" → structured macros |
+| **Voice → meal log** | `/chat/completions` (`input_audio`) | `OPENAI_AUDIO_MODEL` | Record audio, transcribe + parse the meal from speech |
+| **Meal planner (3–14 days)** | `/chat/completions` | `OPENAI_TEXT_MODEL` | Goal + preferences + pantry → full plan + shopping list |
+| **Workout program generator** | `/chat/completions` | `OPENAI_TEXT_MODEL` | Goal/level/equipment → multi-day periodised program |
+| **Weekly insights** | `/chat/completions` | `OPENAI_TEXT_MODEL` | Highlights / warnings / recommendations from 30d data |
+| **Web-search augmentation** | `/chat/completions` (`:online` suffix) | same model, web variant | Up-to-date brand/portion lookups (OpenRouter endpoints only) |
 
 **Why this matters as a self-hoster:**
 
-- **One bill, one dashboard.** No juggling OpenAI + Anthropic + ElevenLabs + S3 accounts. Top up [fal.ai credits](https://fal.ai/dashboard/billing), every feature works.
-- **Provider-agnostic routing.** fal's [OpenRouter integration](https://fal.ai/models/openrouter) lets you swap `anthropic/claude-sonnet-4.6` for any other supported model (GPT-5, Llama 4, Gemini 3 Pro, etc.) by passing a different `model` string — no code or env changes required beyond the default.
+- **Bring your own provider.** Point `OPENAI_BASE_URL` at any OpenAI-compatible endpoint — OpenAI, OpenRouter, Groq, a local Ollama/LM Studio server, anything that speaks `/chat/completions`. One key, one bill, every feature works.
+- **Provider-agnostic routing.** Swap the default `OPENAI_TEXT_MODEL` for any other supported model (GPT, Llama, Gemini, Claude, etc.) by passing a different `model` string — no code changes required, and overridable per-user from the Profile page.
 - **Every call is metered & logged.** `lib/ai/client.ts` records every prompt, response, model id, and cost (in cents) into the `ai_messages` table. You can audit and budget per-feature.
-- **No vendor lock-in.** All AI calls go through one thin wrapper. Replace `@fal-ai/client` with a different provider in ~30 lines if you ever want to.
+- **No vendor lock-in.** All AI calls go through one thin `fetch()` wrapper — no SDK dependency. Point it at a different base URL and you've switched providers.
 
-Get a key at <https://fal.ai/dashboard/keys>, drop it in `.env`, done.
+Set `OPENAI_BASE_URL` + `OPENAI_API_KEY` in `.env` (or later from `/profile`), done.
 
 ## Features
 
@@ -94,7 +93,8 @@ cp .env.example .env
 #   SESSION_SECRET   → openssl rand -base64 64
 #   ADMIN_EMAIL      → your email
 #   ADMIN_PASSWORD   → first-boot password (change from /profile after login)
-#   FAL_KEY          → https://fal.ai/dashboard/keys
+#   OPENAI_BASE_URL  → any OpenAI-compatible endpoint (api.openai.com/v1, openrouter.ai/api/v1, …)
+#   OPENAI_API_KEY   → your provider key
 ```
 
 ### Option A — full Docker stack (fastest)
@@ -124,7 +124,9 @@ pnpm dev                         # http://localhost:3000
 | `SESSION_SECRET` | ✅ | 64-byte base64 (`openssl rand -base64 64`) for `iron-session` |
 | `ADMIN_EMAIL` | ✅ | Bootstraps the single admin account on first boot |
 | `ADMIN_PASSWORD` | ✅ | First-boot password (change from `/profile` after) |
-| `FAL_KEY` | ✅ (for AI) | [fal.ai API key](https://fal.ai/dashboard/keys) — powers **all** AI features |
+| `OPENAI_BASE_URL` | ✅ (for AI) | Any OpenAI-compatible `/chat/completions` base URL (e.g. `https://api.openai.com/v1`, `https://openrouter.ai/api/v1`) — powers **all** AI features |
+| `OPENAI_API_KEY` | ✅ (for AI) | API key for the provider above |
+| `OPENAI_TEXT_MODEL` | optional | Default text model id (defaults to `gpt-4o-mini`); overridable per-user from `/profile` |
 | `WHOOP_CLIENT_ID` | optional | From [developer.whoop.com](https://developer.whoop.com) |
 | `WHOOP_CLIENT_SECRET` | optional | OAuth client secret |
 | `WHOOP_REDIRECT_URI` | optional | `https://yourdomain.com/api/whoop/callback` |
@@ -142,11 +144,10 @@ pnpm dev                         # http://localhost:3000
 │  └─ app/(app)/*    UI routes (mobile-first, Nothing design)  │
 │  └─ app/api/*      REST handlers                             │
 │                                                              │
-│  lib/ai/client.ts  ──────────────►  fal.ai                   │
-│    chat()                            openrouter/router       │
-│    vision()                          openrouter/router/vision│
-│    transcribeAudio()                 fal-ai/wizper           │
-│    uploadBuffer()                    fal.storage             │
+│  lib/ai/client.ts  ──────────────►  OpenAI-compatible API   │
+│    chat()                            /chat/completions       │
+│    vision()                          /chat/completions       │
+│    transcribeAudio()                 /chat/completions       │
 │                                                              │
 │  lib/auth         iron-session + argon2id                    │
 │  lib/whoop        OAuth2 + HMAC webhook + sync               │
@@ -157,6 +158,9 @@ pnpm dev                         # http://localhost:3000
 └──────────────────────────────────────────────────────────────┘
 ```
 
+(Photos are sent inline as base64 data URIs; no separate storage
+upload, no `uploadBuffer()` exists in the current client.)
+
 ## Deploy on Coolify
 
 Tested on Coolify v4 with a single $5 VPS:
@@ -164,7 +168,7 @@ Tested on Coolify v4 with a single $5 VPS:
 1. **DB** — create a Postgres 16 resource; copy connection string.
 2. **App** — from your GitHub repo, build pack = Dockerfile, port `3000`.
 3. **Volume** — persistent volume mounted at `/data/uploads`.
-4. **Env vars** — `DATABASE_URL`, `SESSION_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `FAL_KEY`, optional `WHOOP_*`, `ENABLE_CRON=1`, `TZ=Europe/Istanbul`.
+4. **Env vars** — `DATABASE_URL`, `SESSION_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `OPENAI_BASE_URL`, `OPENAI_API_KEY`, optional `WHOOP_*`, `ENABLE_CRON=1`, `TZ=Europe/Istanbul`.
 5. **Domain** — your subdomain with Let's Encrypt.
 6. **DNS** (Cloudflare) — A record → Coolify server IP (proxy=off until LE cert issues, then flip on).
 7. **Whoop (optional)** — register at [developer.whoop.com](https://developer.whoop.com) with redirect URI `https://<your-domain>/api/whoop/callback`. Add webhook `https://<your-domain>/api/whoop/webhook` and copy secret into env.
@@ -176,7 +180,7 @@ First deploy auto-runs: migrate → bootstrap admin → seed 1,324 exercises →
 
 - **Runtime** — Next.js 15 App Router · React 19 · TypeScript strict · Tailwind v4
 - **Database** — PostgreSQL 16 · Drizzle ORM 0.36
-- **AI** — `@fal-ai/client` 1.6 → fal.ai (`openrouter/router`, `openrouter/router/vision`, `fal-ai/wizper`)
+- **AI** — OpenAI-compatible `/chat/completions` (text / vision / audio; model set via `OPENAI_*` env or `/profile`)
 - **Auth** — `iron-session` (sealed httpOnly cookies) · `@node-rs/argon2`
 - **UI** — `recharts` charts · `lucide-react` icons · `vaul` drawers · custom Nothing-design system
 - **Jobs** — `node-cron` (Whoop daily safety-net)
@@ -202,4 +206,4 @@ Nothing-style visual language inspired by the [Nothing Design Skill](https://git
 
 MIT — see [LICENSE](LICENSE).
 
-Built with ❤️ by [@egebese](https://github.com/egebese), powered by [fal.ai](https://fal.ai).
+Built with ❤️ by [@egebese](https://github.com/egebese), powered by any OpenAI-compatible provider.

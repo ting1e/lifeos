@@ -36,7 +36,7 @@ export function MonoStat({
       <div className="flex items-baseline gap-1.5">
         <div
           className={cn(
-            "font-mono text-4xl md:text-5xl tabular-nums leading-none",
+            "font-mono text-3xl md:text-4xl tabular-nums leading-none",
             accent ? "text-[color:var(--accent)]" : "text-[color:var(--text-display)]",
           )}
         >

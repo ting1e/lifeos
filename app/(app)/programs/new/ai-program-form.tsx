@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Sparkles } from "lucide-react";
 import { useT } from "@/lib/i18n/client";
+import { isAiError } from "@/lib/ai/ai-error";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 
@@ -39,6 +40,7 @@ export function AiProgramForm() {
 
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
+  const [errCode, setErrCode] = useState<string | null>(null);
   const [warnings, setWarnings] = useState<string[]>([]);
 
   function toggleEquipment(item: string) {
@@ -52,6 +54,7 @@ export function AiProgramForm() {
     setBusy(true);
     setStatus(t("prog.generatingProgram"));
     setWarnings([]);
+    setErrCode(null);
     try {
       const res = await fetch("/api/programs/generate", {
         method: "POST",
@@ -73,6 +76,7 @@ export function AiProgramForm() {
             data?.detail ? ` — ${typeof data.detail === "string" ? data.detail : ""}` : ""
           }`,
         );
+        setErrCode(typeof data?.error === "string" ? data.error : null);
         if (Array.isArray(data?.unmatched)) setWarnings(data.unmatched);
         return;
       }
@@ -191,6 +195,12 @@ export function AiProgramForm() {
       {status && (
         <div className="font-mono text-[13px] uppercase tracking-[0.1em] text-[color:var(--text-secondary)]">
           {status}
+        </div>
+      )}
+
+      {isAiError(errCode) && (
+        <div className="font-mono text-[13px] text-[color:var(--text-secondary)]">
+          {t("common.checkAiConfig")}
         </div>
       )}
 

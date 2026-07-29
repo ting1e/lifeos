@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useT } from "@/lib/i18n/client";
+import { isAiError } from "@/lib/ai/ai-error";
 import { Card, CardLabel } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -42,6 +43,11 @@ export function WeeklyInsights() {
         </Button>
       </div>
       {error && <div className="font-mono text-[13px] text-[color:var(--accent)]">{error}</div>}
+      {error && isAiError(error) && (
+        <div className="font-mono text-[13px] text-[color:var(--text-secondary)]">
+          {t("common.checkAiConfig")}
+        </div>
+      )}
       {data ? (
         <div className="space-y-3 mt-2">
           <p className="font-body text-[color:var(--text-display)]">{data.summary}</p>

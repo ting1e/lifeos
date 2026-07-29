@@ -81,7 +81,7 @@ export default async function MealPlanPage() {
     <div className="space-y-6">
       <header>
         <div className="mono-label">{t("plan.aiMealPlanner")}</div>
-        <h1 className="font-display text-5xl mt-1">{t("plan.title")}</h1>
+        <h1 className="font-display text-4xl mt-1">{t("plan.title")}</h1>
       </header>
 
       <Card>

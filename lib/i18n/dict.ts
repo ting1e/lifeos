@@ -62,6 +62,8 @@ const en = {
   "common.date": "DATE",
   "common.enable": "ENABLE",
   "common.disable": "DISABLE",
+  "common.checkAiConfig":
+    "Please check your AI configuration in Profile → AI Integration.",
 
   // ---- Meal slots
   "meal.breakfast": "BREAKFAST",
@@ -410,7 +412,7 @@ const en = {
   "plan.gen14Days": "14 days",
   "plan.generatingForm": "GENERATING…",
   "plan.generateForm": "GENERATE →",
-  "plan.usesProfile": "Uses profile goal + preferences + pantry. Sonnet 4.6 via fal openrouter.",
+  "plan.usesProfile": "Uses profile goal + preferences + pantry. OpenAI-compatible endpoint, custom model.",
 
   // ---- Workout detail / session
   "work.back": "← BACK",
@@ -620,6 +622,8 @@ const tr: Record<DictKey, string> = {
   "common.date": "TARİH",
   "common.enable": "ETKİNLEŞTİR",
   "common.disable": "DEVRE DIŞI BIRAK",
+  "common.checkAiConfig":
+    "Profil → AI Entegrasyonu bölümünden AI yapılandırmanızı kontrol edin.",
 
   // ---- Meal slots
   "meal.breakfast": "KAHVALTI",
@@ -968,7 +972,7 @@ const tr: Record<DictKey, string> = {
   "plan.gen14Days": "14 gün",
   "plan.generatingForm": "OLUŞTURULUYOR…",
   "plan.generateForm": "OLUŞTUR →",
-  "plan.usesProfile": "Profil hedefi + tercihleri + kileri kullanır. Sonnet 4.6 fal openrouter aracılığıyla.",
+  "plan.usesProfile": "Profil hedefi + tercihleri + kileri kullanır. OpenAI uyumlu uç nokta, özel model.",
 
   // ---- Workout detail / session
   "work.back": "← GERİ",
@@ -1176,6 +1180,7 @@ const zh: Record<DictKey, string> = {
   "common.date": "日期",
   "common.enable": "启用",
   "common.disable": "禁用",
+  "common.checkAiConfig": "请检查个人资料中的 AI 配置信息（个人资料 → AI 集成）。",
 
   // ---- Meal slots
   "meal.breakfast": "早餐",
@@ -1524,7 +1529,7 @@ const zh: Record<DictKey, string> = {
   "plan.gen14Days": "14 天",
   "plan.generatingForm": "生成中…",
   "plan.generateForm": "生成 →",
-  "plan.usesProfile": "使用个人资料目标 + 偏好 + 食材库。通过 fal openrouter 调用 Sonnet 4.6。",
+  "plan.usesProfile": "使用个人资料目标 + 偏好 + 食材库。OpenAI 兼容接口，自定义模型。",
 
   // ---- Workout detail / session
   "work.back": "← 返回",

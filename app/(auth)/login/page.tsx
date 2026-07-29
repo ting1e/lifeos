@@ -17,7 +17,7 @@ export default async function LoginPage() {
           <div className="font-mono text-[13px] tracking-[0.12em] uppercase text-[color:var(--text-secondary)] mb-2">
             {t("auth.appVersion")}
           </div>
-          <h1 className="font-display text-5xl tracking-tight text-[color:var(--text-display)]">
+          <h1 className="font-display text-4xl tracking-tight text-[color:var(--text-display)]">
             {t("auth.signIn")}
           </h1>
         </div>

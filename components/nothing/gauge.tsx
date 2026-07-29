@@ -51,7 +51,7 @@ export function Gauge({
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <div className="font-mono text-4xl tabular-nums text-[color:var(--text-display)]">
+        <div className="font-mono text-3xl tabular-nums text-[color:var(--text-display)]">
           {Math.round(value)}
         </div>
         {unit && (

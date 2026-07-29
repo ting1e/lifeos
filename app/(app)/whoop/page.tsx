@@ -31,7 +31,7 @@ export default async function WhoopPage({
       <div className="space-y-6">
         <header>
           <div className="mono-label">{t("whoop.device")}</div>
-          <h1 className="font-display text-5xl mt-1">{t("whoop.title")}</h1>
+          <h1 className="font-display text-4xl mt-1">{t("whoop.title")}</h1>
         </header>
         <Card>
           <CardLabel>{t("prof.whoopIntegration")}</CardLabel>
@@ -97,7 +97,7 @@ export default async function WhoopPage({
       <header className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-4">
         <div>
           <div className="mono-label">{t("whoop.device")}</div>
-          <h1 className="font-display text-5xl mt-1">{t("whoop.title")}</h1>
+          <h1 className="font-display text-4xl mt-1">{t("whoop.title")}</h1>
         </div>
         {connected ? <SyncWhoopButton /> : null}
       </header>

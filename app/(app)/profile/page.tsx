@@ -45,7 +45,7 @@ export default async function ProfilePage() {
     <div className="space-y-8">
       <header>
         <div className="mono-label">{t("prof.userProfile")}</div>
-        <h1 className="font-display text-5xl mt-1">{name}</h1>
+        <h1 className="font-display text-4xl mt-1">{name}</h1>
         <div className="font-mono text-[13px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)] mt-1">
           {user.email}
         </div>

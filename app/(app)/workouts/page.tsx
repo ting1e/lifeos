@@ -36,7 +36,7 @@ export default async function WorkoutsPage() {
       <header className="flex items-baseline justify-between">
         <div>
           <div className="mono-label">{t("work.history")}</div>
-          <h1 className="font-display text-5xl mt-1">{t("work.title")}</h1>
+          <h1 className="font-display text-4xl mt-1">{t("work.title")}</h1>
         </div>
         <Link href="/workouts/new">
           <Button>{t("work.new")}</Button>

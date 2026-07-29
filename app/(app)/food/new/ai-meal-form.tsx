@@ -9,6 +9,7 @@ import { Select } from "@/components/ui/select";
 import { PhotoDrop } from "@/components/food/photo-drop";
 import { HistoryMatchHint } from "@/components/food/history-match-hint";
 import { useT } from "@/lib/i18n/client";
+import { isAiError } from "@/lib/ai/ai-error";
 import { isoForDate, todayKey } from "@/lib/utils/day";
 
 type Meal = "breakfast" | "lunch" | "dinner" | "snack";
@@ -50,12 +51,20 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
         return msg;
     }
   }
+
+  // Set a friendly error message and flag whether it is an AI analysis
+  // error (so the "check AI configuration" hint can be shown).
+  function fail(rawMsg: string) {
+    setError(friendlyError(rawMsg));
+    setAiHint(isAiError(rawMsg));
+  }
   const [date, setDate] = useState<string>(initialDate ?? today);
   const [defaultMeal, setDefaultMeal] = useState<Meal>("breakfast");
   const [text, setText] = useState("");
   const [parsing, setParsing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [aiHint, setAiHint] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [result, setResult] = useState<ParseResult | null>(null);
 
@@ -78,7 +87,7 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
       setPhotoPath(data.name);
       setPhotoPreviewUrl(URL.createObjectURL(file));
     } catch (e) {
-      setError(friendlyError(e instanceof Error ? e.message : String(e)));
+      fail(e instanceof Error ? e.message : String(e));
     } finally {
       setPhotoUploading(false);
     }
@@ -131,6 +140,7 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
         streamRef.current?.getTracks().forEach((t) => t.stop());
         streamRef.current = null;
         if (blob.size < 1000) {
+          setAiHint(false);
           setError(t("food.recordingEmpty"));
           return;
         }
@@ -151,13 +161,14 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
           if (!r.ok) throw new Error(data?.error ?? `http_${r.status}`);
           const transcribed = (data.text ?? "").trim();
           if (!transcribed) {
+            setAiHint(false);
             setError(t("food.transcribeEmpty"));
             return;
           }
           setText((prev) => (prev ? `${prev} ${transcribed}` : transcribed));
           setStatus(t("food.transcribedStatus"));
         } catch (e) {
-          setError(friendlyError(e instanceof Error ? e.message : String(e)));
+          fail(e instanceof Error ? e.message : String(e));
         } finally {
           setTranscribing(false);
         }
@@ -166,6 +177,7 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
       setRecording(true);
       setStatus(t("food.recordingStatus"));
     } catch (e) {
+      setAiHint(false);
       setError(
         e instanceof Error
           ? t("food.micBlocked", { msg: e.message })
@@ -212,7 +224,7 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
       setPhotoDropKey((k) => k + 1);
       setText("");
     } catch (e) {
-      setError(friendlyError(e instanceof Error ? e.message : String(e)));
+      fail(e instanceof Error ? e.message : String(e));
       setStatus(null);
     } finally {
       setParsing(false);
@@ -263,7 +275,7 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
       router.push(date === today ? "/food" : `/food?day=${date}`);
       router.refresh();
     } catch (e) {
-      setError(friendlyError(e instanceof Error ? e.message : String(e)));
+      fail(e instanceof Error ? e.message : String(e));
       setStatus(null);
     } finally {
       setSaving(false);
@@ -309,7 +321,7 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
           </button>
         </div>
       ) : (
-        <PhotoDrop key={photoDropKey} onUpload={uploadPhoto} onError={(msg) => setError(friendlyError(msg))} disabled={parsing || saving || photoUploading} />
+        <PhotoDrop key={photoDropKey} onUpload={uploadPhoto} onError={(msg) => fail(msg)} disabled={parsing || saving || photoUploading} />
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-[200px_200px_1fr] gap-4">
@@ -390,6 +402,11 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
         {error && (
           <span className="font-mono text-[13px] uppercase tracking-[0.08em] text-[color:var(--accent)]">
             {t("food.errPrefix")} · {error}
+          </span>
+        )}
+        {error && aiHint && (
+          <span className="font-mono text-[13px] text-[color:var(--text-secondary)]">
+            {t("common.checkAiConfig")}
           </span>
         )}
       </div>

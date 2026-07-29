@@ -178,7 +178,7 @@ export default async function Dashboard({
             <span className="ml-2 text-[color:var(--accent)]">{t("dash.viewing")}</span>
           )}
         </div>
-        <h1 className="font-display text-5xl md:text-6xl mt-1">{greeting}</h1>
+        <h1 className="font-display text-4xl md:text-5xl mt-1">{greeting}</h1>
       </header>
 
       <div className="flex items-center gap-4 py-2 px-1 -mx-4 px-4 border-b border-[color:var(--border)]">

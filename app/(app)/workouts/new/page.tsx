@@ -28,7 +28,7 @@ export default async function NewWorkoutPage({
     <div className="space-y-6">
       <header>
         <div className="mono-label">{t("work.newSession")}</div>
-        <h1 className="font-display text-5xl mt-1">{t("work.startWorkoutTitle")}</h1>
+        <h1 className="font-display text-4xl mt-1">{t("work.startWorkoutTitle")}</h1>
       </header>
       <Card>
         <CardLabel>{t("work.programLabel")}</CardLabel>

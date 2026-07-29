@@ -88,7 +88,7 @@ export default async function AnalysisPage() {
     <div className="space-y-6">
       <header>
         <div className="mono-label">{t("anal.trendsInsights")}</div>
-        <h1 className="font-display text-5xl mt-1">{t("anal.title")}</h1>
+        <h1 className="font-display text-4xl mt-1">{t("anal.title")}</h1>
       </header>
 
       <WeeklyInsights />

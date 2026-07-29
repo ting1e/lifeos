@@ -41,7 +41,7 @@ function MacroTile({
       </div>
       <div className="flex items-baseline gap-2">
         <span
-          className="font-mono text-5xl md:text-6xl leading-none tabular-nums"
+          className="font-mono text-4xl md:text-5xl leading-none tabular-nums"
           style={{ color }}
         >
           {Math.round(value)}

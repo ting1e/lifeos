@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { useT } from "@/lib/i18n/client";
+import { isAiError } from "@/lib/ai/ai-error";
 import { isoForDate, todayKey, ymdLocal } from "@/lib/utils/day";
 
 type Meal = "breakfast" | "lunch" | "dinner" | "snack";
@@ -196,6 +197,11 @@ export function EditFoodForm({ id, initial }: { id: string; initial: Initial }) 
           {aiError && (
             <span className="font-mono text-[13px] uppercase tracking-[0.08em] text-[color:var(--accent)]">
               ERR · {aiError}
+            </span>
+          )}
+          {aiError && isAiError(aiError) && (
+            <span className="font-mono text-[13px] text-[color:var(--text-secondary)]">
+              {t("common.checkAiConfig")}
             </span>
           )}
         </div>

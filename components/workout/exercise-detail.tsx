@@ -106,7 +106,7 @@ export function ExerciseDetailDrawer({
           )}
 
           <div>
-            <h2 className="font-display text-4xl text-[color:var(--text-display)] leading-tight">
+            <h2 className="font-display text-3xl text-[color:var(--text-display)] leading-tight">
               {name}
             </h2>
             <div className="mono-label mt-2">

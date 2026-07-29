@@ -23,7 +23,7 @@ export function RestTimer({ seconds = 90, onDone }: { seconds?: number; onDone?:
 
   return (
     <div className="flex items-center gap-3">
-      <div className="font-mono text-4xl tabular-nums text-[color:var(--text-display)]">
+      <div className="font-mono text-3xl tabular-nums text-[color:var(--text-display)]">
         {mm}:{ss}
       </div>
       <button
