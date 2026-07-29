@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
+import { useT } from "@/lib/i18n/client";
 
 type Pref = { id: string; label: string };
 
@@ -13,6 +14,7 @@ export function PreferencesEditor({
   kind: "liked" | "disliked" | "allergy";
   initial: Pref[];
 }) {
+  const t = useT();
   const router = useRouter();
   const [items, setItems] = useState(initial);
   const [draft, setDraft] = useState("");
@@ -44,7 +46,7 @@ export function PreferencesEditor({
         <Input
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          placeholder="+ add"
+          placeholder={t("pref.addPlaceholder")}
         />
       </form>
       <ul className="space-y-0">

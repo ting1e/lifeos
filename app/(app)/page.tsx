@@ -30,15 +30,15 @@ import { WeightProjection } from "@/components/dashboard/weight-projection";
 import { DayNav } from "@/components/dashboard/day-nav";
 import { bmi, bmr, macroSplit, recommendedKcal, tdee } from "@/lib/nutrition";
 import { getMeasuredTdee } from "@/lib/whoop/tdee";
-import { formatKg, greetingFor, resolveDisplayName } from "@/lib/utils";
+import { bcp47For, formatKg, greetingFor, resolveDisplayName } from "@/lib/utils";
 import { todayKey } from "@/lib/utils/day";
 import { getLocale, tFor } from "@/lib/i18n/server";
 
-function formatDayShort(dateStr: string): string {
+function formatDayShort(dateStr: string, locale: "tr" | "en" | "zh" = "en"): string {
   // dateStr is "YYYY-MM-DD" from a Postgres date column
   const d = new Date(`${dateStr}T00:00:00`);
   if (Number.isNaN(+d)) return dateStr;
-  return d.toLocaleDateString("en-US", { day: "2-digit", month: "short" }).toUpperCase();
+  return d.toLocaleDateString(bcp47For(locale), { day: "2-digit", month: "short" }).toUpperCase();
 }
 
 export const dynamic = "force-dynamic";
@@ -154,7 +154,7 @@ export default async function Dashboard({
     .limit(1);
 
   const headerDate = dayStart.toLocaleDateString(
-    locale === "tr" ? "tr-TR" : "en-US",
+    bcp47For(locale),
     { weekday: "long", day: "2-digit", month: "short" },
   );
 
@@ -162,7 +162,7 @@ export default async function Dashboard({
   const greeting = greetingFor(locale, name);
   const kcalLabel = isToday
     ? t("dash.kcalToday")
-    : `${t("dash.kcalOn")} ${formatDayShort(selectedKey)}`;
+    : `${t("dash.kcalOn")} ${formatDayShort(selectedKey, locale)}`;
   const goalLabelKey: "goal.cut" | "goal.maintain" | "goal.bulk" =
     goal === "cut" ? "goal.cut" : goal === "bulk" ? "goal.bulk" : "goal.maintain";
 
@@ -283,14 +283,14 @@ export default async function Dashboard({
               <HeartPulse size={12} strokeWidth={1.75} />
               {isToday
                 ? t("dash.recoveryToday")
-                : `${t("dash.recoveryOn")} ${formatDayShort(selectedKey)}`}
+                : `${t("dash.recoveryOn")} ${formatDayShort(selectedKey, locale)}`}
             </CardLabel>
             <Gauge
               value={recovery?.score ?? 0}
               max={100}
               size={140}
               unit="%"
-              label={recovery?.date ? formatDayShort(recovery.date) : "—"}
+              label={recovery?.date ? formatDayShort(recovery.date, locale) : "—"}
               accentByValue
             />
             <div className="grid grid-cols-2 gap-3 w-full pt-2 border-t border-[color:var(--border)] mt-auto">
@@ -350,7 +350,7 @@ export default async function Dashboard({
             <div>
               <div className="font-display text-2xl">
                 {new Date(lastWorkout.startedAt).toLocaleDateString(
-                  locale === "tr" ? "tr-TR" : "en-US",
+                  bcp47For(locale),
                   { day: "2-digit", month: "short" },
                 )}
               </div>

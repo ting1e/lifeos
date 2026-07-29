@@ -11,7 +11,7 @@ import { getMeasuredTdee } from "@/lib/whoop/tdee";
 import { Card, CardLabel } from "@/components/ui/card";
 import { MonoStat } from "@/components/nothing/mono-stat";
 import { resolveDisplayName } from "@/lib/utils";
-import { getLocale } from "@/lib/i18n/server";
+import { getLocale, tFor } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +20,7 @@ export default async function ProfilePage() {
   const [p] = await db.select().from(profile).where(eq(profile.userId, user.id)).limit(1);
   const name = resolveDisplayName({ displayName: p?.displayName, email: user.email });
   const currentLocale = await getLocale();
+  const t = tFor(currentLocale);
 
   const w = Number(p?.weightKg ?? 0);
   const h = Number(p?.heightCm ?? 0);
@@ -40,7 +41,7 @@ export default async function ProfilePage() {
   return (
     <div className="space-y-8">
       <header>
-        <div className="mono-label">USER PROFILE</div>
+        <div className="mono-label">{t("prof.userProfile")}</div>
         <h1 className="font-display text-4xl mt-1">{name}</h1>
         <div className="font-mono text-[11px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)] mt-1">
           {user.email}
@@ -49,45 +50,45 @@ export default async function ProfilePage() {
 
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
-          <MonoStat label="BMI" value={b ? b.toFixed(1) : "—"} unit={b ? bmiCategory(b).slice(0, 4).toUpperCase() : undefined} />
+          <MonoStat label={t("dash.bmi")} value={b ? b.toFixed(1) : "—"} unit={b ? bmiCategory(b).slice(0, 4).toUpperCase() : undefined} />
         </Card>
         <Card>
-          <MonoStat label="BMR" value={bm ? Math.round(bm) : "—"} unit="kcal" />
+          <MonoStat label={t("prof.bmr")} value={bm ? Math.round(bm) : "—"} unit="kcal" />
         </Card>
         <Card>
           <MonoStat
             label={
               tdeeSource === "whoop"
-                ? `TDEE · WHOOP ${measured!.samples}D`
-                : "TDEE · EST"
+                ? t("dash.tdeeWhoopN", { n: measured!.samples })
+                : t("dash.tdeeEst")
             }
             value={td ? Math.round(td) : "—"}
             unit="kcal"
           />
         </Card>
         <Card>
-          <MonoStat label="TARGET" value={target || "—"} unit="kcal" accent />
+          <MonoStat label={t("dash.target")} value={target || "—"} unit="kcal" accent />
         </Card>
       </section>
 
       {macros && (
         <Card>
-          <CardLabel>RECOMMENDED MACROS</CardLabel>
+          <CardLabel>{t("prof.recommendedMacros")}</CardLabel>
           <div className="grid grid-cols-3 gap-4 mt-2">
-            <MonoStat label="PROTEIN" value={macros.proteinG} unit="g" />
-            <MonoStat label="CARBS" value={macros.carbsG} unit="g" />
-            <MonoStat label="FAT" value={macros.fatG} unit="g" />
+            <MonoStat label={t("dash.protein")} value={macros.proteinG} unit="g" />
+            <MonoStat label={t("dash.carbs")} value={macros.carbsG} unit="g" />
+            <MonoStat label={t("dash.fat")} value={macros.fatG} unit="g" />
           </div>
         </Card>
       )}
 
       <Card>
-        <CardLabel>EDIT</CardLabel>
+        <CardLabel>{t("prof.edit")}</CardLabel>
         <ProfileForm initial={p} />
       </Card>
 
       <Card>
-        <CardLabel>APPEARANCE</CardLabel>
+        <CardLabel>{t("prof.appearance")}</CardLabel>
         <div className="mt-2 -mx-3">
           <ThemeToggle />
         </div>
@@ -98,7 +99,7 @@ export default async function ProfilePage() {
       </Card>
 
       <Card>
-        <CardLabel>SECURITY · CHANGE PASSWORD</CardLabel>
+        <CardLabel>{t("prof.security")}</CardLabel>
         <PasswordForm />
       </Card>
     </div>

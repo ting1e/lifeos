@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n/client";
 
 export type SetRowValue = {
   reps: number | null;
@@ -27,6 +28,7 @@ export function SetRow({
   const [weight, setWeight] = useState<string>(initial?.weightKg?.toString() ?? "");
   const [rpe, setRpe] = useState<string>(initial?.rpe?.toString() ?? "");
   const [done, setDone] = useState(false);
+  const t = useT();
 
   async function complete() {
     if (disabled || done) return;
@@ -49,7 +51,7 @@ export function SetRow({
       <div className="font-mono text-[11px] text-[color:var(--text-secondary)]">#{setIndex + 1}</div>
       <input
         inputMode="decimal"
-        placeholder={lastTime ? lastTime.weightKg.toString() : "kg"}
+        placeholder={lastTime ? lastTime.weightKg.toString() : t("set.kg")}
         value={weight}
         onChange={(e) => setWeight(e.target.value)}
         disabled={done || disabled}
@@ -57,7 +59,7 @@ export function SetRow({
       />
       <input
         inputMode="numeric"
-        placeholder={lastTime ? lastTime.reps.toString() : "reps"}
+        placeholder={lastTime ? lastTime.reps.toString() : t("set.reps")}
         value={reps}
         onChange={(e) => setReps(e.target.value)}
         disabled={done || disabled}
@@ -65,7 +67,7 @@ export function SetRow({
       />
       <input
         inputMode="numeric"
-        placeholder="RPE"
+        placeholder={t("set.rpe")}
         value={rpe}
         onChange={(e) => setRpe(e.target.value)}
         disabled={done || disabled}

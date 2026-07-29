@@ -49,7 +49,7 @@ export function WorkoutSession({
   ended,
 }: {
   workoutId: string;
-  locale: "tr" | "en";
+  locale: "tr" | "en" | "zh";
   initialExercises: WorkoutExercise[];
   existingSets: ExistingSet[];
   ended: boolean;

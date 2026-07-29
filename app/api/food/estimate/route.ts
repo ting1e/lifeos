@@ -24,7 +24,7 @@ export async function POST(req: Request) {
 
   try {
     const cdnUrl = await uploadLocal(full);
-    const { system, prompt } = foodVisionPrompt("en");
+    const { system, prompt } = foodVisionPrompt(user.locale);
     const out = await visionJson({
       userId: user.id,
       kind: "food_vision",

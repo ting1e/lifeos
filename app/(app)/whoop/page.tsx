@@ -3,6 +3,7 @@ import { db } from "@/lib/db/client";
 import { whoopRecovery, whoopSleep, whoopStrain, whoopTokens, whoopWorkouts } from "@/lib/db/schema";
 import { requireSession } from "@/lib/auth/session";
 import { getLocale, tFor } from "@/lib/i18n/server";
+import { bcp47For } from "@/lib/utils";
 import { Card, CardLabel } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MonoStat } from "@/components/nothing/mono-stat";
@@ -19,7 +20,8 @@ export default async function WhoopPage({
   searchParams: Promise<{ connected?: string }>;
 }) {
   const { user } = await requireSession();
-  const t = tFor(await getLocale());
+  const locale = await getLocale();
+  const t = tFor(locale);
   const sp = await searchParams;
   const [tok] = await db
     .select({ userId: whoopTokens.userId })
@@ -154,7 +156,7 @@ export default async function WhoopPage({
                   >
                     <span className="font-body text-sm">{w.sport ?? t("whoop.workout")}</span>
                     <span className="font-mono text-[11px] text-[color:var(--text-secondary)]">
-                      {new Date(w.start).toLocaleDateString("en-US")}
+                      {new Date(w.start).toLocaleDateString(bcp47For(locale))}
                     </span>
                     <span className="font-mono text-[11px] text-[color:var(--text-display)]">
                       {w.strain ? `${t("whoop.strain")} ${Number(w.strain).toFixed(1)}` : ""}

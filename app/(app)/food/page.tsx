@@ -22,6 +22,7 @@ import { MacroBar } from "@/components/food/macro-bar";
 import { MonoStat } from "@/components/nothing/mono-stat";
 import { DayNav } from "@/components/dashboard/day-nav";
 import { todayKey } from "@/lib/utils/day";
+import { bcp47For } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -85,7 +86,7 @@ export default async function FoodPage({
 
   const dayTitle = isToday
     ? t("food.title")
-    : dayStart.toLocaleDateString(locale === "tr" ? "tr-TR" : "en-US", {
+    : dayStart.toLocaleDateString(bcp47For(locale), {
         weekday: "long",
         day: "2-digit",
         month: "short",
@@ -192,7 +193,7 @@ export default async function FoodPage({
                           <div className="font-mono text-[10px] text-[color:var(--text-secondary)] mt-1 tabular-nums">
                             P{Math.round(Number(e.proteinG ?? 0))} · C{Math.round(Number(e.carbsG ?? 0))} · F{Math.round(Number(e.fatG ?? 0))}
                             <span className="text-[color:var(--text-disabled)] ml-2">
-                              {new Date(e.consumedAt).toLocaleTimeString("en-US", {
+                              {new Date(e.consumedAt).toLocaleTimeString(bcp47For(locale), {
                                 hour: "2-digit",
                                 minute: "2-digit",
                               })}

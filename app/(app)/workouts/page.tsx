@@ -4,6 +4,7 @@ import { db } from "@/lib/db/client";
 import { workouts, workoutSets } from "@/lib/db/schema";
 import { requireSession } from "@/lib/auth/session";
 import { getLocale, tFor } from "@/lib/i18n/server";
+import { bcp47For } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -11,7 +12,8 @@ export const dynamic = "force-dynamic";
 
 export default async function WorkoutsPage() {
   const { user } = await requireSession();
-  const t = tFor(await getLocale());
+  const locale = await getLocale();
+  const t = tFor(locale);
 
   const recent = await db
     .select()
@@ -71,7 +73,7 @@ export default async function WorkoutsPage() {
               >
                 <div>
                   <div className="font-mono text-sm text-[color:var(--text-display)]">
-                    {new Date(w.startedAt).toLocaleString("en-US", {
+                    {new Date(w.startedAt).toLocaleString(bcp47For(locale), {
                       day: "2-digit",
                       month: "short",
                       hour: "2-digit",

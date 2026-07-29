@@ -238,7 +238,7 @@ const TRANSCRIBE_ENDPOINT = "fal-ai/wizper";
 export type TranscribeArgs = {
   userId: string;
   audioUrl: string;
-  language?: "tr" | "en" | null;
+  language?: "tr" | "en" | "zh" | null;
 };
 
 export async function transcribeAudio(args: TranscribeArgs): Promise<{ text: string; raw: unknown }> {

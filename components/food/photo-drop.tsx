@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import imageCompression from "browser-image-compression";
+import { useT } from "@/lib/i18n/client";
 
 export function PhotoDrop({
   onUpload,
@@ -10,6 +11,7 @@ export function PhotoDrop({
   onUpload: (file: File) => Promise<void> | void;
   disabled?: boolean;
 }) {
+  const t = useT();
   const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
 
@@ -49,9 +51,9 @@ export function PhotoDrop({
         <img src={preview} alt="" className="mx-auto max-h-48 object-contain" />
       ) : (
         <div className="space-y-2">
-          <div className="mono-label">UPLOAD MEAL PHOTO</div>
+          <div className="mono-label">{t("photo.upload")}</div>
           <div className="font-mono text-[11px] text-[color:var(--text-disabled)]">
-            {busy ? "compressing…" : "TAP TO CAPTURE / CHOOSE"}
+            {busy ? t("photo.compressing") : t("photo.tapCapture")}
           </div>
         </div>
       )}

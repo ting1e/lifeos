@@ -26,7 +26,7 @@ export async function POST(req: Request) {
   }
 
   const { system, prompt } = mealParserPrompt({
-    locale: "en",
+    locale: user.locale,
     text: parsed.data.text,
     nowIso: new Date().toISOString(),
     defaultMeal: parsed.data.defaultMeal,

@@ -2,10 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useT } from "@/lib/i18n/client";
 
 type Item = { id: string; name: string; qty: number | null; unit: string | null };
 
 export function PantryList({ initial }: { initial: Item[] }) {
+  const t = useT();
   const router = useRouter();
   const [items, setItems] = useState(initial);
 
@@ -16,7 +18,7 @@ export function PantryList({ initial }: { initial: Item[] }) {
   }
 
   if (items.length === 0) {
-    return <div className="font-mono text-sm text-[color:var(--text-secondary)] py-6">empty</div>;
+    return <div className="font-mono text-sm text-[color:var(--text-secondary)] py-6">{t("pantry.empty")}</div>;
   }
   return (
     <ul className="mt-3 space-y-0">

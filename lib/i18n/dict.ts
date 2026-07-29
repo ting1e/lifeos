@@ -3,13 +3,14 @@
 // like "BMI", "TDEE", "HRV") use the same value on both sides; that keeps the
 // callsite consistent and makes future overrides trivial.
 
-export type Locale = "en" | "tr";
+export type Locale = "en" | "tr" | "zh";
 
-export const LOCALES: readonly Locale[] = ["en", "tr"] as const;
+export const LOCALES: readonly Locale[] = ["en", "tr", "zh"] as const;
 
 export const LOCALE_LABELS: Record<Locale, string> = {
   en: "English",
   tr: "Türkçe",
+  zh: "中文",
 };
 
 const en = {
@@ -83,6 +84,17 @@ const en = {
   "dash.target": "TARGET",
   "dash.weight": "WEIGHT",
   "dash.goal": "GOAL",
+  "dash.macros": "TODAY'S MACROS",
+  "dash.protein": "PROTEIN",
+  "dash.carbs": "CARBS",
+  "dash.fat": "FAT",
+  "dash.distribution": "DISTRIBUTION · BY KCAL",
+  "dash.kcalLeft": "KCAL LEFT",
+  "dash.pLeft": "P LEFT",
+  "dash.cLeft": "C LEFT",
+  "dash.fLeft": "F LEFT",
+  "dash.tdeeWhoopN": "TDEE · WHOOP {n}D",
+  "prof.goal": "GOAL",
   "dash.kcalToday": "KCAL TODAY",
   "dash.kcalOn": "KCAL ·",
   "dash.strain": "STRAIN",
@@ -365,6 +377,9 @@ const en = {
   "work.back": "← BACK",
   "work.workoutNotFound": "workout not found —",
   "work.startDay": "START DAY →",
+  "work.newSession": "NEW SESSION",
+  "work.startWorkoutTitle": "start workout",
+  "work.programLabel": "PROGRAM",
 
   // ---- Exercise session UI
   "ex.freeSessionInline": "free session — add exercises from the library",
@@ -412,6 +427,107 @@ const en = {
   "common.libraryCount": "LIBRARY · {count} EXERCISES",
   "common.backLower": "back",
   "common.freeNoProgram": "— free / no program —",
+
+  // ---- Auth / Login
+  "auth.appVersion": "LIFETRACKER / V1",
+  "auth.signIn": "sign in",
+  "auth.email": "email",
+  "auth.password": "password",
+  "auth.enter": "ENTER →",
+  "auth.tooManyAttempts": "Too many attempts",
+  "auth.invalidCredentials": "Invalid credentials",
+
+  // ---- Rest timer
+  "timer.pause": "PAUSE",
+  "timer.resume": "RESUME",
+
+  // ---- Set row
+  "set.kg": "kg",
+  "set.reps": "reps",
+  "set.rpe": "RPE",
+
+  // ---- Exercise detail drawer
+  "exDetail.title": "EXERCISE",
+  "exDetail.instructions": "INSTRUCTIONS",
+  "exDetail.secondaryMuscles": "SECONDARY MUSCLES",
+  "exDetail.close": "close",
+
+  // ---- Whoop strain card
+  "whoopStrain.title": "WHOOP STRAIN",
+  "whoopStrain.displayOnly": "display-only — not deducted from kcal target",
+  "whoopStrain.syncing": "SYNCING…",
+  "whoopStrain.refresh": "REFRESH",
+  "whoopStrain.pull": "PULL FROM WHOOP",
+  "whoopStrain.noMatch":
+    "No Whoop activity matches this workout's time window. End the workout, then press PULL FROM WHOOP after a minute (Whoop processes data with some delay).",
+  "whoopStrain.strain": "STRAIN",
+  "whoopStrain.kcal": "KCAL",
+  "whoopStrain.avgHr": "AVG HR",
+  "whoopStrain.maxHr": "MAX HR",
+  "whoopStrain.duration": "DURATION",
+  "whoopStrain.workout": "workout",
+
+  // ---- Whoop history
+  "whoopHistory.history": "HISTORY · {days}D",
+  "whoopHistory.noData":
+    "→ no historical data yet. run a deep sync to backfill.",
+  "whoopHistory.avgRecovery": "AVG RECOVERY",
+  "whoopHistory.avgSleep": "AVG SLEEP",
+  "whoopHistory.avgStrain": "AVG STRAIN",
+  "whoopHistory.workouts": "WORKOUTS",
+  "whoopHistory.recoveryDaily": "RECOVERY · DAILY",
+  "whoopHistory.sleepDaily": "SLEEP · DAILY HOURS",
+  "whoopHistory.strainDaily": "STRAIN · DAILY",
+  "whoopHistory.workoutsCount": "WORKOUTS · COUNT",
+
+  // ---- Photo drop
+  "photo.upload": "UPLOAD MEAL PHOTO",
+  "photo.compressing": "compressing…",
+  "photo.tapCapture": "TAP TO CAPTURE / CHOOSE",
+
+  // ---- Sync button
+  "sync.today": "SYNC TODAY",
+  "sync.30d": "SYNC 30D",
+  "sync.180d": "PULL 180D",
+  "sync.1y": "PULL 1Y",
+  "sync.syncing": "SYNCING…",
+  "sync.pulling": "PULLING…",
+  "sync.ok":
+    "OK · {days}d · rec {rec} · sleep {sleep} · strain {strain} · workouts {workouts}",
+  "sync.err": "ERR · {error}",
+
+  // ---- Pantry
+  "pantry.namePlaceholder": "name (e.g. yulaf)",
+  "pantry.qtyPlaceholder": "qty",
+  "pantry.unitPlaceholder": "g | ml | adet",
+  "pantry.empty": "empty",
+
+  // ---- Preferences
+  "pref.addPlaceholder": "+ add",
+
+  // ---- Profile form
+  "prof.displayName": "DISPLAY NAME",
+  "prof.displayNamePlaceholder": "Ege",
+  "prof.displayNameHint": "shown in the dashboard greeting · leave blank to fall back to your email",
+  "prof.bmr": "BMR",
+  "prof.height": "HEIGHT (CM)",
+  "prof.weight": "WEIGHT (KG)",
+  "prof.age": "AGE",
+  "prof.sex": "SEX",
+  "prof.sexMale": "male",
+  "prof.sexFemale": "female",
+  "prof.activity": "ACTIVITY",
+  "prof.activitySedentary": "sedentary",
+  "prof.activityLight": "light",
+  "prof.activityModerate": "moderate",
+  "prof.activityActive": "active",
+  "prof.activityVeryActive": "very active",
+  "prof.targetWeight": "TARGET WEIGHT (KG)",
+  "prof.save": "SAVE →",
+
+  // ---- AI meal form
+  "food.aiPlaceholder":
+    "e.g. \"for breakfast: a lavash wrap with 1 boiled egg, half an avocado and yogurt-lemon sauce, plus an extra boiled egg, some greens, a matchbox of white cheese, 3 black olives\"",
 } satisfies Record<string, string>;
 
 export type DictKey = keyof typeof en;
@@ -487,6 +603,17 @@ const tr: Record<DictKey, string> = {
   "dash.target": "HEDEF",
   "dash.weight": "KİLO",
   "dash.goal": "HEDEF",
+  "dash.macros": "BUGÜNÜN MAKROLARI",
+  "dash.protein": "PROTEİN",
+  "dash.carbs": "KARB",
+  "dash.fat": "YAĞ",
+  "dash.distribution": "DAĞILIM · KCAL İLE",
+  "dash.kcalLeft": "KALAN KCAL",
+  "dash.pLeft": "P KALAN",
+  "dash.cLeft": "C KALAN",
+  "dash.fLeft": "Y KALAN",
+  "dash.tdeeWhoopN": "TDEE · WHOOP {n}G",
+  "prof.goal": "HEDEF",
   "dash.kcalToday": "BUGÜN KCAL",
   "dash.kcalOn": "KCAL ·",
   "dash.strain": "EFOR",
@@ -769,6 +896,9 @@ const tr: Record<DictKey, string> = {
   "work.back": "← GERİ",
   "work.workoutNotFound": "antrenman bulunamadı —",
   "work.startDay": "GÜNÜ BAŞLAT →",
+  "work.newSession": "YENİ OTURUM",
+  "work.startWorkoutTitle": "antrenman başlat",
+  "work.programLabel": "PROGRAM",
 
   // ---- Exercise session UI
   "ex.freeSessionInline": "serbest oturum — kütüphaneden egzersiz ekleyin",
@@ -816,9 +946,625 @@ const tr: Record<DictKey, string> = {
   "common.libraryCount": "KÜTÜPHANE · {count} EGZERSİZ",
   "common.backLower": "geri",
   "common.freeNoProgram": "— serbest / program yok —",
+
+  // ---- Auth / Login
+  "auth.appVersion": "LIFETRACKER / V1",
+  "auth.signIn": "giriş yap",
+  "auth.email": "e-posta",
+  "auth.password": "şifre",
+  "auth.enter": "GİRİŞ →",
+  "auth.tooManyAttempts": "Çok fazla deneme",
+  "auth.invalidCredentials": "Geçersiz bilgiler",
+
+  // ---- Rest timer
+  "timer.pause": "DURAKLAT",
+  "timer.resume": "DEVAM",
+
+  // ---- Set row
+  "set.kg": "kg",
+  "set.reps": "tekrar",
+  "set.rpe": "RPE",
+
+  // ---- Exercise detail drawer
+  "exDetail.title": "EGZERSİZ",
+  "exDetail.instructions": "TALİMATLAR",
+  "exDetail.secondaryMuscles": "YARDIMCI KASLAR",
+  "exDetail.close": "kapat",
+
+  // ---- Whoop strain card
+  "whoopStrain.title": "WHOOP EFOR",
+  "whoopStrain.displayOnly": "sadece görüntüleme — kcal hedefinden düşülmez",
+  "whoopStrain.syncing": "SENKRONİZE EDİLİYOR…",
+  "whoopStrain.refresh": "YENİLE",
+  "whoopStrain.pull": "WHOOP'TAN ÇEK",
+  "whoopStrain.noMatch":
+    "Bu antrenmanın zaman aralığıyla eşleşen Whoop aktivitesi yok. Antrenmanı bitir, sonra WHOOP'TAN ÇEK'e bas (Whoop verileri biraz gecikmeli işler).",
+  "whoopStrain.strain": "EFOR",
+  "whoopStrain.kcal": "KCAL",
+  "whoopStrain.avgHr": "ORT. NABIZ",
+  "whoopStrain.maxHr": "MAKS. NABIZ",
+  "whoopStrain.duration": "SÜRE",
+  "whoopStrain.workout": "antrenman",
+
+  // ---- Whoop history
+  "whoopHistory.history": "GEÇMİŞ · {days}G",
+  "whoopHistory.noData":
+    "→ henüz geçmiş veri yok. geri doldurmak için derin senkron çalıştırın.",
+  "whoopHistory.avgRecovery": "ORT. TOPARLANMA",
+  "whoopHistory.avgSleep": "ORT. UYKU",
+  "whoopHistory.avgStrain": "ORT. EFOR",
+  "whoopHistory.workouts": "ANTRENMANLAR",
+  "whoopHistory.recoveryDaily": "TOPARLANMA · GÜNLÜK",
+  "whoopHistory.sleepDaily": "UYKU · GÜNLÜK SAAT",
+  "whoopHistory.strainDaily": "EFOR · GÜNLÜK",
+  "whoopHistory.workoutsCount": "ANTRENMAN · SAYI",
+
+  // ---- Photo drop
+  "photo.upload": "YEMEK FOTOĞRAFI YÜKLE",
+  "photo.compressing": "sıkıştırılıyor…",
+  "photo.tapCapture": "ÇEK / SEÇ",
+
+  // ---- Sync button
+  "sync.today": "BUGÜNÜ SENKRONİZE ET",
+  "sync.30d": "30G SENKRONİZE ET",
+  "sync.180d": "180G ÇEK",
+  "sync.1y": "1Y ÇEK",
+  "sync.syncing": "SENKRONİZE EDİLİYOR…",
+  "sync.pulling": "ÇEKİLİYOR…",
+  "sync.ok":
+    "OK · {days}g · rec {rec} · uyku {sleep} · efor {strain} · antrenman {workouts}",
+  "sync.err": "HATA · {error}",
+
+  // ---- Pantry
+  "pantry.namePlaceholder": "isim (örn. yulaf)",
+  "pantry.qtyPlaceholder": "miktar",
+  "pantry.unitPlaceholder": "g | ml | adet",
+  "pantry.empty": "boş",
+
+  // ---- Preferences
+  "pref.addPlaceholder": "+ ekle",
+
+  // ---- Profile form
+  "prof.displayName": "GÖRÜNEN AD",
+  "prof.displayNamePlaceholder": "Ege",
+  "prof.displayNameHint": "pano karşılamasında görünür · boş bırakılırsa e-postana geri düşer",
+  "prof.bmr": "BMR",
+  "prof.height": "BOY (CM)",
+  "prof.weight": "KİLO (KG)",
+  "prof.age": "YAŞ",
+  "prof.sex": "CİNSİYET",
+  "prof.sexMale": "erkek",
+  "prof.sexFemale": "kadın",
+  "prof.activity": "AKTİVİTE",
+  "prof.activitySedentary": "hareketsiz",
+  "prof.activityLight": "hafif",
+  "prof.activityModerate": "orta",
+  "prof.activityActive": "aktif",
+  "prof.activityVeryActive": "çok aktif",
+  "prof.targetWeight": "HEDEF KİLO (KG)",
+  "prof.save": "KAYDET →",
+
+  // ---- AI meal form
+  "food.aiPlaceholder":
+    "örn. \"kahvaltı: 1 haşlanmış yumurta, yarım avokado ve yoğurt-limon soslu lavaş dürüm, ekstra 1 haşlanmış yumurta, yeğillikler, 1 kibrit kutusu beyaz peynir, 3 siyah zeytin\"",
 };
 
-const DICTS: Record<Locale, Record<DictKey, string>> = { en, tr };
+const zh: Record<DictKey, string> = {
+  // ---- Navigation (sidebar / top nav — title case)
+  "nav.dashboard": "概览",
+  "nav.workouts": "训练",
+  "nav.programs": "计划",
+  "nav.food": "饮食",
+  "nav.foodLog": "饮食记录",
+  "nav.mealPlan": "餐饮计划",
+  "nav.pantry": "食材库",
+  "nav.preferences": "偏好",
+  "nav.whoop": "Whoop",
+  "nav.analysis": "分析",
+  "nav.profile": "我的",
+  "nav.signOut": "退出",
+  // ---- Sidebar section headers
+  "nav.sectionOverview": "概览",
+  "nav.sectionTrain": "训练",
+  "nav.sectionEat": "饮食",
+  "nav.sectionData": "数据",
+  // ---- Bottom nav
+  "nav.dashShort": "概览",
+  "nav.trainShort": "训练",
+  "nav.foodShort": "饮食",
+  "nav.whoopShort": "WHOOP",
+  "nav.meShort": "我的",
+
+  // ---- Common buttons
+  "common.save": "保存",
+  "common.cancel": "取消",
+  "common.delete": "删除",
+  "common.edit": "编辑",
+  "common.add": "添加",
+  "common.generate": "生成",
+  "common.start": "开始",
+  "common.stop": "停止",
+  "common.next": "下一个",
+  "common.prev": "上一个",
+  "common.today": "今天",
+  "common.open": "打开",
+  "common.reset": "重置",
+  "common.use": "使用",
+  "common.log": "记录",
+  "common.connect": "连接",
+  "common.loading": "加载中…",
+  "common.saving": "保存中…",
+  "common.busy": "…",
+  "common.date": "日期",
+
+  // ---- Meal slots
+  "meal.breakfast": "早餐",
+  "meal.lunch": "午餐",
+  "meal.dinner": "晚餐",
+  "meal.snack": "加餐",
+  "meal.snacks": "加餐",
+  "meal.breakfastLower": "早餐",
+  "meal.lunchLower": "午餐",
+  "meal.dinnerLower": "晚餐",
+  "meal.snackLower": "加餐",
+
+  // ---- Goals
+  "goal.cut": "减脂",
+  "goal.maintain": "维持",
+  "goal.bulk": "增肌",
+
+  // ---- Dashboard
+  "dash.bmi": "BMI",
+  "dash.tdeeWhoop": "总消耗热量 · WHOOP",
+  "dash.tdeeEst": "总消耗热量 · 估算",
+  "dash.target": "目标",
+  "dash.weight": "体重",
+  "dash.goal": "目标",
+  "dash.macros": "今日宏量",
+  "dash.protein": "蛋白质",
+  "dash.carbs": "碳水",
+  "dash.fat": "脂肪",
+  "dash.distribution": "分布 · 按热量",
+  "dash.kcalLeft": "剩余热量",
+  "dash.pLeft": "蛋白剩",
+  "dash.cLeft": "碳水剩",
+  "dash.fLeft": "脂肪剩",
+  "dash.tdeeWhoopN": "总消耗热量 · WHOOP {n}天",
+  "prof.goal": "目标",
+  "dash.kcalToday": "今日卡路里",
+  "dash.kcalOn": "卡路里 ·",
+  "dash.strain": "强度",
+  "dash.sleep": "睡眠",
+  "dash.sleepPerformance": "表现",
+  "dash.recoveryToday": "恢复 · 今日",
+  "dash.recoveryOn": "恢复 ·",
+  "dash.hrv": "HRV",
+  "dash.rhr": "静息心率",
+  "dash.lastWorkout": "上次训练",
+  "dash.noWorkoutYet": "暂无训练 —",
+  "dash.startOne": "开始训练",
+  "dash.completed": "已完成",
+  "dash.inProgress": "进行中",
+  "dash.viewing": "· 查看中",
+  "dash.startWorkout": "开始训练",
+  "dash.logMeal": "记录饮食",
+  "dash.generatePlan": "生成计划",
+  "dash.connectWhoop":
+    "连接 WHOOP 解锁恢复 · 强度 · 睡眠 · 实测 TDEE →",
+
+  // ---- Weight projection
+  "proj.title": "体重预测",
+  "proj.kcalPerDay": "卡路里/天",
+  "proj.now": "当前",
+  "proj.inWeeks": "{weeks}周后",
+  "proj.deficit": "缺口",
+  "proj.deficitUnit": "卡路里/天",
+  "proj.targetReached": "目标 {kg} kg 在第 {week} 周达成",
+  "proj.targetNotReached": "{weeks} 周内未达到 {kg} kg 目标",
+  "proj.needProfile":
+    "完善个人资料（性别、身高、年龄、体重）+ 每日卡路里目标以查看预测。",
+
+  // ---- Food entry
+  "food.logEntry": "记录",
+  "food.newMeal": "新增餐食",
+  "food.aiAutolog": "AI · 自动记录",
+  "food.defaultMeal": "默认餐次",
+  "food.describe": "描述",
+  "food.recordVoice": "语音输入",
+  "food.transcribing": "转录中…",
+  "food.parseWithAi": "AI 解析 →",
+  "food.parsing": "解析中…",
+  "food.singleItem": "单项",
+  "food.name": "名称",
+  "food.meal": "餐次",
+  "food.kcal": "卡路里",
+  "food.proteinG": "蛋白质 (克)",
+  "food.carbsG": "碳水 (克)",
+  "food.fatG": "脂肪 (克)",
+  "food.orPhotoManual": "或 · 拍照 / 手动",
+  "food.fromHistorySkipAi": "从历史记录 · 跳过 AI",
+  "food.fromHistory": "从历史记录",
+  "food.matchKcalUse": "匹配 · {kcal} 卡路里 · 使用 →",
+  "food.editEntry": "编辑记录",
+  "food.editTitle": "编辑餐食",
+  "food.aiReestimate": "AI · 重新估算",
+  "food.aiReestimatePlaceholder": "描述你实际吃了什么，例如「其实吃了两片，不是一片」或「加半个牛油果」",
+  "food.aiThinking": "→ 思考中…",
+  "food.aiUpdated": "已更新字段，确认后保存。",
+  "food.confirmDelete": "删除这条记录？",
+  "food.edit": "编辑",
+
+  // ---- Plan
+  "plan.title": "饮食计划",
+  "plan.aiMealPlanner": "AI · 餐饮规划",
+  "plan.generate": "生成",
+  "plan.days": "天数",
+  "plan.daysCountOne": "{n} 天",
+  "plan.daysCountMany": "{n} 天",
+  "plan.week": "周",
+  "plan.handMeasureTitle": "手量 · 份量指南",
+  "plan.shoppingList": "购物清单",
+  "plan.bought": "已购 {done} / {total} · {pct}%",
+  "plan.hideDone": "隐藏已完成",
+  "plan.showAll": "显示全部",
+  "plan.allBought": "全部已购",
+  "plan.aisle.produce": "果蔬",
+  "plan.aisle.meat": "肉类",
+  "plan.aisle.dairy": "乳制品",
+  "plan.aisle.pantry": "干粮",
+  "plan.aisle.frozen": "冷冻",
+  "plan.aisle.other": "其他",
+
+  // ---- Profile
+  "profile.title": "我的",
+  "profile.language": "语言",
+  "profile.languageHint": "影响界面语言。AI 回复将使用中文。",
+  "prof.userProfile": "个人资料",
+  "prof.recommendedMacros": "推荐宏量营养素",
+  "prof.edit": "编辑",
+  "prof.appearance": "外观",
+  "prof.security": "安全 · 修改密码",
+
+  // ---- Greetings
+  "greet.morning": "早上好",
+  "greet.afternoon": "下午好",
+  "greet.evening": "晚上好",
+  "greet.night": "夜深了",
+
+  // ---- Pantry
+  "pantry.title": "食材库",
+  "pantry.inventory": "库存",
+  "pantry.addItem": "添加物品",
+  "pantry.onHand": "现有",
+
+  // ---- Preferences
+  "pref.title": "偏好",
+  "pref.tasteProfile": "口味偏好",
+  "pref.liked": "喜欢",
+  "pref.disliked": "不喜欢",
+  "pref.allergy": "过敏",
+
+  // ---- Analysis
+  "anal.title": "分析",
+  "anal.trendsInsights": "趋势 · AI 洞察",
+  "anal.weight90d": "体重 · 90天",
+  "anal.kcal14d": "卡路里 · 14天",
+  "anal.recovery30d": "恢复 · 30天",
+  "anal.workoutVolume30d": "训练量 · 30天",
+  "anal.noData": "暂无数据",
+  "anal.noWhoopRecoveryData": "暂无 WHOOP 恢复数据",
+  "anal.noWorkouts": "暂无训练",
+  "anal.weeklySummary": "AI · 周报",
+  "anal.highlights": "亮点",
+  "anal.warnings": "注意事项",
+  "anal.recommendations": "建议",
+  "anal.analyzing": "分析中…",
+  "anal.generate": "生成 →",
+  "anal.clickGenerate": "点击生成获取过去 7 天的 AI 智能分析报告。",
+
+  // ---- Workouts
+  "work.title": "训练",
+  "work.history": "历史",
+  "work.programs": "计划 →",
+  "work.exerciseLibrary": "动作库 (1324) →",
+  "work.noWorkoutsYet": "暂无训练 —",
+  "work.startOne": "开始训练",
+  "work.completed": "已完成",
+  "work.inProgress": "进行中",
+  "work.sets": "组",
+  "work.new": "+ 新建",
+
+  // ---- Exercises
+  "ex.title": "动作",
+  "ex.history": "历史",
+  "ex.workouts": "训练",
+  "ex.programs": "计划",
+  "ex.exerciseLibrary": "动作库",
+  "ex.new": "+ 新建",
+  "ex.sets": "组",
+  "ex.completed": "已完成",
+  "ex.inProgress": "进行中",
+  "ex.noWorkoutsYet": "暂无训练 —",
+  "ex.startOne": "开始训练",
+  "ex.library1324": "动作库 · 1324 个动作",
+  "ex.search": "搜索",
+  "ex.bodyPart": "部位",
+  "ex.all": "全部",
+  "ex.filter": "筛选 →",
+  "ex.freeSession": "自由训练 — 从动作库添加动作",
+  "ex.target": "目标",
+  "ex.addExerciseLibrary": "+ 从动作库添加",
+  "ex.restTimer": "+ 休息计时",
+  "ex.endSession": "结束训练 →",
+
+  // ---- Whoop
+  "whoop.title": "whoop",
+  "whoop.device": "设备 · WHOOP",
+  "whoop.notConnected": "未连接",
+  "whoop.connectAccount": "连接你的 WHOOP 账户以同步恢复、睡眠、强度和训练数据。",
+  "whoop.connectDesc": "连接你的 WHOOP 账户以同步恢复、睡眠、强度和训练数据。",
+  "whoop.connectButton": "连接 WHOOP →",
+  "whoop.demoBehavior": "演示：点击连接将切换连接状态并显示预设数据。",
+  "whoop.connected": "→ 已连接。运行同步以拉取数据。",
+  "whoop.recovery": "恢复",
+  "whoop.today": "今日",
+  "whoop.sleep": "睡眠",
+  "whoop.hours": "小时",
+  "whoop.performance": "表现",
+  "whoop.strain": "强度",
+  "whoop.score": "得分",
+  "whoop.avgHr": "平均心率",
+  "whoop.recentWorkouts": "最近训练 (WHOOP)",
+  "whoop.workout": "训练",
+
+  // ---- Programs
+  "prog.title": "计划",
+  "prog.training": "训练",
+  "prog.noProgramsYet": "暂无计划。创建一个或使用模板。",
+  "prog.template": "模板",
+  "prog.custom": "自定义",
+  "prog.new": "+ 新建",
+  "prog.newProgram": "新计划",
+  "prog.create": "创建",
+  "prog.orManual": "或 · 手动",
+  "prog.blankProgram": "空白计划",
+  "prog.name": "名称",
+  "prog.description": "描述",
+  "prog.createButton": "创建 →",
+  "prog.aiAutopilot": "AI · 自动生成",
+  "prog.goal": "目标",
+  "prog.strength": "力量",
+  "prog.hypertrophy": "肌肥大（增肌）",
+  "prog.fatLoss": "减脂",
+  "prog.endurance": "耐力",
+  "prog.generalFitness": "综合体能",
+  "prog.experience": "经验",
+  "prog.beginner": "新手（< 1年）",
+  "prog.intermediate": "中级（1-3年）",
+  "prog.advanced": "高级（3年+）",
+  "prog.daysPerWeek": "天 / 周",
+  "prog.sessionLength": "训练时长",
+  "prog.min": "分钟",
+  "prog.equipment": "器械",
+  "prog.focusNotes": "重点 / 备注（可选）",
+  "prog.focusPlaceholder": "例如：侧重背部和后链，偏好复合动作",
+  "prog.injuriesLimits": "伤病 / 限制（可选）",
+  "prog.injuriesPlaceholder": "例如：不能过头上推，腰部敏感",
+  "prog.generatingProgram": "→ AI 正在生成计划 — 可能需要 10-20 秒…",
+  "prog.exercisesNotMatched": "以下动作无法匹配：",
+  "prog.generateProgram": "生成计划 →",
+  "prog.generating": "生成中…",
+  "prog.back": "← 返回",
+  "prog.backToPrograms": "← 计划",
+  "prog.edit": "编辑",
+  "prog.editing": "编辑中",
+  "prog.done": "完成",
+  "prog.day": "天",
+  "prog.addDay": "+ 添加训练日",
+  "prog.addExercise": "+ 添加动作",
+  "prog.noExercisesYet": "→ 暂无动作",
+  "prog.deleteDay": "删除训练日「{day}」及其所有 {count} 个动作？",
+  "prog.sets": "组数",
+  "prog.reps": "次数",
+  "prog.kg": "公斤",
+  "prog.notes": "备注（动作提示、节奏）",
+  "prog.notesPlaceholder": "备注（动作提示、节奏）",
+  "prog.dayAdded": "训练日已添加",
+  "prog.dayRenamed": "训练日已重命名",
+  "prog.dayDeleted": "训练日已删除",
+  "prog.exerciseAdded": "动作已添加",
+  "prog.exerciseRemoved": "动作已移除",
+  "prog.fieldSaved": "{field} 已保存",
+
+  // ---- Password
+  "pwd.current": "当前密码",
+  "pwd.new": "新密码",
+  "pwd.confirm": "确认",
+  "pwd.changePassword": "修改密码 →",
+  "pwd.atLeast6": "至少 6 个字符",
+  "pwd.dontMatch": "两次密码不一致",
+  "pwd.currentWrong": "当前密码错误",
+  "pwd.error": "错误",
+  "pwd.updated": "密码已更新",
+  "pwd.demoNotChanged": "演示：密码未实际更改",
+
+  // ---- Food
+  "food.title": "今日",
+  "food.foodLog": "饮食记录",
+  "food.totals": "总计",
+  "food.protein": "蛋白质",
+  "food.carbs": "碳水",
+  "food.fat": "脂肪",
+  "food.noEntries": "暂无记录 —",
+  "food.addOne": "添加记录",
+  "food.items": "条",
+  "food.log": "+ 记录",
+
+  // ---- Plan generation
+  "plan.genDays": "天数",
+  "plan.gen3Days": "3 天",
+  "plan.gen7Days": "7 天",
+  "plan.gen14Days": "14 天",
+  "plan.generatingForm": "生成中…",
+  "plan.generateForm": "生成 →",
+  "plan.usesProfile": "使用个人资料目标 + 偏好 + 食材库。通过 fal openrouter 调用 Sonnet 4.6。",
+
+  // ---- Workout detail / session
+  "work.back": "← 返回",
+  "work.workoutNotFound": "未找到训练 —",
+  "work.startDay": "开始训练日 →",
+  "work.newSession": "新训练",
+  "work.startWorkoutTitle": "开始训练",
+  "work.programLabel": "计划",
+
+  // ---- Exercise session UI
+  "ex.freeSessionInline": "自由训练 — 从动作库添加动作",
+  "ex.addExerciseFromLibrary": "+ 从动作库添加",
+
+  // ---- Exercise library page
+  "ex.libraryPage": "动作",
+  "ex.searchPlaceholder": "卧推、深蹲…",
+  "ex.bodyPartLabel": "部位",
+  "ex.allLabel": "全部",
+
+  // ---- Program creation
+  "prog.createPageTitle": "新计划",
+  "prog.orManualSeparator": "或 · 手动",
+  "prog.blankProgramLabel": "空白计划",
+  "prog.aiAutopilotLabel": "AI · 自动生成",
+  "prog.goalLabel": "目标",
+  "prog.experienceLabel": "经验",
+  "prog.daysPerWeekLabel": "天 / 周",
+  "prog.sessionLengthLabel": "训练时长",
+  "prog.minLabel": "分钟",
+  "prog.equipmentLabel": "器械",
+  "prog.focusNotesLabel": "重点 / 备注（可选）",
+  "prog.injuriesLimitsLabel": "伤病 / 限制（可选）",
+  "prog.generateProgramButton": "生成计划 →",
+  "prog.aiDemoMessage": "演示：AI 计划生成在自托管版本中通过 fal.ai 调用 Claude Sonnet。请使用下方手动表单，或访问 github.com/egebese/lifeos。",
+  "prog.programNotFound": "未找到计划 —",
+  "prog.editBackLink": "← 计划",
+  "prog.editButton": "编辑",
+  "prog.dayLabel": "天",
+  "prog.deleteButtonLabel": "删除",
+  "prog.deleteConfirmation": "确认？",
+  "prog.deleteDayConfirmation": "删除训练日「{day}」及其所有 {count} 个动作？",
+  "prog.addDayButton": "+ 添加训练日",
+  "prog.addExerciseButton": "+ 添加动作",
+  "prog.noExercisesYetInline": "→ 暂无动作",
+  "prog.editingLabel": "编辑中",
+  "prog.doneButton": "完成",
+  "prog.nameLabel": "名称",
+  "prog.descriptionLabel": "描述",
+
+  // ---- Shared UI
+  "common.startButton": "开始 →",
+  "common.createButton": "创建 →",
+  "common.libraryCount": "动作库 · {count} 个动作",
+  "common.backLower": "返回",
+  "common.freeNoProgram": "— 自由 / 无计划 —",
+
+  // ---- Auth / Login
+  "auth.appVersion": "LIFETRACKER / V1",
+  "auth.signIn": "登录",
+  "auth.email": "邮箱",
+  "auth.password": "密码",
+  "auth.enter": "进入 →",
+  "auth.tooManyAttempts": "尝试次数过多",
+  "auth.invalidCredentials": "邮箱或密码错误",
+
+  // ---- Rest timer
+  "timer.pause": "暂停",
+  "timer.resume": "继续",
+
+  // ---- Set row
+  "set.kg": "公斤",
+  "set.reps": "次",
+  "set.rpe": "RPE",
+
+  // ---- Exercise detail drawer
+  "exDetail.title": "动作",
+  "exDetail.instructions": "动作要领",
+  "exDetail.secondaryMuscles": "辅助肌群",
+  "exDetail.close": "关闭",
+
+  // ---- Whoop strain card
+  "whoopStrain.title": "WHOOP 强度",
+  "whoopStrain.displayOnly": "仅展示 — 不从卡路里目标中扣除",
+  "whoopStrain.syncing": "同步中…",
+  "whoopStrain.refresh": "刷新",
+  "whoopStrain.pull": "从 WHOOP 拉取",
+  "whoopStrain.noMatch":
+    "没有匹配此训练时间段的 WHOOP 活动数据。结束训练后，等待一分钟再点击「从 WHOOP 拉取」（WHOOP 数据处理有一定延迟）。",
+  "whoopStrain.strain": "强度",
+  "whoopStrain.kcal": "卡路里",
+  "whoopStrain.avgHr": "平均心率",
+  "whoopStrain.maxHr": "最大心率",
+  "whoopStrain.duration": "时长",
+  "whoopStrain.workout": "训练",
+
+  // ---- Whoop history
+  "whoopHistory.history": "历史 · {days}天",
+  "whoopHistory.noData": "→ 暂无历史数据。运行深度同步以回填。",
+  "whoopHistory.avgRecovery": "平均恢复",
+  "whoopHistory.avgSleep": "平均睡眠",
+  "whoopHistory.avgStrain": "平均强度",
+  "whoopHistory.workouts": "训练次数",
+  "whoopHistory.recoveryDaily": "恢复 · 每日",
+  "whoopHistory.sleepDaily": "睡眠 · 每日小时",
+  "whoopHistory.strainDaily": "强度 · 每日",
+  "whoopHistory.workoutsCount": "训练 · 次数",
+
+  // ---- Photo drop
+  "photo.upload": "上传餐食照片",
+  "photo.compressing": "压缩中…",
+  "photo.tapCapture": "点击拍照 / 选择",
+
+  // ---- Sync button
+  "sync.today": "同步今日",
+  "sync.30d": "同步 30 天",
+  "sync.180d": "拉取 180 天",
+  "sync.1y": "拉取 1 年",
+  "sync.syncing": "同步中…",
+  "sync.pulling": "拉取中…",
+  "sync.ok": "完成 · {days}天 · 恢复 {rec} · 睡眠 {sleep} · 强度 {strain} · 训练 {workouts}",
+  "sync.err": "错误 · {error}",
+
+  // ---- Pantry
+  "pantry.namePlaceholder": "名称（如：燕麦）",
+  "pantry.qtyPlaceholder": "数量",
+  "pantry.unitPlaceholder": "克 | 毫升 | 个",
+  "pantry.empty": "空空如也",
+
+  // ---- Preferences
+  "pref.addPlaceholder": "+ 添加",
+
+  // ---- Profile form
+  "prof.displayName": "显示名称",
+  "prof.displayNamePlaceholder": "小明",
+  "prof.displayNameHint": "在仪表盘问候语中显示 · 留空则使用邮箱",
+  "prof.bmr": "基础代谢",
+  "prof.height": "身高 (厘米)",
+  "prof.weight": "体重 (公斤)",
+  "prof.age": "年龄",
+  "prof.sex": "性别",
+  "prof.sexMale": "男",
+  "prof.sexFemale": "女",
+  "prof.activity": "活动量",
+  "prof.activitySedentary": "久坐",
+  "prof.activityLight": "轻度",
+  "prof.activityModerate": "中度",
+  "prof.activityActive": "活跃",
+  "prof.activityVeryActive": "非常活跃",
+  "prof.targetWeight": "目标体重 (公斤)",
+  "prof.save": "保存 →",
+
+  // ---- AI meal form
+  "food.aiPlaceholder":
+    "例如「早餐：两片全麦面包涂花生酱，一根香蕉，一杯希腊酸奶，加一个水煮蛋和一些蔬菜」",
+};
+
+const DICTS: Record<Locale, Record<DictKey, string>> = { en, tr, zh };
 
 export function translate(
   locale: Locale,

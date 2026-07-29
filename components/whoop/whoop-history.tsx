@@ -9,6 +9,7 @@ import {
 import { Card, CardLabel } from "@/components/ui/card";
 import { MonoStat } from "@/components/nothing/mono-stat";
 import { DayBars, type DayPoint } from "@/components/nothing/day-bars";
+import { getLocale, tFor } from "@/lib/i18n/server";
 
 function dayKey(d: Date): string {
   return d.toISOString().slice(0, 10);
@@ -45,6 +46,7 @@ export async function WhoopHistory({
   userId: string;
   days?: number;
 }) {
+  const t = tFor(await getLocale());
   const range = buildDayRange(days);
   const since = new Date(Date.now() - days * 86_400_000);
 
@@ -87,9 +89,9 @@ export async function WhoopHistory({
   ) {
     return (
       <Card>
-        <CardLabel>HISTORY · {days}D</CardLabel>
+        <CardLabel>{t("whoopHistory.history", { days })}</CardLabel>
         <div className="font-mono text-[11px] text-[color:var(--text-secondary)] uppercase tracking-[0.08em] mt-2">
-          → no historical data yet. run a deep sync to backfill.
+          {t("whoopHistory.noData")}
         </div>
       </Card>
     );
@@ -135,7 +137,7 @@ export async function WhoopHistory({
   return (
     <Card className="space-y-6">
       <div className="flex items-baseline justify-between">
-        <CardLabel>HISTORY · {days}D</CardLabel>
+        <CardLabel>{t("whoopHistory.history", { days })}</CardLabel>
         <div className="font-mono text-[10px] tracking-[0.08em] text-[color:var(--text-disabled)] uppercase">
           {range[0]} → {range[range.length - 1]}
         </div>
@@ -143,37 +145,37 @@ export async function WhoopHistory({
 
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4 pb-2">
         <MonoStat
-          label="AVG RECOVERY"
+          label={t("whoopHistory.avgRecovery")}
           value={recoveryAvg != null ? recoveryAvg.toFixed(0) : "—"}
           unit="%"
         />
         <MonoStat
-          label="AVG SLEEP"
+          label={t("whoopHistory.avgSleep")}
           value={sleepAvg != null ? sleepAvg.toFixed(1) : "—"}
           unit="h"
         />
         <MonoStat
-          label="AVG STRAIN"
+          label={t("whoopHistory.avgStrain")}
           value={strainAvg != null ? strainAvg.toFixed(1) : "—"}
         />
-        <MonoStat label="WORKOUTS" value={workoutTotal} />
+        <MonoStat label={t("whoopHistory.workouts")} value={workoutTotal} />
       </section>
 
       <section className="space-y-5">
         <div>
-          <div className="mono-label mb-2">RECOVERY · DAILY</div>
+          <div className="mono-label mb-2">{t("whoopHistory.recoveryDaily")}</div>
           <DayBars days={recoverySeries} max={100} mode="score" unit="%" />
         </div>
         <div>
-          <div className="mono-label mb-2">SLEEP · DAILY HOURS</div>
+          <div className="mono-label mb-2">{t("whoopHistory.sleepDaily")}</div>
           <DayBars days={sleepSeries} max={10} mode="value" unit="h" />
         </div>
         <div>
-          <div className="mono-label mb-2">STRAIN · DAILY</div>
+          <div className="mono-label mb-2">{t("whoopHistory.strainDaily")}</div>
           <DayBars days={strainSeries} max={21} mode="value" />
         </div>
         <div>
-          <div className="mono-label mb-2">WORKOUTS · COUNT</div>
+          <div className="mono-label mb-2">{t("whoopHistory.workoutsCount")}</div>
           <DayBars days={workoutSeries} max={4} mode="value" />
         </div>
       </section>

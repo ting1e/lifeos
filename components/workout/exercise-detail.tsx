@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import Image from "next/image";
 import { X } from "lucide-react";
+import { useT } from "@/lib/i18n/client";
 
 export type ExerciseDetail = {
   id: string;
@@ -30,8 +31,9 @@ export function ExerciseDetailDrawer({
   exercise: ExerciseDetail | null;
   open: boolean;
   onClose: () => void;
-  locale?: "tr" | "en";
+  locale?: "tr" | "en" | "zh";
 }) {
+  const t = useT();
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -72,17 +74,17 @@ export function ExerciseDetailDrawer({
     <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center">
       <button
         type="button"
-        aria-label="close"
+        aria-label={t("exDetail.close")}
         onClick={onClose}
         className="absolute inset-0 bg-black/70 dot-grid-subtle"
       />
       <div className="relative w-full md:max-w-2xl max-h-[90dvh] overflow-y-auto bg-[color:var(--surface)] border-t md:border border-[color:var(--border-visible)] safe-bottom">
         <div className="sticky top-0 z-10 flex items-center justify-between px-5 py-3 bg-[color:var(--surface)] border-b border-[color:var(--border)]">
-          <div className="mono-label">EXERCISE</div>
+          <div className="mono-label">{t("exDetail.title")}</div>
           <button
             type="button"
             onClick={onClose}
-            aria-label="close"
+            aria-label={t("exDetail.close")}
             className="text-[color:var(--text-secondary)] hover:text-[color:var(--text-display)] min-h-[44px] min-w-[44px] -mr-3 flex items-center justify-center"
           >
             <X size={20} strokeWidth={1.5} />
@@ -116,7 +118,7 @@ export function ExerciseDetailDrawer({
 
           {steps.length > 0 && (
             <div>
-              <div className="mono-label mb-2">INSTRUCTIONS</div>
+              <div className="mono-label mb-2">{t("exDetail.instructions")}</div>
               <ol className="space-y-2">
                 {steps.map((s, i) => (
                   <li
@@ -135,7 +137,7 @@ export function ExerciseDetailDrawer({
 
           {exercise.secondaryMuscles && exercise.secondaryMuscles.length > 0 && (
             <div>
-              <div className="mono-label mb-2">SECONDARY MUSCLES</div>
+              <div className="mono-label mb-2">{t("exDetail.secondaryMuscles")}</div>
               <div className="flex flex-wrap gap-2">
                 {exercise.secondaryMuscles.map((m) => (
                   <span

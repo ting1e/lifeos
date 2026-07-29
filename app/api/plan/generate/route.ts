@@ -65,7 +65,7 @@ export async function POST(req: Request) {
     .limit(50);
 
   const { system, prompt } = weeklyPlanPrompt({
-    locale: "en",
+    locale: user.locale,
     goal,
     targetKcal: target,
     proteinG,

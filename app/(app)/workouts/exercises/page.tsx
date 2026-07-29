@@ -13,7 +13,8 @@ export default async function ExercisesPage({
   searchParams: Promise<{ q?: string; body_part?: string }>;
 }) {
   const { user } = await requireSession();
-  const t = tFor(await getLocale());
+  const locale = await getLocale();
+  const t = tFor(locale);
   const sp = await searchParams;
   const q = (sp.q ?? "").trim();
   const bodyPart = (sp.body_part ?? "").trim();
@@ -77,7 +78,7 @@ export default async function ExercisesPage({
       </form>
 
       <ExerciseLibrary
-        locale="en"
+        locale={locale}
         rows={rows.map((ex) => ({
           id: ex.id,
           nameEn: ex.nameEn,

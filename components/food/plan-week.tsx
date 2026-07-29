@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useT, useLocale } from "@/lib/i18n/client";
 import type { DictKey } from "@/lib/i18n/dict";
+import { bcp47For } from "@/lib/utils";
 
 type MealItem = {
   name: string;
@@ -63,7 +64,7 @@ const MEAL_META: Array<{
 export function PlanWeek({ days, todayKey }: Props) {
   const t = useT();
   const locale = useLocale();
-  const bcp47 = locale === "tr" ? "tr-TR" : "en-US";
+  const bcp47 = bcp47For(locale);
   // Today expanded by default; if today isn't in the plan window, expand first day.
   const initialOpen =
     days.find((d) => d.date === todayKey)?.date ?? days[0]?.date ?? null;

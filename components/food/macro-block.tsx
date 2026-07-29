@@ -1,5 +1,6 @@
 import { Droplet, Drumstick, Wheat } from "lucide-react";
 import { Card, CardLabel } from "@/components/ui/card";
+import { getLocale, tFor } from "@/lib/i18n/server";
 
 type MacroProps = {
   protein: number;
@@ -64,7 +65,7 @@ function MacroTile({
   );
 }
 
-export function MacroBlock({
+export async function MacroBlock({
   protein,
   carbs,
   fat,
@@ -74,6 +75,7 @@ export function MacroBlock({
   carbsTarget,
   fatTarget,
 }: MacroProps) {
+  const t = tFor(await getLocale());
   const kcalSafe = kcalTarget && kcalTarget > 0 ? kcalTarget : null;
   const kcalPct = kcalSafe ? Math.min(100, (kcal / kcalSafe) * 100) : 0;
   const overTarget = kcalSafe ? kcal > kcalSafe : false;
@@ -98,7 +100,7 @@ export function MacroBlock({
   return (
     <Card className="flex flex-col gap-5 h-full">
       <div className="flex flex-col gap-1 md:flex-row md:items-baseline md:justify-between">
-        <CardLabel className="mb-0">TODAY'S MACROS</CardLabel>
+        <CardLabel className="mb-0">{t("dash.macros")}</CardLabel>
         <div className="font-mono text-[11px] uppercase tracking-[0.08em] tabular-nums">
           <span
             className={
@@ -120,7 +122,7 @@ export function MacroBlock({
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
         <MacroTile
-          label="PROTEIN"
+          label={t("dash.protein")}
           value={protein}
           target={proteinTarget}
           unit="g"
@@ -128,7 +130,7 @@ export function MacroBlock({
           icon={<Drumstick size={14} strokeWidth={1.75} />}
         />
         <MacroTile
-          label="CARBS"
+          label={t("dash.carbs")}
           value={carbs}
           target={carbsTarget}
           unit="g"
@@ -136,7 +138,7 @@ export function MacroBlock({
           icon={<Wheat size={14} strokeWidth={1.75} />}
         />
         <MacroTile
-          label="FAT"
+          label={t("dash.fat")}
           value={fat}
           target={fatTarget}
           unit="g"
@@ -147,7 +149,7 @@ export function MacroBlock({
 
       <div className="mt-auto space-y-3 pt-4 border-t border-[color:var(--border)]">
         <div className="mono-label flex items-center justify-between">
-          <span>DISTRIBUTION · BY KCAL</span>
+          <span>{t("dash.distribution")}</span>
           <span className="text-[color:var(--text-disabled)]">
             P {Math.round(pPct)}% · C {Math.round(cPct)}% · F {Math.round(fPct)}%
           </span>
@@ -160,10 +162,10 @@ export function MacroBlock({
 
         {(pRem !== null || cRem !== null || fRem !== null || kcalRem !== null) && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-1 font-mono text-[11px] uppercase tracking-[0.08em] tabular-nums">
-            <RemainingCell label="KCAL LEFT" value={kcalRem} />
-            <RemainingCell label="P LEFT" value={pRem} unit="g" color="var(--success)" />
-            <RemainingCell label="C LEFT" value={cRem} unit="g" color="var(--warning)" />
-            <RemainingCell label="F LEFT" value={fRem} unit="g" color="var(--accent)" />
+            <RemainingCell label={t("dash.kcalLeft")} value={kcalRem} />
+            <RemainingCell label={t("dash.pLeft")} value={pRem} unit="g" color="var(--success)" />
+            <RemainingCell label={t("dash.cLeft")} value={cRem} unit="g" color="var(--warning)" />
+            <RemainingCell label={t("dash.fLeft")} value={fRem} unit="g" color="var(--accent)" />
           </div>
         )}
       </div>

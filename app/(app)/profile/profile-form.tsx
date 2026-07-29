@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import type { Profile } from "@/lib/db/schema";
+import { useT } from "@/lib/i18n/client";
 
 export function ProfileForm({ initial }: { initial: Profile | undefined }) {
+  const t = useT();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState({
@@ -40,20 +42,20 @@ export function ProfileForm({ initial }: { initial: Profile | undefined }) {
     <form onSubmit={save} className="space-y-5 mt-4">
       <div className="grid grid-cols-2 gap-6">
         <div className="col-span-2">
-          <div className="mono-label mb-1">DISPLAY NAME</div>
+          <div className="mono-label mb-1">{t("prof.displayName")}</div>
           <Input
             type="text"
             value={form.displayName}
-            placeholder="Ege"
+            placeholder={t("prof.displayNamePlaceholder")}
             maxLength={80}
             onChange={(e) => setForm({ ...form, displayName: e.target.value })}
           />
           <div className="font-mono text-[10px] text-[color:var(--text-disabled)] mt-1">
-            shown in the dashboard greeting · leave blank to fall back to your email
+            {t("prof.displayNameHint")}
           </div>
         </div>
         <div>
-          <div className="mono-label mb-1">HEIGHT (CM)</div>
+          <div className="mono-label mb-1">{t("prof.height")}</div>
           <Input
             type="number"
             inputMode="decimal"
@@ -63,7 +65,7 @@ export function ProfileForm({ initial }: { initial: Profile | undefined }) {
           />
         </div>
         <div>
-          <div className="mono-label mb-1">WEIGHT (KG)</div>
+          <div className="mono-label mb-1">{t("prof.weight")}</div>
           <Input
             type="number"
             inputMode="decimal"
@@ -73,7 +75,7 @@ export function ProfileForm({ initial }: { initial: Profile | undefined }) {
           />
         </div>
         <div>
-          <div className="mono-label mb-1">AGE</div>
+          <div className="mono-label mb-1">{t("prof.age")}</div>
           <Input
             type="number"
             inputMode="numeric"
@@ -82,41 +84,41 @@ export function ProfileForm({ initial }: { initial: Profile | undefined }) {
           />
         </div>
         <div>
-          <div className="mono-label mb-1">SEX</div>
+          <div className="mono-label mb-1">{t("prof.sex")}</div>
           <Select
             value={form.sex}
             onChange={(e) => setForm({ ...form, sex: e.target.value as "m" | "f" })}
           >
-            <option value="m">male</option>
-            <option value="f">female</option>
+            <option value="m">{t("prof.sexMale")}</option>
+            <option value="f">{t("prof.sexFemale")}</option>
           </Select>
         </div>
         <div>
-          <div className="mono-label mb-1">ACTIVITY</div>
+          <div className="mono-label mb-1">{t("prof.activity")}</div>
           <Select
             value={form.activityLevel}
             onChange={(e) => setForm({ ...form, activityLevel: e.target.value as never })}
           >
-            <option value="sedentary">sedentary</option>
-            <option value="light">light</option>
-            <option value="moderate">moderate</option>
-            <option value="active">active</option>
-            <option value="very_active">very active</option>
+            <option value="sedentary">{t("prof.activitySedentary")}</option>
+            <option value="light">{t("prof.activityLight")}</option>
+            <option value="moderate">{t("prof.activityModerate")}</option>
+            <option value="active">{t("prof.activityActive")}</option>
+            <option value="very_active">{t("prof.activityVeryActive")}</option>
           </Select>
         </div>
         <div>
-          <div className="mono-label mb-1">GOAL</div>
+          <div className="mono-label mb-1">{t("prof.goal")}</div>
           <Select
             value={form.goal}
             onChange={(e) => setForm({ ...form, goal: e.target.value as never })}
           >
-            <option value="cut">cut</option>
-            <option value="maintain">maintain</option>
-            <option value="bulk">bulk</option>
+            <option value="cut">{t("goal.cut")}</option>
+            <option value="maintain">{t("goal.maintain")}</option>
+            <option value="bulk">{t("goal.bulk")}</option>
           </Select>
         </div>
         <div className="col-span-2">
-          <div className="mono-label mb-1">TARGET WEIGHT (KG)</div>
+          <div className="mono-label mb-1">{t("prof.targetWeight")}</div>
           <Input
             type="number"
             inputMode="decimal"
@@ -129,7 +131,7 @@ export function ProfileForm({ initial }: { initial: Profile | undefined }) {
 
       <div className="flex justify-end">
         <Button type="submit" disabled={busy}>
-          {busy ? "..." : "SAVE →"}
+          {busy ? t("common.busy") : t("prof.save")}
         </Button>
       </div>
     </form>

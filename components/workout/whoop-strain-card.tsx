@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Card, CardLabel } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MonoStat } from "@/components/nothing/mono-stat";
+import { useT } from "@/lib/i18n/client";
 
 type WhoopMatch = {
   whoopId: string;
@@ -18,6 +19,7 @@ type WhoopMatch = {
 };
 
 export function WhoopStrainCard({ workoutId }: { workoutId: string }) {
+  const t = useT();
   const [data, setData] = useState<WhoopMatch | null | undefined>(undefined);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,13 +59,13 @@ export function WhoopStrainCard({ workoutId }: { workoutId: string }) {
     <Card className="space-y-3">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <CardLabel>WHOOP STRAIN</CardLabel>
+          <CardLabel>{t("whoopStrain.title")}</CardLabel>
           <div className="font-mono text-[10px] text-[color:var(--text-disabled)] mt-1">
-            display-only — not deducted from kcal target
+            {t("whoopStrain.displayOnly")}
           </div>
         </div>
         <Button variant="outline" size="sm" onClick={pull} disabled={busy}>
-          {busy ? "SYNCING…" : data ? "REFRESH" : "PULL FROM WHOOP"}
+          {busy ? t("whoopStrain.syncing") : data ? t("whoopStrain.refresh") : t("whoopStrain.pull")}
         </Button>
       </div>
 
@@ -73,23 +75,21 @@ export function WhoopStrainCard({ workoutId }: { workoutId: string }) {
 
       {data === null && (
         <div className="font-mono text-[11px] text-[color:var(--text-secondary)]">
-          No Whoop activity matches this workout's time window. End the workout, then
-          press <span className="text-[color:var(--text-display)]">PULL FROM WHOOP</span>{" "}
-          after a minute (Whoop processes data with some delay).
+          {t("whoopStrain.noMatch")}
         </div>
       )}
 
       {data && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <MonoStat
-            label="STRAIN"
+            label={t("whoopStrain.strain")}
             value={data.strain != null ? data.strain.toFixed(1) : "—"}
           />
-          <MonoStat label="KCAL" value={data.kcal ?? "—"} unit="kcal" />
-          <MonoStat label="AVG HR" value={data.avgHr ?? "—"} unit="bpm" />
-          <MonoStat label="MAX HR" value={data.maxHr ?? "—"} unit="bpm" />
+          <MonoStat label={t("whoopStrain.kcal")} value={data.kcal ?? "—"} unit="kcal" />
+          <MonoStat label={t("whoopStrain.avgHr")} value={data.avgHr ?? "—"} unit="bpm" />
+          <MonoStat label={t("whoopStrain.maxHr")} value={data.maxHr ?? "—"} unit="bpm" />
           <div className="col-span-2 md:col-span-4 mono-label">
-            DURATION · {data.durationMin}m · {data.sport ?? "workout"}
+            {t("whoopStrain.duration")} · {data.durationMin}m · {data.sport ?? t("whoopStrain.workout")}
           </div>
         </div>
       )}

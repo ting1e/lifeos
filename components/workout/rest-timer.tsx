@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useT } from "@/lib/i18n/client";
 
 export function RestTimer({ seconds = 90, onDone }: { seconds?: number; onDone?: () => void }) {
+  const t = useT();
   const [remaining, setRemaining] = useState(seconds);
   const [running, setRunning] = useState(true);
 
@@ -28,13 +30,13 @@ export function RestTimer({ seconds = 90, onDone }: { seconds?: number; onDone?:
         onClick={() => setRunning(!running)}
         className="font-mono text-[11px] uppercase tracking-[0.1em] text-[color:var(--text-secondary)] hover:text-[color:var(--text-display)]"
       >
-        {running ? "PAUSE" : "RESUME"}
+        {running ? t("timer.pause") : t("timer.resume")}
       </button>
       <button
         onClick={() => setRemaining(seconds)}
         className="font-mono text-[11px] uppercase tracking-[0.1em] text-[color:var(--text-secondary)] hover:text-[color:var(--text-display)]"
       >
-        RESET
+        {t("common.reset")}
       </button>
     </div>
   );

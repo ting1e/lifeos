@@ -12,7 +12,7 @@ export function ExerciseLibrary({
   locale,
   rows,
 }: {
-  locale: "tr" | "en";
+  locale: "tr" | "en" | "zh";
   rows: ExerciseDetail[];
 }) {
   const [detail, setDetail] = useState<ExerciseDetail | null>(null);

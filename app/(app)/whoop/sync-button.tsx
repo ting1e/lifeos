@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { useT } from "@/lib/i18n/client";
 
 type SyncResp = {
   ok: boolean;
@@ -17,6 +18,7 @@ type SyncResp = {
 
 export function SyncWhoopButton() {
   const router = useRouter();
+  const t = useT();
   const [busy, setBusy] = useState<null | number>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string> | null>(null);
@@ -31,17 +33,21 @@ export function SyncWhoopButton() {
       if (r.ok && data.ok) {
         const errCount = data.errors ? Object.keys(data.errors).length : 0;
         setMsg(
-          `OK · ${data.sinceDays ?? days}d · rec ${data.recovery ?? 0} · sleep ${data.sleep ?? 0} · strain ${data.strain ?? 0} · workouts ${data.workouts ?? 0}${
-            errCount > 0 ? ` · ${errCount} err` : ""
-          }`,
+          t("sync.ok", {
+            days: data.sinceDays ?? days,
+            rec: data.recovery ?? 0,
+            sleep: data.sleep ?? 0,
+            strain: data.strain ?? 0,
+            workouts: data.workouts ?? 0,
+          }) + (errCount > 0 ? ` · ${errCount} err` : ""),
         );
         if (errCount > 0) setErrors(data.errors ?? null);
         router.refresh();
       } else {
-        setMsg(`ERR · ${data.error ?? r.status}`);
+        setMsg(t("sync.err", { error: data.error ?? r.status }));
       }
     } catch (e) {
-      setMsg(`ERR · ${e instanceof Error ? e.message : String(e)}`);
+      setMsg(t("sync.err", { error: e instanceof Error ? e.message : String(e) }));
     } finally {
       setBusy(null);
     }
@@ -56,7 +62,7 @@ export function SyncWhoopButton() {
           variant="accent"
           size="sm"
         >
-          {busy === 1 ? "SYNCING…" : "SYNC TODAY"}
+          {busy === 1 ? t("sync.syncing") : t("sync.today")}
         </Button>
         <Button
           onClick={() => sync(30)}
@@ -64,7 +70,7 @@ export function SyncWhoopButton() {
           variant="outline"
           size="sm"
         >
-          {busy === 30 ? "SYNCING…" : "SYNC 30D"}
+          {busy === 30 ? t("sync.syncing") : t("sync.30d")}
         </Button>
         <Button
           onClick={() => sync(180)}
@@ -72,7 +78,7 @@ export function SyncWhoopButton() {
           variant="outline"
           size="sm"
         >
-          {busy === 180 ? "PULLING…" : "PULL 180D"}
+          {busy === 180 ? t("sync.pulling") : t("sync.180d")}
         </Button>
         <Button
           onClick={() => sync(365)}
@@ -80,7 +86,7 @@ export function SyncWhoopButton() {
           variant="outline"
           size="sm"
         >
-          {busy === 365 ? "PULLING…" : "PULL 1Y"}
+          {busy === 365 ? t("sync.pulling") : t("sync.1y")}
         </Button>
       </div>
       {msg && (

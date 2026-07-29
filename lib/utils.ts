@@ -43,8 +43,14 @@ export function resolveDisplayName(args: {
     .join(" ");
 }
 
+export function bcp47For(locale: "tr" | "en" | "zh"): string {
+  if (locale === "tr") return "tr-TR";
+  if (locale === "zh") return "zh-CN";
+  return "en-US";
+}
+
 export function greetingFor(
-  locale: "tr" | "en",
+  locale: "tr" | "en" | "zh",
   name: string,
   date = new Date(),
 ): string {
@@ -54,6 +60,12 @@ export function greetingFor(
     if (hour < 12) return `Günaydın, ${name}`;
     if (hour < 18) return `Merhaba, ${name}`;
     return `İyi akşamlar, ${name}`;
+  }
+  if (locale === "zh") {
+    if (hour < 6) return `夜深了，${name}`;
+    if (hour < 12) return `早上好，${name}`;
+    if (hour < 18) return `下午好，${name}`;
+    return `晚上好，${name}`;
   }
   if (hour < 6) return `Good night, ${name}`;
   if (hour < 12) return `Good morning, ${name}`;

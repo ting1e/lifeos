@@ -133,7 +133,7 @@ export async function POST(req: NextRequest) {
       : null;
 
   const { system, prompt } = programGeneratorPrompt({
-    locale: "en",
+    locale: user.locale,
     goal: input.goal,
     level: input.level,
     daysPerWeek: input.daysPerWeek,

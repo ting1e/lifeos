@@ -117,7 +117,7 @@ export async function POST() {
   }
 
   const { system, prompt } = weeklyInsightsPrompt({
-    locale: "en",
+    locale: user.locale,
     weekStart: days[0],
     weekEnd: days[6],
     kcalTarget: target,

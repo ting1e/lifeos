@@ -5,6 +5,7 @@ import { requireSession } from "@/lib/auth/session";
 import { Card, CardLabel } from "@/components/ui/card";
 import { NewWorkoutForm } from "./new-workout-form";
 import { todayKey } from "@/lib/utils/day";
+import { getLocale, tFor } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,7 @@ export default async function NewWorkoutPage({
   searchParams: Promise<{ day?: string }>;
 }) {
   const { user } = await requireSession();
+  const t = tFor(await getLocale());
   const sp = await searchParams;
   const progs = await db
     .select()
@@ -25,11 +27,11 @@ export default async function NewWorkoutPage({
   return (
     <div className="space-y-6">
       <header>
-        <div className="mono-label">NEW SESSION</div>
-        <h1 className="font-display text-4xl mt-1">start workout</h1>
+        <div className="mono-label">{t("work.newSession")}</div>
+        <h1 className="font-display text-4xl mt-1">{t("work.startWorkoutTitle")}</h1>
       </header>
       <Card>
-        <CardLabel>PROGRAM</CardLabel>
+        <CardLabel>{t("work.programLabel")}</CardLabel>
         <NewWorkoutForm programs={progs} initialDate={initialDate} />
       </Card>
     </div>

@@ -8,6 +8,7 @@ import { HandMeasureLegend } from "@/components/food/hand-measure-legend";
 import { PlanWeek } from "@/components/food/plan-week";
 import { ShoppingChecklist, type ShoppingItem } from "@/components/food/shopping-checklist";
 import { getLocale, tFor } from "@/lib/i18n/server";
+import { bcp47For } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -55,7 +56,7 @@ export default async function MealPlanPage() {
   const { user } = await requireSession();
   const locale = await getLocale();
   const t = tFor(locale);
-  const bcp47 = locale === "tr" ? "tr-TR" : "en-US";
+  const bcp47 = bcp47For(locale);
   const [latest] = await db
     .select()
     .from(mealPlans)

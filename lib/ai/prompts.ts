@@ -3,8 +3,27 @@
 
 export type Prompt = { system: string; prompt: string };
 
-export function foodVisionPrompt(_locale: "tr" | "en" = "en"): Prompt {
-  // UI is English-only; always reply in English regardless of locale arg.
+export function foodVisionPrompt(locale: "tr" | "en" | "zh" = "en"): Prompt {
+  // For zh the AI replies in Chinese (dish name + notes). en/tr stay English.
+  if (locale === "zh") {
+    const system =
+      "你是一名营养师。观察食物照片并估算热量与宏量营养素。仅返回有效的 JSON，不要任何解释性文字或 markdown。";
+
+    const prompt = `估算这道菜并返回 JSON：
+{
+  "name": "简洁的中文菜名",
+  "kcal": <总热量>,
+  "protein_g": <克>,
+  "carbs_g": <克>,
+  "fat_g": <克>,
+  "confidence": <0..1>,
+  "notes": "中文份量假设说明"
+}
+若份量不明确，按典型单人份估算。仅返回 JSON。`;
+
+    return { system, prompt };
+  }
+
   const system =
     "You are a nutritionist. Look at the food photo and estimate calories and macros. Return ONLY valid JSON, no prose, no markdown.";
 
@@ -24,7 +43,7 @@ If portion unclear, assume a typical single serving. JSON only.`;
 }
 
 export type PlanInput = {
-  locale: "tr" | "en";
+  locale: "tr" | "en" | "zh";
   goal: "cut" | "maintain" | "bulk";
   targetKcal: number;
   proteinG: number;
@@ -39,9 +58,76 @@ export type PlanInput = {
 };
 
 export function weeklyPlanPrompt(p: PlanInput): Prompt {
-  // UI is English-only — always respond with English meal names regardless of
-  // p.locale (kept for API stability).
-  void p.locale;
+  // For zh the AI replies in Chinese with Chinese hand-measure portions.
+  // en/tr keep the existing English + Turkish hand-measure behavior.
+  if (p.locale === "zh") {
+    const system = `你是一名营养师，为用户制定每周饮食计划。仅返回一个有效的 JSON 对象——不要任何解释性文字或 markdown。使用中文菜名和食材名，但每项的"portion"份量字符串请使用中式手量份量描述，并附上克数/个的换算。
+
+手量份量参考（描述份量时使用）：
+- 一个手掌心：~100-150 g 肉/鱼/禽
+- 一个拳头：~1 杯 / ~150-200 g 米饭、面条、豆类或水果
+- 拳头前侧：~½ 杯
+- 拳头内侧：~1 整杯体积
+- 大拇指指尖：~½ 汤匙 = ~7 g 油/花生酱/奶酪
+- 食指指尖：~1 茶匙 = ~5 g
+- 1 个火柴盒大小的奶酪：~30 g
+- 1 片面包：~25-35 g
+- 1 张卷饼/烙饼：~40-60 g
+- 1 个中等大小的鸡蛋：~50 g
+- 1 把坚果：~30 g`;
+
+    const today = new Date().toISOString().slice(0, 10);
+    const prompt = `目标：${p.goal}（~${p.targetKcal} 千卡/天）
+宏量营养素目标：蛋白质 ${p.proteinG}g，碳水 ${p.carbsG}g，脂肪 ${p.fatG}g。
+喜欢的：${p.liked.join("、") || "无"}
+不喜欢的：${p.disliked.join("、") || "无"}
+过敏：${p.allergies.join("、") || "无"}
+现有食材：${
+      p.pantry
+        .map((x) => `${x.name}${x.qty ? `（${x.qty}${x.unit ?? ""}）` : ""}`)
+        .join("、") || "无"
+    }
+近期吃过的（避免大量重复）：${
+      p.recentMeals.slice(0, 20).join("、") || "无"
+    }
+
+生成从 ${today} 开始的 ${p.daysCount} 天饮食计划。每天的热量与宏量营养素应接近目标值。
+优先使用现有食材；尽量减少新购物清单项。
+
+每项餐食必须包含"portion"份量字符串，使用中式手量份量描述并附上克数/个的换算，以便用户无需电子秤即可准备。示例：
+  - "1 个手掌心（~150 g）"
+  - "1 个拳头米饭（~180 g 熟重）"
+  - "2 汤匙橄榄油（~25 g）"
+  - "1 个大拇指指尖花生酱（~7 g）"
+  - "1 个火柴盒大小的奶酪（~30 g）"
+  - "2 个中等大小的鸡蛋（~100 g）"
+
+返回 JSON 格式：
+{
+  "starts_on": "YYYY-MM-DD",
+  "ends_on": "YYYY-MM-DD",
+  "days": [
+    {
+      "date": "YYYY-MM-DD",
+      "breakfast": [{ "name": "...", "portion": "中式手量份量 + （~g）", "kcal": N, "protein_g": N, "carbs_g": N, "fat_g": N, "ingredients": [{"name":"...","qty":N,"unit":"g|ml|个"}] }],
+      "lunch": [...],
+      "dinner": [...],
+      "snacks": [...],
+      "totals": { "kcal": N, "protein_g": N, "carbs_g": N, "fat_g": N }
+    }
+  ],
+  "shopping_list": [{ "name": "...", "qty": N, "unit": "g|ml|个", "aisle": "produce|meat|dairy|pantry|frozen|other" }]
+}
+
+从购物清单中扣除现有食材的用量，使其仅表示"仍需购买"的部分。
+仅输出 JSON 对象。不要 \`\`\` 包裹，不要任何说明。`;
+
+    return { system, prompt };
+  }
+
+  // en/tr — always respond with English meal names regardless of p.locale
+  // (kept for API stability). The system prompt below carries Turkish
+  // hand-measure idioms so we can still parse "1 kibrit kutusu peynir".
   const system = `You are a dietitian crafting weekly meal plans for a Turkish user. Return ONLY a single valid JSON object — no prose, no markdown. Use English meal and ingredient names, but write the per-item PORTION string in a Turkish hand-measure ("el ölçüsü") idiom plus a grams/adet fallback.
 
 Hand-measure cheatsheet (use these when describing portions):
@@ -107,7 +193,7 @@ Output ONLY the JSON object. No \`\`\` fences, no commentary.`;
 }
 
 export type InsightsInput = {
-  locale: "tr" | "en";
+  locale: "tr" | "en" | "zh";
   weekStart: string;
   weekEnd: string;
   kcalTarget: number;
@@ -123,7 +209,7 @@ export type InsightsInput = {
 };
 
 export type ProgramInput = {
-  locale: "tr" | "en";
+  locale: "tr" | "en" | "zh";
   goal: "strength" | "hypertrophy" | "fat_loss" | "general" | "endurance";
   level: "beginner" | "intermediate" | "advanced";
   daysPerWeek: number;
@@ -152,7 +238,9 @@ export function programGeneratorPrompt(p: ProgramInput): Prompt {
   const system =
     p.locale === "tr"
       ? "Sen lisanslı bir kuvvet & kondisyon koçusun. Kullanıcının hedefi, deneyimi ve ekipmanına göre haftalık bir antrenman programı kur. SADECE tek bir geçerli JSON objesi döndür — Markdown veya açıklama yazma. Egzersiz isimlerini İngilizce olarak ver (ör. 'barbell bench press') ki sistem onları egzersiz veri tabanıyla eşleştirebilsin."
-      : "You are a certified strength & conditioning coach. Build a weekly training program tailored to the user's goal, experience and equipment. Return ONLY a single valid JSON object — no markdown, no prose. Use English exercise names (e.g. 'barbell bench press') so the system can match them to the exercise database.";
+      : p.locale === "zh"
+        ? "你是一名持证的体能与力量教练。根据用户的目标、经验和器材，制定每周训练计划。仅返回一个有效的 JSON 对象——不要 markdown，不要任何解释性文字。请使用英文动作名称（例如 'barbell bench press'），以便系统将它们与动作数据库匹配。"
+        : "You are a certified strength & conditioning coach. Build a weekly training program tailored to the user's goal, experience and equipment. Return ONLY a single valid JSON object — no markdown, no prose. Use English exercise names (e.g. 'barbell bench press') so the system can match them to the exercise database.";
 
   const prompt = `Goal: ${p.goal}
 Experience level: ${p.level}
@@ -202,14 +290,69 @@ Output ONLY the JSON. No \`\`\` fences, no commentary.`;
 }
 
 export type MealParserInput = {
-  locale: "tr" | "en";
+  locale: "tr" | "en" | "zh";
   text: string;
   nowIso: string;
   defaultMeal?: "breakfast" | "lunch" | "dinner" | "snack";
 };
 
 export function mealParserPrompt(p: MealParserInput): Prompt {
-  // UI is English — always respond in English even when the user types or
+  // For zh the AI replies in Chinese (item names + notes). en/tr keep the
+  // existing English-output behavior but still recognize Turkish portion idioms.
+  if (p.locale === "zh") {
+    const system = `你是一名个人营养助手。仔细分析用户自由文本形式的餐饮描述（可能为中文或英文），并估算每项的热量与宏量营养素。
+
+你应识别的份量表达：
+- "火柴盒大小的奶酪" / "1 个火柴盒奶酪" ≈ 30 g
+- "手掌心大小的肉" / "1 个手掌心肉" ≈ 100-150 g
+- "一把" / "1 把" ≈ 30-40 g（坚果 ~30 g）
+- "一汤匙油" / "1 汤匙油" ≈ 12-15 g
+- "一片面包" / "1 片面包" ≈ 25-35 g
+- "卷饼/烙饼" / "1 张卷饼" ≈ 40-60 g
+- "中等大小的鸡蛋" / "1 个鸡蛋" ≈ 50 g
+
+对于组合菜（如"卷饼加蛋、牛油果、酱"），将所有食材合并为一项。明确标注为"额外"/"再加"/"加一份"的项作为单独项。
+
+当份量、品牌热量或不熟悉的食物不确定时，搜索网络。始终输出中文菜名和说明。仅返回有效的 JSON——不要任何解释性文字或 markdown。`;
+
+    const today = p.nowIso.slice(0, 10);
+    const hint = p.defaultMeal ? `若未指定餐别，默认为：${p.defaultMeal}。` : "";
+
+    const prompt = `今天：${today}
+${hint}
+用户输入：
+"""
+${p.text.trim()}
+"""
+
+从"早餐/breakfast"、"午餐/lunch"、"晚餐/dinner"、"加餐/snack"等词判断餐别——否则默认为 ${p.defaultMeal ?? "snack"}。
+
+解析为各项。对于组合菜，将食材合并为一项；否则将标注为"额外"/"再加"的内容单独拆出。
+
+返回 JSON 格式：
+{
+  "meal": "breakfast" | "lunch" | "dinner" | "snack",
+  "items": [
+    {
+      "name": "简洁的中文菜名",
+      "quantity": "可读的中文份量摘要，例如 '1 个卷饼（卷饼 + 鸡蛋 + ½ 个牛油果 + 酸奶柠檬酱）'",
+      "kcal": <总热量，整数>,
+      "protein_g": <克>,
+      "carbs_g": <克>,
+      "fat_g": <克>,
+      "notes": "关于估算的中文说明（可选，简短）"
+    }
+  ],
+  "confidence": <0..1>,
+  "search_used": <若使用了网络搜索为 true，否则 false>
+}
+
+仅输出 JSON 对象。不要 \`\`\` 包裹，不要任何说明。`;
+
+    return { system, prompt };
+  }
+
+  // en/tr — always respond in English even when the user types or
   // speaks Turkish. The system prompt below carries Turkish portion idioms
   // so we can still parse "1 kibrit kutusu peynir", but item names + notes
   // come back in English.
@@ -266,7 +409,32 @@ Output ONLY the JSON object. No \`\`\` fences, no commentary.`;
 }
 
 export function weeklyInsightsPrompt(i: InsightsInput): Prompt {
-  void i.locale;
+  // For zh the AI replies in Chinese. en/tr keep the existing English advice.
+  if (i.locale === "zh") {
+    const system =
+      "你是一名私人健身教练。解读每周的各项指标并给出可执行的中文建议。仅返回一个有效的 JSON 对象。";
+
+    const prompt = `本周：${i.weekStart} → ${i.weekEnd}
+目标：${i.goal}（目标 ${i.kcalTarget} 千卡/天）
+每日热量：${i.dailyKcal.join("、")}
+每日蛋白质（克）：${i.proteinDaily.join("、")}
+训练次数：${i.workoutCount}，总训练量：${i.workoutVolumeKg.toFixed(0)} kg-次
+恢复评分：${i.recoveryScores.join("、") || "—"}
+睡眠时长：${i.sleepHours.map((h) => h.toFixed(1)).join("、") || "—"}
+体重：${i.bodyWeightStart ?? "—"} → ${i.bodyWeightEnd ?? "—"} kg
+
+返回 JSON：
+{
+  "summary": "2-3 句中文总结",
+  "highlights": ["1-3 件表现不错的事"],
+  "warnings": ["0-3 件需要注意的事"],
+  "recommendations": ["2-4 条本周可执行的具体行动"]
+}
+仅输出 JSON。不要任何说明。`;
+
+    return { system, prompt };
+  }
+
   const system =
     "You are a personal fitness coach. Interpret the weekly metrics and give actionable English advice. Return ONLY a single valid JSON object.";
 

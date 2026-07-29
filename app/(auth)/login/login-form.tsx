@@ -2,8 +2,10 @@
 
 import { useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useT } from "@/lib/i18n/client";
 
 export function LoginForm() {
+  const t = useT();
   const router = useRouter();
   const params = useSearchParams();
   const from = params.get("from") ?? "/";
@@ -22,7 +24,7 @@ export function LoginForm() {
     });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      setError(data?.error === "too_many_attempts" ? "Too many attempts" : "Invalid credentials");
+      setError(data?.error === "too_many_attempts" ? t("auth.tooManyAttempts") : t("auth.invalidCredentials"));
       return;
     }
     startTransition(() => {
@@ -35,7 +37,7 @@ export function LoginForm() {
     <form onSubmit={onSubmit} className="space-y-6">
       <div>
         <label className="block font-mono text-[11px] uppercase tracking-[0.1em] text-[color:var(--text-secondary)] mb-2">
-          email
+          {t("auth.email")}
         </label>
         <input
           type="email"
@@ -48,7 +50,7 @@ export function LoginForm() {
       </div>
       <div>
         <label className="block font-mono text-[11px] uppercase tracking-[0.1em] text-[color:var(--text-secondary)] mb-2">
-          password
+          {t("auth.password")}
         </label>
         <input
           type="password"
@@ -71,7 +73,7 @@ export function LoginForm() {
         disabled={pending}
         className="w-full bg-[color:var(--accent)] text-white font-mono font-bold text-[12px] uppercase tracking-[0.12em] py-4 hover:opacity-90 transition disabled:opacity-40 min-h-[48px]"
       >
-        {pending ? "..." : "ENTER →"}
+        {pending ? t("common.busy") : t("auth.enter")}
       </button>
     </form>
   );

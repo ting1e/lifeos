@@ -4,8 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useT } from "@/lib/i18n/client";
 
 export function PantryForm() {
+  const t = useT();
   const router = useRouter();
   const [name, setName] = useState("");
   const [qty, setQty] = useState("");
@@ -33,15 +35,15 @@ export function PantryForm() {
 
   return (
     <form onSubmit={add} className="grid grid-cols-1 md:grid-cols-[1fr_120px_120px_auto] gap-3 mt-2">
-      <Input placeholder="name (e.g. yulaf)" value={name} onChange={(e) => setName(e.target.value)} required />
+      <Input placeholder={t("pantry.namePlaceholder")} value={name} onChange={(e) => setName(e.target.value)} required />
       <Input
-        placeholder="qty"
+        placeholder={t("pantry.qtyPlaceholder")}
         inputMode="decimal"
         value={qty}
         onChange={(e) => setQty(e.target.value)}
       />
       <Input
-        placeholder="g | ml | adet"
+        placeholder={t("pantry.unitPlaceholder")}
         value={unit}
         onChange={(e) => setUnit(e.target.value)}
       />

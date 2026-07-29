@@ -9,6 +9,7 @@ import {
 } from "@/lib/db/schema";
 import { requireSession } from "@/lib/auth/session";
 import { getLocale, tFor } from "@/lib/i18n/server";
+import { bcp47For } from "@/lib/utils";
 import { notFound } from "next/navigation";
 import { WorkoutSession, type WorkoutExercise } from "./workout-session";
 import { WhoopStrainCard } from "@/components/workout/whoop-strain-card";
@@ -21,7 +22,8 @@ export default async function WorkoutDetail({
   params: Promise<{ id: string }>;
 }) {
   const { user } = await requireSession();
-  const t = tFor(await getLocale());
+  const locale = await getLocale();
+  const t = tFor(locale);
   const { id } = await params;
 
   const [w] = await db.select().from(workouts).where(eq(workouts.id, id)).limit(1);
@@ -126,7 +128,7 @@ export default async function WorkoutDetail({
             {t("work.back")}
           </Link>
           <h1 className="font-display text-3xl md:text-4xl mt-2">
-            {new Date(w.startedAt).toLocaleString("en-US", {
+            {new Date(w.startedAt).toLocaleString(bcp47For(locale), {
               weekday: "short",
               day: "2-digit",
               month: "short",
@@ -144,7 +146,7 @@ export default async function WorkoutDetail({
 
       <WorkoutSession
         workoutId={w.id}
-        locale="en"
+        locale={locale}
         initialExercises={initialExercises}
         existingSets={sets.map((s) => ({
           exerciseId: s.exerciseId,

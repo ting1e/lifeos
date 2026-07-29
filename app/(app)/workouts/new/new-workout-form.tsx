@@ -45,7 +45,7 @@ export function NewWorkoutForm({
   return (
     <div className="space-y-4 mt-2">
       <Select value={programId} onChange={(e) => setProgramId(e.target.value)}>
-        <option value="">— free / no program —</option>
+        <option value="">{t("common.freeNoProgram")}</option>
         {programs.map((p) => (
           <option key={p.id} value={p.id}>
             {p.name}
@@ -68,7 +68,7 @@ export function NewWorkoutForm({
       </div>
       <div className="flex justify-end">
         <Button onClick={start} disabled={busy} variant="accent">
-          {busy ? "…" : "START →"}
+          {busy ? t("common.busy") : t("common.startButton")}
         </Button>
       </div>
     </div>

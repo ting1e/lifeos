@@ -21,7 +21,7 @@ import { sql } from "drizzle-orm";
 // ============================================================
 
 export const roleEnum = pgEnum("role", ["admin"]);
-export const localeEnum = pgEnum("locale", ["tr", "en"]);
+export const localeEnum = pgEnum("locale", ["tr", "en", "zh"]);
 export const sexEnum = pgEnum("sex", ["m", "f"]);
 export const activityLevelEnum = pgEnum("activity_level", [
   "sedentary",
