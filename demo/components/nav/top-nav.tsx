@@ -6,6 +6,7 @@ import { LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { useT } from "@/lib/i18n/client";
+import { useDemoStore } from "@/lib/demo/store";
 import type { DictKey } from "@/lib/i18n/dict";
 
 type Item = { href: string; labelKey: DictKey };
@@ -22,10 +23,10 @@ const NAV: Item[] = [
   { href: "/profile", labelKey: "nav.profile" },
 ];
 
-function pickActive(pathname: string): string | null {
+function pickActive(pathname: string, nav: Item[]): string | null {
   // Longest matching href wins so /food/plan activates "Meal Plan", not "Food".
   let best: string | null = null;
-  for (const it of NAV) {
+  for (const it of nav) {
     const match =
       it.href === "/"
         ? pathname === "/"
@@ -38,8 +39,11 @@ function pickActive(pathname: string): string | null {
 
 export function TopNav() {
   const pathname = usePathname();
-  const active = pickActive(pathname);
   const t = useT();
+  const { state } = useDemoStore();
+  const whoopEnabled = state.whoopEnabled;
+  const nav = whoopEnabled ? NAV : NAV.filter((it) => it.href !== "/whoop");
+  const active = pickActive(pathname, nav);
 
   return (
     <header className="hidden md:block sticky top-0 z-40 border-b border-[color:var(--border)] bg-[color:var(--black)]/95 backdrop-blur safe-top">
@@ -55,7 +59,7 @@ export function TopNav() {
 
           <nav className="flex-1 min-w-0">
             <ul className="flex items-center gap-1">
-              {NAV.map((it) => {
+              {nav.map((it) => {
                 const isActive = active === it.href;
                 return (
                   <li key={it.href}>

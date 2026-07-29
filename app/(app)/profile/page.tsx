@@ -4,6 +4,7 @@ import { profile } from "@/lib/db/schema";
 import { requireSession } from "@/lib/auth/session";
 import { ProfileForm } from "./profile-form";
 import { PasswordForm } from "./password-form";
+import { WhoopToggle } from "./whoop-toggle";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { LanguageSwitcher } from "@/components/profile/language-switcher";
 import { bmi, bmiCategory, bmr, recommendedKcal, tdee, macroSplit } from "@/lib/nutrition";
@@ -32,7 +33,8 @@ export default async function ProfilePage() {
   const b = w && h ? bmi(w, h) : 0;
   const bm = w && h && age ? bmr({ sex, weightKg: w, heightCm: h, age }) : 0;
   const formulaTd = bm ? tdee(bm, activity) : 0;
-  const measured = await getMeasuredTdee(user.id);
+  const whoopEnabled = p?.whoopEnabled ?? true;
+  const measured = whoopEnabled ? await getMeasuredTdee(user.id) : null;
   const td = measured?.kcal ?? formulaTd;
   const tdeeSource: "whoop" | "formula" = measured ? "whoop" : "formula";
   const target = td ? Math.round(recommendedKcal(td, goal)) : 0;
@@ -92,6 +94,11 @@ export default async function ProfilePage() {
         <div className="mt-2 -mx-3">
           <ThemeToggle />
         </div>
+      </Card>
+
+      <Card>
+        <CardLabel>{t("prof.whoopIntegration")}</CardLabel>
+        <WhoopToggle enabled={whoopEnabled} />
       </Card>
 
       <Card>

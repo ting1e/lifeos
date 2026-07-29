@@ -31,13 +31,14 @@ export async function POST(req: Request) {
   if (!p?.weightKg || !p?.heightCm || !p?.age) {
     return NextResponse.json({ error: "profile_incomplete" }, { status: 400 });
   }
+  const whoopEnabled = p?.whoopEnabled ?? true;
   const w = Number(p.weightKg);
   const h = Number(p.heightCm);
   const formulaTdee = tdee(
     bmr({ sex: p.sex ?? "m", weightKg: w, heightCm: h, age: p.age }),
     p.activityLevel ?? "moderate",
   );
-  const measured = await getMeasuredTdee(user.id);
+  const measured = whoopEnabled ? await getMeasuredTdee(user.id) : null;
   const td = measured?.kcal ?? formulaTdee;
   const goal = p.goal ?? "maintain";
   const target = Math.round(recommendedKcal(td, goal));

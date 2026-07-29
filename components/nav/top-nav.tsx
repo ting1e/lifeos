@@ -22,10 +22,10 @@ const NAV: Item[] = [
   { href: "/profile", labelKey: "nav.profile" },
 ];
 
-function pickActive(pathname: string): string | null {
+function pickActive(pathname: string, nav: Item[]): string | null {
   // Longest matching href wins so /food/plan activates "Meal Plan", not "Food".
   let best: string | null = null;
-  for (const it of NAV) {
+  for (const it of nav) {
     const match =
       it.href === "/"
         ? pathname === "/"
@@ -36,9 +36,10 @@ function pickActive(pathname: string): string | null {
   return best;
 }
 
-export function TopNav() {
+export function TopNav({ whoopEnabled = true }: { whoopEnabled?: boolean }) {
   const pathname = usePathname();
-  const active = pickActive(pathname);
+  const nav = whoopEnabled ? NAV : NAV.filter((it) => it.href !== "/whoop");
+  const active = pickActive(pathname, nav);
   const t = useT();
 
   return (
@@ -55,7 +56,7 @@ export function TopNav() {
 
           <nav className="flex-1 min-w-0">
             <ul className="flex items-center gap-1">
-              {NAV.map((it) => {
+              {nav.map((it) => {
                 const isActive = active === it.href;
                 return (
                   <li key={it.href}>

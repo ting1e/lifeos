@@ -60,6 +60,8 @@ const en = {
   "common.saving": "SAVING…",
   "common.busy": "…",
   "common.date": "DATE",
+  "common.enable": "ENABLE",
+  "common.disable": "DISABLE",
 
   // ---- Meal slots
   "meal.breakfast": "BREAKFAST",
@@ -188,6 +190,8 @@ const en = {
   "prof.edit": "EDIT",
   "prof.appearance": "APPEARANCE",
   "prof.security": "SECURITY · CHANGE PASSWORD",
+  "prof.whoopIntegration": "WHOOP INTEGRATION",
+  "prof.whoopEnabledHint": "Show Whoop device data, recovery scores, measured TDEE, and strain on workouts.",
 
   // ---- Greetings
   "greet.morning": "good morning",
@@ -280,6 +284,7 @@ const en = {
   "whoop.avgHr": "AVG HR",
   "whoop.recentWorkouts": "RECENT WORKOUTS (WHOOP)",
   "whoop.workout": "workout",
+  "whoop.disabledMsg": "Whoop integration is disabled. Enable it in Profile → Whoop Integration.",
 
   // ---- Programs
   "prog.title": "programs",
@@ -579,6 +584,8 @@ const tr: Record<DictKey, string> = {
   "common.saving": "KAYDEDİLİYOR…",
   "common.busy": "…",
   "common.date": "TARİH",
+  "common.enable": "ETKİNLEŞTİR",
+  "common.disable": "DEVRE DIŞI BIRAK",
 
   // ---- Meal slots
   "meal.breakfast": "KAHVALTI",
@@ -707,6 +714,8 @@ const tr: Record<DictKey, string> = {
   "prof.edit": "DÜZENLE",
   "prof.appearance": "GÖRÜNÜM",
   "prof.security": "GÜVENLİK · ŞİFREYİ DEĞİŞTİR",
+  "prof.whoopIntegration": "WHOOP ENTEGRASYONU",
+  "prof.whoopEnabledHint": "Whoop cihaz verilerini, toparlanma skorlarını, ölçülen TDEE'i ve antrenman eforunu göster.",
 
   // ---- Greetings
   "greet.morning": "günaydın",
@@ -799,6 +808,7 @@ const tr: Record<DictKey, string> = {
   "whoop.avgHr": "ORT. NABIZ",
   "whoop.recentWorkouts": "SON ANTRENMANLAR (WHOOP)",
   "whoop.workout": "antrenman",
+  "whoop.disabledMsg": "Whoop entegrasyonu devre dışı. Profil → Whoop Entegrasyonu bölümünden etkinleştirin.",
 
   // ---- Programs
   "prog.title": "programlar",
@@ -1096,6 +1106,8 @@ const zh: Record<DictKey, string> = {
   "common.saving": "保存中…",
   "common.busy": "…",
   "common.date": "日期",
+  "common.enable": "启用",
+  "common.disable": "禁用",
 
   // ---- Meal slots
   "meal.breakfast": "早餐",
@@ -1224,6 +1236,8 @@ const zh: Record<DictKey, string> = {
   "prof.edit": "编辑",
   "prof.appearance": "外观",
   "prof.security": "安全 · 修改密码",
+  "prof.whoopIntegration": "WHOOP 集成",
+  "prof.whoopEnabledHint": "显示 Whoop 设备数据、恢复评分、测量 TDEE 和训练强度。",
 
   // ---- Greetings
   "greet.morning": "早上好",
@@ -1316,6 +1330,7 @@ const zh: Record<DictKey, string> = {
   "whoop.avgHr": "平均心率",
   "whoop.recentWorkouts": "最近训练 (WHOOP)",
   "whoop.workout": "训练",
+  "whoop.disabledMsg": "Whoop 集成已禁用。请在 个人资料 → Whoop 集成 中启用。",
 
   // ---- Programs
   "prog.title": "计划",

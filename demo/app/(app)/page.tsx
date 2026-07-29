@@ -54,7 +54,8 @@ export default function Dashboard() {
   const prof = state.profile;
   // Demo seeds Whoop connected by default, but profile can disconnect it;
   // mirror the main app's conditional layout when off.
-  const whoopConnected = state.whoopConnected;
+  const whoopEnabled = state.whoopEnabled;
+  const whoopConnected = whoopEnabled && state.whoopConnected;
 
   const todayFood = state.foodEntries.filter((e) => {
     const t = new Date(e.consumedAt);
@@ -286,7 +287,7 @@ export default function Dashboard() {
         />
       </section>
 
-      {!whoopConnected && (
+      {!whoopConnected && whoopEnabled && (
         <Link
           href="/whoop"
           className="block border border-dashed border-[color:var(--border-visible)] px-4 py-3 text-center font-mono text-[13px] uppercase tracking-[0.1em] text-[color:var(--text-secondary)] hover:border-[color:var(--accent)] hover:text-[color:var(--accent)]"

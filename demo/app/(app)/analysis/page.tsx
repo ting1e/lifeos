@@ -14,6 +14,7 @@ function dayKey(d: Date) {
 export default function AnalysisPage() {
   const t = useT();
   const { state } = useDemoStore();
+  const whoopEnabled = state.whoopEnabled;
   const since90 = new Date(Date.now() - 90 * 86_400_000);
   const since14 = new Date(Date.now() - 14 * 86_400_000);
   const since30 = new Date(Date.now() - 30 * 86_400_000);
@@ -56,9 +57,11 @@ export default function AnalysisPage() {
   }
 
   // Recovery last 30
-  const recs = state.whoopRecovery
-    .filter((r) => r.date >= dayKey(since30))
-    .sort((a, b) => a.date.localeCompare(b.date));
+  const recs = whoopEnabled
+    ? state.whoopRecovery
+        .filter((r) => r.date >= dayKey(since30))
+        .sort((a, b) => a.date.localeCompare(b.date))
+    : [];
   const recSeries = recs.map((r) => ({ date: r.date, score: r.score ?? 0 }));
 
   return (
@@ -88,16 +91,18 @@ export default function AnalysisPage() {
         )}
       </Card>
 
-      <Card>
-        <CardLabel>{t("anal.recovery30d")}</CardLabel>
-        {recSeries.length > 0 ? (
-          <LineChart data={recSeries} xKey="date" yKey="score" color="var(--success)" />
-        ) : (
-          <div className="font-mono text-base text-[color:var(--text-secondary)] py-6">
-            {t("anal.noWhoopRecoveryData")}
-          </div>
-        )}
-      </Card>
+      {whoopEnabled && (
+        <Card>
+          <CardLabel>{t("anal.recovery30d")}</CardLabel>
+          {recSeries.length > 0 ? (
+            <LineChart data={recSeries} xKey="date" yKey="score" color="var(--success)" />
+          ) : (
+            <div className="font-mono text-base text-[color:var(--text-secondary)] py-6">
+              {t("anal.noWhoopRecoveryData")}
+            </div>
+          )}
+        </Card>
+      )}
 
       <Card>
         <CardLabel>{t("anal.workoutVolume30d")}</CardLabel>

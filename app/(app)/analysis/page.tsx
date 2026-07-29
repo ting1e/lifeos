@@ -3,6 +3,7 @@ import { db } from "@/lib/db/client";
 import {
   bodyMetrics,
   foodEntries,
+  profile,
   whoopRecovery,
   workouts,
   workoutSets,
@@ -23,6 +24,8 @@ function dayKey(d: Date) {
 export default async function AnalysisPage() {
   const { user } = await requireSession();
   const t = tFor(await getLocale());
+  const [prof] = await db.select({ whoopEnabled: profile.whoopEnabled }).from(profile).where(eq(profile.userId, user.id)).limit(1);
+  const whoopEnabled = prof?.whoopEnabled ?? true;
   const since90 = new Date(Date.now() - 90 * 86_400_000);
   const since14 = new Date(Date.now() - 14 * 86_400_000);
   const since30 = new Date(Date.now() - 30 * 86_400_000);
@@ -72,11 +75,13 @@ export default async function AnalysisPage() {
   }
 
   // Recovery last 30
-  const recs = await db
-    .select()
-    .from(whoopRecovery)
-    .where(and(eq(whoopRecovery.userId, user.id), gte(whoopRecovery.date, dayKey(since30))))
-    .orderBy(whoopRecovery.date);
+  const recs = whoopEnabled
+    ? await db
+        .select()
+        .from(whoopRecovery)
+        .where(and(eq(whoopRecovery.userId, user.id), gte(whoopRecovery.date, dayKey(since30))))
+        .orderBy(whoopRecovery.date)
+    : [];
   const recSeries = recs.map((r) => ({ date: r.date, score: r.score ?? 0 }));
 
   return (
@@ -106,16 +111,18 @@ export default async function AnalysisPage() {
         )}
       </Card>
 
-      <Card>
-        <CardLabel>{t("anal.recovery30d")}</CardLabel>
-        {recSeries.length > 0 ? (
-          <LineChart data={recSeries} xKey="date" yKey="score" color="var(--success)" />
-        ) : (
-          <div className="font-mono text-base text-[color:var(--text-secondary)] py-6">
-            {t("anal.noWhoopRecoveryData")}
-          </div>
-        )}
-      </Card>
+      {whoopEnabled && (
+        <Card>
+          <CardLabel>{t("anal.recovery30d")}</CardLabel>
+          {recSeries.length > 0 ? (
+            <LineChart data={recSeries} xKey="date" yKey="score" color="var(--success)" />
+          ) : (
+            <div className="font-mono text-base text-[color:var(--text-secondary)] py-6">
+              {t("anal.noWhoopRecoveryData")}
+            </div>
+          )}
+        </Card>
+      )}
 
       <Card>
         <CardLabel>{t("anal.workoutVolume30d")}</CardLabel>

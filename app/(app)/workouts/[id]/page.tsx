@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
   exercises,
+  profile,
   programExercises,
   workouts,
   workoutSets,
@@ -28,6 +29,9 @@ export default async function WorkoutDetail({
 
   const [w] = await db.select().from(workouts).where(eq(workouts.id, id)).limit(1);
   if (!w || w.userId !== user.id) return notFound();
+
+  const [prof] = await db.select({ whoopEnabled: profile.whoopEnabled }).from(profile).where(eq(profile.userId, user.id)).limit(1);
+  const whoopEnabled = prof?.whoopEnabled ?? true;
 
   // Planned exercises (from program day)
   let planned: WorkoutExercise[] = [];
@@ -158,7 +162,7 @@ export default async function WorkoutDetail({
         ended={Boolean(w.endedAt)}
       />
 
-      <WhoopStrainCard workoutId={w.id} />
+      {whoopEnabled && <WhoopStrainCard workoutId={w.id} />}
     </div>
   );
 }

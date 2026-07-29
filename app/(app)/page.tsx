@@ -63,11 +63,14 @@ export default async function Dashboard({
 
   const [prof] = await db.select().from(profile).where(eq(profile.userId, user.id)).limit(1);
 
-  const [whoopRow] = await db
-    .select({ userId: whoopTokens.userId })
-    .from(whoopTokens)
-    .where(eq(whoopTokens.userId, user.id))
-    .limit(1);
+  const whoopEnabled = prof?.whoopEnabled ?? true;
+  const [whoopRow] = whoopEnabled
+    ? await db
+        .select({ userId: whoopTokens.userId })
+        .from(whoopTokens)
+        .where(eq(whoopTokens.userId, user.id))
+        .limit(1)
+    : [];
   const whoopConnected = !!whoopRow;
 
   const todayFood = await db
@@ -104,7 +107,7 @@ export default async function Dashboard({
   const computedBmr =
     weightKg && heightCm && age ? bmr({ sex, weightKg, heightCm, age }) : 0;
   const formulaTdee = computedBmr ? tdee(computedBmr, activity) : 0;
-  const measured = await getMeasuredTdee(user.id);
+  const measured = whoopEnabled ? await getMeasuredTdee(user.id) : null;
   const computedTdee = measured?.kcal ?? formulaTdee;
   const tdeeSource: "whoop" | "formula" = measured ? "whoop" : "formula";
   const kcalTarget = computedTdee ? Math.round(recommendedKcal(computedTdee, goal)) : 0;
@@ -322,7 +325,7 @@ export default async function Dashboard({
         />
       </section>
 
-      {!whoopConnected && (
+      {!whoopConnected && whoopEnabled && (
         <Link
           href="/whoop"
           className="block border border-dashed border-[color:var(--border-visible)] px-4 py-3 text-center font-mono text-[13px] uppercase tracking-[0.1em] text-[color:var(--text-secondary)] hover:border-[color:var(--accent)] hover:text-[color:var(--accent)]"

@@ -17,13 +17,14 @@ const ITEMS: Item[] = [
   { href: "/profile", labelKey: "nav.meShort", icon: User2 },
 ];
 
-export function BottomNav() {
+export function BottomNav({ whoopEnabled = true }: { whoopEnabled?: boolean }) {
   const pathname = usePathname();
   const t = useT();
+  const items = whoopEnabled ? ITEMS : ITEMS.filter((it) => it.href !== "/whoop");
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[color:var(--black)] border-t border-[color:var(--border)] safe-bottom z-50">
-      <div className="grid grid-cols-5">
-        {ITEMS.map((it) => {
+      <div className={`grid ${whoopEnabled ? "grid-cols-5" : "grid-cols-4"}`}>
+        {items.map((it) => {
           const active =
             it.href === "/" ? pathname === "/" : pathname.startsWith(it.href);
           const Icon = it.icon;

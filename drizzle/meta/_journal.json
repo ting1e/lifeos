@@ -36,6 +36,13 @@
       "when": 1785293327596,
       "tag": "0004_add_zh_locale",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1785380000000,
+      "tag": "0005_whoop_enabled",
+      "breakpoints": true
     }
   ]
 }

@@ -93,6 +93,7 @@ export const profile = pgTable("profile", {
   activityLevel: activityLevelEnum("activity_level"),
   goal: goalEnum("goal"),
   targetWeightKg: numeric("target_weight_kg", { precision: 5, scale: 1 }),
+  whoopEnabled: boolean("whoop_enabled").notNull().default(true),
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .defaultNow()

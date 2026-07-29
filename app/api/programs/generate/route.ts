@@ -7,6 +7,7 @@ import {
   programDays,
   programExercises,
   programs,
+  profile,
   whoopRecovery,
   whoopSleep,
 } from "@/lib/db/schema";
@@ -96,19 +97,24 @@ export async function POST(req: NextRequest) {
   }
   const input = parsed.data;
 
+  const [prof] = await db.select({ whoopEnabled: profile.whoopEnabled }).from(profile).where(eq(profile.userId, user.id)).limit(1);
+  const whoopEnabled = prof?.whoopEnabled ?? true;
+
   // Pull recent recovery/sleep so the prompt can adapt to current readiness.
   const fourteenDaysAgo = new Date(Date.now() - 14 * 86_400_000);
-  const recRows = await db
-    .select({ score: whoopRecovery.score })
-    .from(whoopRecovery)
-    .where(
-      and(
-        eq(whoopRecovery.userId, user.id),
-        gte(whoopRecovery.date, fourteenDaysAgo.toISOString().slice(0, 10)),
-      ),
-    )
-    .orderBy(desc(whoopRecovery.date))
-    .limit(14);
+  const recRows = whoopEnabled
+    ? await db
+        .select({ score: whoopRecovery.score })
+        .from(whoopRecovery)
+        .where(
+          and(
+            eq(whoopRecovery.userId, user.id),
+            gte(whoopRecovery.date, fourteenDaysAgo.toISOString().slice(0, 10)),
+          ),
+        )
+        .orderBy(desc(whoopRecovery.date))
+        .limit(14)
+    : [];
   const recoveryAvg =
     recRows.length > 0
       ? Math.round(
@@ -116,12 +122,14 @@ export async function POST(req: NextRequest) {
         )
       : null;
 
-  const sleepRows = await db
-    .select({ start: whoopSleep.start, end: whoopSleep.end })
-    .from(whoopSleep)
-    .where(and(eq(whoopSleep.userId, user.id), gte(whoopSleep.start, fourteenDaysAgo)))
-    .orderBy(desc(whoopSleep.start))
-    .limit(14);
+  const sleepRows = whoopEnabled
+    ? await db
+        .select({ start: whoopSleep.start, end: whoopSleep.end })
+        .from(whoopSleep)
+        .where(and(eq(whoopSleep.userId, user.id), gte(whoopSleep.start, fourteenDaysAgo)))
+        .orderBy(desc(whoopSleep.start))
+        .limit(14)
+    : [];
   const sleepAvgHours =
     sleepRows.length > 0
       ? sleepRows.reduce(

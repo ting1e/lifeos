@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Activity, Apple, Heart, LayoutDashboard, User2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n/client";
+import { useDemoStore } from "@/lib/demo/store";
 import type { DictKey } from "@/lib/i18n/dict";
 
 type Item = { href: string; labelKey: DictKey; icon: typeof Activity };
@@ -20,10 +21,13 @@ const ITEMS: Item[] = [
 export function BottomNav() {
   const pathname = usePathname();
   const t = useT();
+  const { state } = useDemoStore();
+  const whoopEnabled = state.whoopEnabled;
+  const items = whoopEnabled ? ITEMS : ITEMS.filter((it) => it.href !== "/whoop");
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[color:var(--black)] border-t border-[color:var(--border)] safe-bottom z-50">
-      <div className="grid grid-cols-5">
-        {ITEMS.map((it) => {
+      <div className={`grid ${whoopEnabled ? "grid-cols-5" : "grid-cols-4"}`}>
+        {items.map((it) => {
           const active =
             it.href === "/" ? pathname === "/" : pathname.startsWith(it.href);
           const Icon = it.icon;

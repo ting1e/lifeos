@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useDemoStore } from "@/lib/demo/store";
 import { useT } from "@/lib/i18n/client";
+import { Button } from "@/components/ui/button";
 import { Card, CardLabel } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MonoStat } from "@/components/nothing/mono-stat";
@@ -12,7 +14,30 @@ import { WhoopHistory } from "@/components/whoop/whoop-history";
 export default function WhoopPage() {
   const t = useT();
   const { state, update } = useDemoStore();
-  const connected = state.whoopConnected;
+  const whoopEnabled = state.whoopEnabled;
+  const connected = whoopEnabled && state.whoopConnected;
+
+  if (!whoopEnabled) {
+    return (
+      <div className="space-y-6">
+        <header>
+          <div className="mono-label">{t("whoop.device")}</div>
+          <h1 className="font-display text-5xl mt-1">{t("whoop.title")}</h1>
+        </header>
+        <Card>
+          <CardLabel>{t("prof.whoopIntegration")}</CardLabel>
+          <p className="font-body text-base text-[color:var(--text-secondary)] mt-2">
+            {t("whoop.disabledMsg")}
+          </p>
+          <div className="mt-4">
+            <Link href="/profile">
+              <Button>{t("nav.profile")}</Button>
+            </Link>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   const rec = connected
     ? [...state.whoopRecovery].sort((a, b) => b.date.localeCompare(a.date))[0]

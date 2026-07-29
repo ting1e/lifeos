@@ -529,6 +529,7 @@ export type DemoState = {
   shoppingLists: ShoppingList[];
   aiMessages: AiMessage[];
   whoopConnected: boolean;
+  whoopEnabled: boolean;
 };
 
 export function buildSeed(): DemoState {
@@ -544,6 +545,7 @@ export function buildSeed(): DemoState {
     activityLevel: "moderate",
     goal: "cut",
     targetWeightKg: "75.0",
+    whoopEnabled: true,
     locale: "en",
     updatedAt: new Date(),
   };
@@ -571,6 +573,7 @@ export function buildSeed(): DemoState {
     shoppingLists: [],
     aiMessages: [],
     whoopConnected: true,
+    whoopEnabled: true,
   };
 }
 

@@ -109,7 +109,8 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
       Array.isArray(stored.foodEntries) &&
       Array.isArray(stored.workoutSets) &&
       Array.isArray(stored.exercises) &&
-      Array.isArray(stored.whoopRecovery)
+      Array.isArray(stored.whoopRecovery) &&
+      typeof stored.whoopEnabled === "boolean"
     ) {
       setState(stored);
     } else {

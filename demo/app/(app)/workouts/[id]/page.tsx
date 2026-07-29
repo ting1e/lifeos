@@ -12,6 +12,7 @@ export default function WorkoutDetail() {
   const id = params.id;
   const t = useT();
   const { state } = useDemoStore();
+  const whoopEnabled = state.whoopEnabled;
 
   const w = state.workouts.find((x) => x.id === id);
 
@@ -126,7 +127,7 @@ export default function WorkoutDetail() {
         ended={Boolean(w.endedAt)}
       />
 
-      <WhoopStrainCard workoutId={w.id} />
+      {whoopEnabled && <WhoopStrainCard workoutId={w.id} />}
     </div>
   );
 }

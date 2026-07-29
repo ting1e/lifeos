@@ -58,6 +58,8 @@ const en = {
   "common.loading": "LOADING…",
   "common.saving": "SAVING…",
   "common.busy": "…",
+  "common.enable": "ENABLE",
+  "common.disable": "DISABLE",
 
   // ---- Meal slots
   "meal.breakfast": "BREAKFAST",
@@ -167,6 +169,8 @@ const en = {
   "prof.edit": "EDIT",
   "prof.appearance": "APPEARANCE",
   "prof.security": "SECURITY · CHANGE PASSWORD",
+  "prof.whoopIntegration": "WHOOP INTEGRATION",
+  "prof.whoopEnabledHint": "Show Whoop device data, recovery scores, measured TDEE, and strain on workouts.",
 
   // ---- Greetings
   "greet.morning": "good morning",
@@ -259,6 +263,7 @@ const en = {
   "whoop.avgHr": "AVG HR",
   "whoop.recentWorkouts": "RECENT WORKOUTS (WHOOP)",
   "whoop.workout": "workout",
+  "whoop.disabledMsg": "Whoop integration is disabled. Enable it in Profile → Whoop Integration.",
 
   // ---- Programs
   "prog.title": "programs",
@@ -453,6 +458,8 @@ const tr: Record<DictKey, string> = {
   "common.loading": "YÜKLENİYOR…",
   "common.saving": "KAYDEDİLİYOR…",
   "common.busy": "…",
+  "common.enable": "ETKİNLEŞTİR",
+  "common.disable": "DEVRE DIŞI BIRAK",
 
   // ---- Meal slots
   "meal.breakfast": "KAHVALTI",
@@ -562,6 +569,8 @@ const tr: Record<DictKey, string> = {
   "prof.edit": "DÜZENLE",
   "prof.appearance": "GÖRÜNÜM",
   "prof.security": "GÜVENLİK · ŞİFREYİ DEĞİŞTİR",
+  "prof.whoopIntegration": "WHOOP ENTEGRASYONU",
+  "prof.whoopEnabledHint": "Whoop cihaz verilerini, toparlanma skorlarını, ölçülen TDEE'i ve antrenman eforunu göster.",
 
   // ---- Greetings
   "greet.morning": "günaydın",
@@ -654,6 +663,7 @@ const tr: Record<DictKey, string> = {
   "whoop.avgHr": "ORT. NABIZ",
   "whoop.recentWorkouts": "SON ANTRENMANLAR (WHOOP)",
   "whoop.workout": "antrenman",
+  "whoop.disabledMsg": "Whoop entegrasyonu devre dışı. Profil → Whoop Entegrasyonu bölümünden etkinleştirin.",
 
   // ---- Programs
   "prog.title": "programlar",

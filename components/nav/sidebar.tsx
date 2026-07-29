@@ -55,9 +55,15 @@ const SECTIONS: Section[] = [
   },
 ];
 
-export function Sidebar() {
+export function Sidebar({ whoopEnabled = true }: { whoopEnabled?: boolean }) {
   const pathname = usePathname();
   const t = useT();
+  const sections = whoopEnabled
+    ? SECTIONS
+    : SECTIONS.map((sec) => ({
+        ...sec,
+        items: sec.items.filter((it) => it.href !== "/whoop"),
+      }));
   return (
     <aside className="hidden md:flex md:flex-col w-64 border-r border-[color:var(--border)] bg-[color:var(--black)] sticky top-0 h-dvh">
       <div className="p-6 border-b border-[color:var(--border)]">
@@ -65,7 +71,7 @@ export function Sidebar() {
         <div className="font-display text-3xl mt-2">LifeOS</div>
       </div>
       <div className="flex-1 overflow-y-auto p-3 space-y-6">
-        {SECTIONS.map((sec) => (
+        {sections.map((sec) => (
           <div key={sec.titleKey}>
             <div className="mono-label px-3 mb-2">{t(sec.titleKey)}</div>
             <ul className="space-y-0.5">

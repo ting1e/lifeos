@@ -1,6 +1,6 @@
 import { desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { whoopRecovery, whoopSleep, whoopStrain, whoopTokens, whoopWorkouts } from "@/lib/db/schema";
+import { profile, whoopRecovery, whoopSleep, whoopStrain, whoopTokens, whoopWorkouts } from "@/lib/db/schema";
 import { requireSession } from "@/lib/auth/session";
 import { getLocale, tFor } from "@/lib/i18n/server";
 import { bcp47For } from "@/lib/utils";
@@ -23,6 +23,31 @@ export default async function WhoopPage({
   const locale = await getLocale();
   const t = tFor(locale);
   const sp = await searchParams;
+  const [p] = await db.select({ whoopEnabled: profile.whoopEnabled }).from(profile).where(eq(profile.userId, user.id)).limit(1);
+  const whoopEnabled = p?.whoopEnabled ?? true;
+
+  if (!whoopEnabled) {
+    return (
+      <div className="space-y-6">
+        <header>
+          <div className="mono-label">{t("whoop.device")}</div>
+          <h1 className="font-display text-5xl mt-1">{t("whoop.title")}</h1>
+        </header>
+        <Card>
+          <CardLabel>{t("prof.whoopIntegration")}</CardLabel>
+          <p className="font-body text-base text-[color:var(--text-secondary)] mt-2">
+            {t("whoop.disabledMsg")}
+          </p>
+          <div className="mt-4">
+            <Link href="/profile">
+              <Button>{t("nav.profile")}</Button>
+            </Link>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   const [tok] = await db
     .select({ userId: whoopTokens.userId })
     .from(whoopTokens)

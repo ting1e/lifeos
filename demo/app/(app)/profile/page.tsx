@@ -7,14 +7,16 @@ import { PasswordForm } from "./password-form";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { LanguageSwitcher } from "@/components/profile/language-switcher";
 import { bmi, bmiCategory, bmr, recommendedKcal, tdee, macroSplit } from "@/lib/nutrition";
+import { Button } from "@/components/ui/button";
 import { Card, CardLabel } from "@/components/ui/card";
 import { MonoStat } from "@/components/nothing/mono-stat";
 import { resolveDisplayName } from "@/lib/utils";
 
 export default function ProfilePage() {
   const t = useT();
-  const { state } = useDemoStore();
+  const { state, update } = useDemoStore();
   const p = state.profile;
+  const whoopEnabled = state.whoopEnabled;
   const userEmail = "demo@lifeos.local";
   const name = resolveDisplayName({ displayName: p?.displayName, email: userEmail });
 
@@ -83,6 +85,26 @@ export default function ProfilePage() {
         <div className="mt-2 -mx-3">
           <ThemeToggle />
         </div>
+      </Card>
+
+      <Card>
+        <CardLabel>{t("prof.whoopIntegration")}</CardLabel>
+        <div className="flex items-center justify-between gap-4 mt-2">
+          <p className="font-body text-base text-[color:var(--text-secondary)]">
+            {t("prof.whoopEnabledHint")}
+          </p>
+          <Button
+            variant={whoopEnabled ? "outline" : "primary"}
+            onClick={() => update({ whoopEnabled: !whoopEnabled })}
+          >
+            {whoopEnabled ? t("common.disable") : t("common.enable")}
+          </Button>
+        </div>
+        {!whoopEnabled && (
+          <div className="font-mono text-[12px] text-[color:var(--text-disabled)] mt-2">
+            {t("whoop.disabledMsg")}
+          </div>
+        )}
       </Card>
 
       <Card>

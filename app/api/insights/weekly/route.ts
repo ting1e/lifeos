@@ -32,6 +32,7 @@ function dayKey(d: Date) {
 export async function POST() {
   const { user } = await requireSession();
   const [p] = await db.select().from(profile).where(eq(profile.userId, user.id)).limit(1);
+  const whoopEnabled = p?.whoopEnabled ?? true;
 
   // Last 7 days inclusive of today: window = [today-6 .. today].
   const start = new Date();
@@ -71,18 +72,22 @@ export async function POST() {
     }
   }
 
-  const recs = await db
-    .select()
-    .from(whoopRecovery)
-    .where(and(eq(whoopRecovery.userId, user.id), gte(whoopRecovery.date, dayKey(start))))
-    .orderBy(asc(whoopRecovery.date));
+  const recs = whoopEnabled
+    ? await db
+        .select()
+        .from(whoopRecovery)
+        .where(and(eq(whoopRecovery.userId, user.id), gte(whoopRecovery.date, dayKey(start))))
+        .orderBy(asc(whoopRecovery.date))
+    : [];
   const recoveryScores = recs.map((r) => r.score ?? 0);
 
-  const sleeps = await db
-    .select()
-    .from(whoopSleep)
-    .where(and(eq(whoopSleep.userId, user.id), gte(whoopSleep.start, start)))
-    .orderBy(asc(whoopSleep.start));
+  const sleeps = whoopEnabled
+    ? await db
+        .select()
+        .from(whoopSleep)
+        .where(and(eq(whoopSleep.userId, user.id), gte(whoopSleep.start, start)))
+        .orderBy(asc(whoopSleep.start))
+    : [];
   const sleepHours = sleeps.map(
     (s) => (new Date(s.end).getTime() - new Date(s.start).getTime()) / 3_600_000,
   );
@@ -111,7 +116,7 @@ export async function POST() {
       }),
       p.activityLevel ?? "moderate",
     );
-    const measured = await getMeasuredTdee(user.id);
+    const measured = whoopEnabled ? await getMeasuredTdee(user.id) : null;
     const td = measured?.kcal ?? formulaTdee;
     target = Math.round(recommendedKcal(td, p.goal ?? "maintain"));
   }
