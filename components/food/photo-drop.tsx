@@ -4,11 +4,47 @@ import { useState } from "react";
 import imageCompression from "browser-image-compression";
 import { useT } from "@/lib/i18n/client";
 
+const HEIC_TYPES = ["image/heic", "image/heif", "image/heic-sequence", "image/heif-sequence"];
+
+function isHeic(file: File): boolean {
+  return HEIC_TYPES.includes(file.type) || /\.(heic|heif)$/i.test(file.name);
+}
+
+async function convertHeicToJpeg(file: File): Promise<File> {
+  const baseName = file.name.replace(/\.(heic|heif)$/i, "");
+  const { heicTo } = await import("heic-to");
+
+  try {
+    const blob = await heicTo({ blob: file, type: "image/jpeg", quality: 0.85 });
+    return new File([blob], `${baseName}.jpg`, { type: "image/jpeg" });
+  } catch {
+    // Fallback: createImageBitmap (Safari, Chrome with OS HEIC codec)
+    try {
+      const bitmap = await createImageBitmap(file);
+      const canvas = document.createElement("canvas");
+      canvas.width = bitmap.width;
+      canvas.height = bitmap.height;
+      canvas.getContext("2d")!.drawImage(bitmap, 0, 0);
+      bitmap.close();
+      const blob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob(resolve, "image/jpeg", 0.85),
+      );
+      if (blob) return new File([blob], `${baseName}.jpg`, { type: "image/jpeg" });
+    } catch {
+      // fall through
+    }
+  }
+
+  throw new Error("heic_conversion_failed");
+}
+
 export function PhotoDrop({
   onUpload,
+  onError,
   disabled,
 }: {
   onUpload: (file: File) => Promise<void> | void;
+  onError?: (msg: string) => void;
   disabled?: boolean;
 }) {
   const t = useT();
@@ -19,7 +55,10 @@ export function PhotoDrop({
     if (!files || files.length === 0) return;
     setBusy(true);
     try {
-      const f = files[0];
+      let f = files[0];
+      if (isHeic(f)) {
+        f = await convertHeicToJpeg(f);
+      }
       const compressed = await imageCompression(f, {
         maxSizeMB: 1,
         maxWidthOrHeight: 1600,
@@ -27,6 +66,9 @@ export function PhotoDrop({
       });
       setPreview(URL.createObjectURL(compressed));
       await onUpload(compressed);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      onError?.(msg);
     } finally {
       setBusy(false);
     }
@@ -40,7 +82,7 @@ export function PhotoDrop({
     >
       <input
         type="file"
-        accept="image/*"
+        accept="image/*,image/heic,image/heif"
         capture="environment"
         className="hidden"
         disabled={disabled || busy}

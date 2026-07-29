@@ -60,7 +60,17 @@ export function EditFoodForm({ id, initial }: { id: string; initial: Initial }) 
       const r = await fetch("/api/food/parse-meal", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ text: aiText.trim(), defaultMeal: meal }),
+        body: JSON.stringify({
+          text: aiText.trim(),
+          defaultMeal: meal,
+          existing: {
+            name,
+            kcal: kcal ? Number(kcal) : null,
+            protein_g: p ? Number(p) : null,
+            carbs_g: c ? Number(c) : null,
+            fat_g: f ? Number(f) : null,
+          },
+        }),
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data?.error ?? `http_${r.status}`);

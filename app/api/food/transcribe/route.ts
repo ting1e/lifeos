@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireSession } from "@/lib/auth/session";
-import { transcribeAudio, uploadBuffer } from "@/lib/ai/client";
+import { transcribeAudio } from "@/lib/ai/client";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -41,26 +41,15 @@ export async function POST(req: Request) {
     }
   }
 
-  // Let wizper auto-detect the spoken language — users may dictate in Turkish
+  // Let the model auto-detect the spoken language — users may dictate in Turkish
   // or English even though the UI is English.
-  void user;
 
   try {
     const buf = Buffer.from(await file.arrayBuffer());
-    const ext = type.includes("webm")
-      ? "webm"
-      : type.includes("ogg")
-        ? "ogg"
-        : type.includes("wav")
-          ? "wav"
-          : type.includes("mp4") || type.includes("m4a")
-            ? "m4a"
-            : "mp3";
-    const uploadedUrl = await uploadBuffer(buf, `voice-${Date.now()}.${ext}`, type);
     const { text } = await transcribeAudio({
       userId: user.id,
-      audioUrl: uploadedUrl,
-      language: null,
+      audioBuffer: buf,
+      contentType: type,
     });
     return NextResponse.json({ text: text.trim() });
   } catch (e) {

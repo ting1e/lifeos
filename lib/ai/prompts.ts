@@ -42,6 +42,83 @@ If portion unclear, assume a typical single serving. JSON only.`;
   return { system, prompt };
 }
 
+export type FoodVisionParseInput = {
+  locale: "tr" | "en" | "zh";
+  /** Optional user text description to supplement the photo. */
+  text?: string;
+  defaultMeal?: "breakfast" | "lunch" | "dinner" | "snack";
+};
+
+export function foodVisionParsePrompt(p: FoodVisionParseInput): Prompt {
+  const textHint = p.text?.trim()
+    ? p.locale === "zh"
+      ? `\n用户额外描述："""\n${p.text.trim()}\n"""\n请结合照片与文字描述进行估算。`
+      : `\nUser additional description:\n"""\n${p.text.trim()}\n"""\nUse both the photo and this text for your estimate.`
+    : "";
+
+  const mealHint = p.defaultMeal
+    ? p.locale === "zh"
+      ? `若无法从照片判断餐别，默认为 ${p.defaultMeal}。`
+      : `If meal slot is unclear, default to ${p.defaultMeal}.`
+    : "";
+
+  if (p.locale === "zh") {
+    const system = `你是一名营养师。观察食物照片${p.text ? "并结合文字描述" : ""}，估算每道菜的热量与宏量营养素。若照片中有多道菜，拆分为多项。仅返回有效的 JSON，不要任何解释性文字或 markdown。`;
+
+    const prompt = `观察照片${textHint}
+${mealHint}
+
+返回 JSON 格式：
+{
+  "meal": "breakfast" | "lunch" | "dinner" | "snack",
+  "items": [
+    {
+      "name": "简洁的中文菜名",
+      "quantity": "可读的中文份量摘要",
+      "kcal": <总热量，整数>,
+      "protein_g": <克>,
+      "carbs_g": <克>,
+      "fat_g": <克>,
+      "notes": "关于估算的中文说明（可选，简短）"
+    }
+  ],
+  "confidence": <0..1>,
+  "search_used": false
+}
+
+若份量不明确，按典型单人份估算。仅输出 JSON 对象，不要 \`\`\` 包裹，不要任何说明。`;
+
+    return { system, prompt };
+  }
+
+  const system = `You are a nutritionist. Look at the food photo${p.text ? " and consider the user's text description" : ""}, estimate calories and macros for each dish. If multiple dishes are visible, split into separate items. Return ONLY valid JSON, no prose, no markdown.`;
+
+  const prompt = `Analyze the photo${textHint}
+${mealHint}
+
+Return JSON exactly:
+{
+  "meal": "breakfast" | "lunch" | "dinner" | "snack",
+  "items": [
+    {
+      "name": "concise English dish name",
+      "quantity": "human-readable English portion summary",
+      "kcal": <total kcal, integer>,
+      "protein_g": <g>,
+      "carbs_g": <g>,
+      "fat_g": <g>,
+      "notes": "any English caveats (optional, short)"
+    }
+  ],
+  "confidence": <0..1>,
+  "search_used": false
+}
+
+If portion unclear, assume a typical single serving. Output ONLY the JSON object. No \`\`\` fences, no commentary.`;
+
+  return { system, prompt };
+}
+
 export type PlanInput = {
   locale: "tr" | "en" | "zh";
   goal: "cut" | "maintain" | "bulk";
@@ -294,7 +371,25 @@ export type MealParserInput = {
   text: string;
   nowIso: string;
   defaultMeal?: "breakfast" | "lunch" | "dinner" | "snack";
+  /** When editing an existing entry, pass its current values so the AI can merge or correct instead of replacing. */
+  existing?: {
+    name: string;
+    kcal: number | null;
+    protein_g: number | null;
+    carbs_g: number | null;
+    fat_g: number | null;
+  };
 };
+
+function existingBlock(p: MealParserInput): string {
+  const e = p.existing;
+  if (!e) return "";
+  const fmt = (n: number | null) => (n != null ? `${n}g` : "—");
+  if (p.locale === "zh") {
+    return `\n用户正在编辑一条已有的餐食记录，当前值为：\n  名称："${e.name}"\n  热量：${e.kcal ?? "—"}，蛋白质：${fmt(e.protein_g)}，碳水：${fmt(e.carbs_g)}，脂肪：${fmt(e.fat_g)}\n\n新输入可能是修正（如"其实吃了两片，不是一片"→替换）或补充（如"还有半碗米饭"→合并）。返回更新后的完整条目——如果现有内容应保留，则包含现有项目和新输入的项目，而不仅是新输入。\n`;
+  }
+  return `\nThe user is EDITING an existing food entry with these current values:\n  Name: "${e.name}"\n  Kcal: ${e.kcal ?? "—"}, Protein: ${fmt(e.protein_g)}, Carbs: ${fmt(e.carbs_g)}, Fat: ${fmt(e.fat_g)}\n\nThe new input may be a CORRECTION ("actually it was 2 slices, not 1" → replace) or an ADDITION ("add half avocado" → merge). Return the COMPLETE updated entry — all items including the existing ones if they should be kept, not just the new input.\n`;
+}
 
 export function mealParserPrompt(p: MealParserInput): Prompt {
   // For zh the AI replies in Chinese (item names + notes). en/tr keep the
@@ -320,6 +415,7 @@ export function mealParserPrompt(p: MealParserInput): Prompt {
 
     const prompt = `今天：${today}
 ${hint}
+${existingBlock(p)}
 用户输入：
 """
 ${p.text.trim()}
@@ -376,6 +472,7 @@ When unsure about portion sizes, brand calories, or unfamiliar foods, search the
 
   const prompt = `Today: ${today}
 ${hint}
+${existingBlock(p)}
 User input:
 """
 ${p.text.trim()}

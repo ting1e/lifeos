@@ -94,6 +94,11 @@ export const profile = pgTable("profile", {
   goal: goalEnum("goal"),
   targetWeightKg: numeric("target_weight_kg", { precision: 5, scale: 1 }),
   whoopEnabled: boolean("whoop_enabled").notNull().default(true),
+  aiBaseUrl: text("ai_base_url"),
+  aiApiKey: text("ai_api_key"),
+  aiTextModel: text("ai_text_model"),
+  aiImageModel: text("ai_image_model"),
+  aiAudioModel: text("ai_audio_model"),
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .defaultNow()

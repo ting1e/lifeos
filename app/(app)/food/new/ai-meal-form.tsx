@@ -2,10 +2,11 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Mic, Sparkles, Square, Trash2 } from "lucide-react";
+import { Mic, Sparkles, Square, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { PhotoDrop } from "@/components/food/photo-drop";
 import { HistoryMatchHint } from "@/components/food/history-match-hint";
 import { useT } from "@/lib/i18n/client";
 import { isoForDate, todayKey } from "@/lib/utils/day";
@@ -35,6 +36,20 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
   const router = useRouter();
   const t = useT();
   const today = todayKey();
+
+  // Map server error codes to user-friendly i18n messages.
+  function friendlyError(msg: string): string {
+    switch (msg) {
+      case "parse_failed":
+        return t("food.errParseFailed");
+      case "upload_failed":
+        return t("food.errUploadFailed");
+      case "heic_conversion_failed":
+        return t("food.errHeicFailed");
+      default:
+        return msg;
+    }
+  }
   const [date, setDate] = useState<string>(initialDate ?? today);
   const [defaultMeal, setDefaultMeal] = useState<Meal>("breakfast");
   const [text, setText] = useState("");
@@ -43,6 +58,38 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [result, setResult] = useState<ParseResult | null>(null);
+
+  // ---- photo ----
+  const [photoPath, setPhotoPath] = useState<string | null>(null);
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [photoDropKey, setPhotoDropKey] = useState(0);
+
+  // ---- photo ----
+  async function uploadPhoto(file: File) {
+    setPhotoUploading(true);
+    setError(null);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const r = await fetch("/api/food/upload", { method: "POST", body: fd });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data?.error ?? t("food.errUploadFailed"));
+      setPhotoPath(data.name);
+      setPhotoPreviewUrl(URL.createObjectURL(file));
+    } catch (e) {
+      setError(friendlyError(e instanceof Error ? e.message : String(e)));
+    } finally {
+      setPhotoUploading(false);
+    }
+  }
+
+  function removePhoto() {
+    if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
+    setPhotoPath(null);
+    setPhotoPreviewUrl(null);
+    setPhotoDropKey((k) => k + 1);
+  }
 
   // ---- voice recording ----
   const [recording, setRecording] = useState(false);
@@ -84,11 +131,11 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
         streamRef.current?.getTracks().forEach((t) => t.stop());
         streamRef.current = null;
         if (blob.size < 1000) {
-          setError("Recording was empty.");
+          setError(t("food.recordingEmpty"));
           return;
         }
         setTranscribing(true);
-        setStatus("→ transcribing…");
+        setStatus(t("food.transcribingStatus"));
         try {
           const fd = new FormData();
           const ext = type.includes("mp4")
@@ -104,25 +151,25 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
           if (!r.ok) throw new Error(data?.error ?? `http_${r.status}`);
           const transcribed = (data.text ?? "").trim();
           if (!transcribed) {
-            setError("Couldn't hear anything. Try again closer to the mic.");
+            setError(t("food.transcribeEmpty"));
             return;
           }
           setText((prev) => (prev ? `${prev} ${transcribed}` : transcribed));
-          setStatus("→ transcribed. Press PARSE.");
+          setStatus(t("food.transcribedStatus"));
         } catch (e) {
-          setError(e instanceof Error ? e.message : String(e));
+          setError(friendlyError(e instanceof Error ? e.message : String(e)));
         } finally {
           setTranscribing(false);
         }
       };
       mr.start();
       setRecording(true);
-      setStatus("● recording — speak now, then STOP");
+      setStatus(t("food.recordingStatus"));
     } catch (e) {
       setError(
         e instanceof Error
-          ? `mic blocked: ${e.message}`
-          : "Microphone access denied.",
+          ? t("food.micBlocked", { msg: e.message })
+          : t("food.micDenied"),
       );
     }
   }
@@ -135,27 +182,37 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
 
   // ---- parse ----
   async function parse() {
-    if (!text.trim()) return;
+    if (!photoPath && !text.trim()) return;
     setParsing(true);
     setError(null);
-    setStatus("→ thinking + searching web…");
+    setStatus(photoPath ? t("food.analyzingPhoto") : t("food.aiThinking"));
     setResult(null);
     try {
       const r = await fetch("/api/food/parse-meal", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ text: text.trim(), defaultMeal }),
+        body: JSON.stringify({
+          text: text.trim() || undefined,
+          photoPath: photoPath ?? undefined,
+          defaultMeal,
+        }),
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data?.error ?? `http_${r.status}`);
       setResult(data.parsed);
       setStatus(
-        `OK · ${data.parsed.items.length} item(s)${
-          data.parsed.search_used ? " · web-search used" : ""
-        }`,
+        t(data.parsed.search_used ? "food.parsedNItemsWeb" : "food.parsedNItems", {
+          n: data.parsed.items.length,
+        }),
       );
+      // Clear photo + text for next entry
+      if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
+      setPhotoPath(null);
+      setPhotoPreviewUrl(null);
+      setPhotoDropKey((k) => k + 1);
+      setText("");
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(friendlyError(e instanceof Error ? e.message : String(e)));
       setStatus(null);
     } finally {
       setParsing(false);
@@ -181,7 +238,7 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
     if (!result || result.items.length === 0) return;
     setSaving(true);
     setError(null);
-    setStatus("→ saving…");
+    setStatus(t("common.saving"));
     try {
       const consumedAt = isoForDate(date);
       for (const it of result.items) {
@@ -206,7 +263,7 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
       router.push(date === today ? "/food" : `/food?day=${date}`);
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(friendlyError(e instanceof Error ? e.message : String(e)));
       setStatus(null);
     } finally {
       setSaving(false);
@@ -233,6 +290,27 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
         />
         <div className="mono-label">{t("food.aiAutolog")}</div>
       </div>
+
+      {photoPath && photoPreviewUrl ? (
+        <div className="relative inline-block">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={photoPreviewUrl}
+            alt=""
+            className="max-h-48 object-contain border border-[color:var(--border)]"
+          />
+          <button
+            type="button"
+            onClick={removePhoto}
+            aria-label="remove photo"
+            className="absolute -top-2 -right-2 bg-[color:var(--surface)] border border-[color:var(--border)] p-1 text-[color:var(--text-secondary)] hover:text-[color:var(--accent)]"
+          >
+            <X size={12} strokeWidth={2} />
+          </button>
+        </div>
+      ) : (
+        <PhotoDrop key={photoDropKey} onUpload={uploadPhoto} onError={(msg) => setError(friendlyError(msg))} disabled={parsing || saving || photoUploading} />
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-[200px_200px_1fr] gap-4">
         <div>
@@ -268,7 +346,7 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
             value={text}
             onChange={(e) => setText(e.target.value)}
             rows={4}
-            placeholder='e.g. "for breakfast: a lavash wrap with 1 boiled egg, half an avocado and yogurt-lemon sauce, plus an extra boiled egg, some greens, a matchbox of white cheese, 3 black olives"'
+            placeholder={t("food.aiPlaceholder")}
             className="w-full bg-transparent border-b border-[color:var(--border-visible)] py-2 font-body text-lg text-[color:var(--text-display)] focus:outline-none focus:border-[color:var(--accent)] resize-none placeholder:text-[color:var(--text-disabled)]"
           />
           {!result && <HistoryMatchHint text={text} mealHint={defaultMeal} />}
@@ -300,7 +378,7 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
           type="button"
           variant="accent"
           onClick={parse}
-          disabled={parsing || saving || recording || transcribing || text.trim().length < 2}
+          disabled={parsing || saving || recording || transcribing || photoUploading || (!photoPath && text.trim().length < 2)}
         >
           {parsing ? t("food.parsing") : t("food.parseWithAi")}
         </Button>
@@ -311,7 +389,7 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
         )}
         {error && (
           <span className="font-mono text-[13px] uppercase tracking-[0.08em] text-[color:var(--accent)]">
-            ERR · {error}
+            {t("food.errPrefix")} · {error}
           </span>
         )}
       </div>
@@ -319,16 +397,16 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
       {result && (
         <div className="space-y-3 pt-2 border-t border-[color:var(--border)]">
           <div className="flex items-baseline justify-between">
-            <div className="mono-label">PREVIEW · {result.meal.toUpperCase()}</div>
+            <div className="mono-label">{t("food.preview")} · {result.meal.toUpperCase()}</div>
             <div className="font-mono text-[13px] text-[color:var(--text-disabled)] uppercase tracking-[0.08em]">
               {result.confidence != null
-                ? `confidence ${(result.confidence * 100).toFixed(0)}%`
+                ? t("food.confidence", { n: (result.confidence * 100).toFixed(0) })
                 : ""}
             </div>
           </div>
 
           <div>
-            <div className="mono-label mb-1">SAVE AS</div>
+            <div className="mono-label mb-1">{t("food.saveAs")}</div>
             <Select
               value={result.meal}
               onChange={(e) =>
@@ -378,24 +456,24 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
                 </div>
                 <div className="grid grid-cols-4 gap-3">
                   <NumCell
-                    label="KCAL"
+                    label={t("food.kcal")}
                     value={it.kcal}
                     onChange={(v) => updateItem(i, { kcal: v })}
                   />
                   <NumCell
-                    label="P"
+                    label={t("food.proteinG")}
                     unit="g"
                     value={it.protein_g}
                     onChange={(v) => updateItem(i, { protein_g: v })}
                   />
                   <NumCell
-                    label="C"
+                    label={t("food.carbsG")}
                     unit="g"
                     value={it.carbs_g}
                     onChange={(v) => updateItem(i, { carbs_g: v })}
                   />
                   <NumCell
-                    label="F"
+                    label={t("food.fatG")}
                     unit="g"
                     value={it.fat_g}
                     onChange={(v) => updateItem(i, { fat_g: v })}
@@ -407,10 +485,10 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
 
           {totals && result.items.length > 0 && (
             <div className="grid grid-cols-4 gap-3 pt-2 border-t border-[color:var(--border)]">
-              <Totals label="TOTAL KCAL" value={Math.round(totals.kcal)} />
-              <Totals label="TOTAL P" value={Math.round(totals.p)} unit="g" />
-              <Totals label="TOTAL C" value={Math.round(totals.c)} unit="g" />
-              <Totals label="TOTAL F" value={Math.round(totals.f)} unit="g" />
+              <Totals label={t("food.totalKcal")} value={Math.round(totals.kcal)} />
+              <Totals label={t("food.totalP")} value={Math.round(totals.p)} unit="g" />
+              <Totals label={t("food.totalC")} value={Math.round(totals.c)} unit="g" />
+              <Totals label={t("food.totalF")} value={Math.round(totals.f)} unit="g" />
             </div>
           )}
 
@@ -421,7 +499,7 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
               onClick={saveAll}
               disabled={saving || result.items.length === 0}
             >
-              {saving ? "SAVING…" : `SAVE ${result.items.length} ITEM(S) →`}
+              {saving ? t("common.saving") : t("food.saveItems", { n: result.items.length })}
             </Button>
           </div>
         </div>

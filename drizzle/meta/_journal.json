@@ -43,6 +43,13 @@
       "when": 1785380000000,
       "tag": "0005_whoop_enabled",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1785466400000,
+      "tag": "0006_ai_config",
+      "breakpoints": true
     }
   ]
 }

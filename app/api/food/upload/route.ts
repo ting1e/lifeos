@@ -11,7 +11,7 @@ export async function POST(req: Request) {
   if (!(file instanceof File)) {
     return NextResponse.json({ error: "missing_file" }, { status: 400 });
   }
-  if (file.size > 8 * 1024 * 1024) {
+  if (file.size > 15 * 1024 * 1024) {
     return NextResponse.json({ error: "too_large" }, { status: 413 });
   }
   const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase().replace(/[^a-z0-9]/g, "");

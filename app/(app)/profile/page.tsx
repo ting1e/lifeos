@@ -5,6 +5,7 @@ import { requireSession } from "@/lib/auth/session";
 import { ProfileForm } from "./profile-form";
 import { PasswordForm } from "./password-form";
 import { WhoopToggle } from "./whoop-toggle";
+import { AiConfigForm } from "./ai-config-form";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { LanguageSwitcher } from "@/components/profile/language-switcher";
 import { bmi, bmiCategory, bmr, recommendedKcal, tdee, macroSplit } from "@/lib/nutrition";
@@ -99,6 +100,20 @@ export default async function ProfilePage() {
       <Card>
         <CardLabel>{t("prof.whoopIntegration")}</CardLabel>
         <WhoopToggle enabled={whoopEnabled} />
+      </Card>
+
+      <Card>
+        <CardLabel>{t("prof.aiIntegration")}</CardLabel>
+        <AiConfigForm
+          initial={{
+            baseUrl: p?.aiBaseUrl ?? "",
+            textModel: p?.aiTextModel ?? "",
+            imageModel: p?.aiImageModel ?? "",
+            audioModel: p?.aiAudioModel ?? "",
+            apiKeyMasked: p?.aiApiKey ? `••••${p.aiApiKey.slice(-4)}` : "",
+            hasKey: !!p?.aiApiKey,
+          }}
+        />
       </Card>
 
       <Card>

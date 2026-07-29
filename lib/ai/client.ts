@@ -1,20 +1,8 @@
-import { fal } from "@fal-ai/client";
 import { db } from "@/lib/db/client";
 import { aiMessages } from "@/lib/db/schema";
-
-let configured = false;
-function configure() {
-  if (configured) return;
-  const key = process.env.FAL_KEY;
-  if (key) fal.config({ credentials: key });
-  configured = true;
-}
+import { getAiConfig, type AiConfig } from "@/lib/ai/config";
 
 export type AiKind = "food_vision" | "plan" | "insights" | "freeform";
-
-const DEFAULT_MODEL = "anthropic/claude-sonnet-4.6";
-const TEXT_ENDPOINT = "openrouter/router";
-const VISION_ENDPOINT = "openrouter/router/vision";
 
 export type ChatArgs = {
   userId: string;
@@ -27,13 +15,16 @@ export type ChatArgs = {
   /**
    * Append `:online` to the resolved model id so OpenRouter's web-search
    * variant handles the request. Useful for nutrition lookups where the
-   * model needs current portion / brand data.
+   * model needs current portion / brand data. Ignored for non-OpenRouter
+   * endpoints.
    */
   webSearch?: boolean;
 };
 
 export type VisionArgs = ChatArgs & {
   imageUrls: string[];
+  /** File name or path of the source image(s), logged to ai_messages instead of the base64 payload. */
+  sourcePath?: string;
 };
 
 export type ChatResult = {
@@ -41,53 +32,82 @@ export type ChatResult = {
   raw: unknown;
 };
 
-type OpenRouterOutput = {
-  output?: string;
-  error?: unknown;
-  usage?: { cost?: number; total_tokens?: number };
+type ContentPart =
+  | { type: "text"; text: string }
+  | { type: "image_url"; image_url: { url: string } }
+  | { type: "input_audio"; input_audio: { data: string; format: string } };
+
+type ChatCompletionsResponse = {
+  choices?: { message?: { content?: string } }[];
+  error?: { message?: string } | string;
+  usage?: { total_tokens?: number; cost?: number };
 };
 
-function extractCostCents(raw: unknown): string | null {
-  const out = (raw as { usage?: { cost?: number } } | null)?.usage;
-  if (!out || typeof out.cost !== "number") return null;
-  return (out.cost * 100).toFixed(4);
-}
-
-async function callEndpoint(
-  endpoint: string,
-  input: Record<string, unknown>,
-): Promise<OpenRouterOutput> {
-  const res = await fal.subscribe(endpoint, { input: input as never });
-  const data = (res as { data?: unknown })?.data ?? res;
-  return data as OpenRouterOutput;
-}
-
-function resolveModel(model: string | undefined, webSearch: boolean | undefined) {
-  const base = model ?? DEFAULT_MODEL;
-  if (!webSearch) return base;
-  // Don't double-append if caller already added the suffix.
+function resolveModel(config: AiConfig, kind: "text" | "image" | "audio", override: string | undefined, webSearch: boolean | undefined): string {
+  const base = override ?? (kind === "image" ? config.imageModel : kind === "audio" ? config.audioModel : config.textModel);
+  if (!webSearch || !config.openrouter) return base;
   return base.endsWith(":online") ? base : `${base}:online`;
 }
 
-export async function chat(args: ChatArgs): Promise<ChatResult> {
-  configure();
-  if (!process.env.FAL_KEY) throw new Error("FAL_KEY is not configured");
+async function chatCompletions(args: {
+  userId: string;
+  kind: AiKind;
+  config: AiConfig;
+  modelKind: "text" | "image" | "audio";
+  system?: string;
+  content: ContentPart[];
+  sourcePath?: string;
+  temperature?: number;
+  maxTokens?: number;
+  webSearch?: boolean;
+  modelOverride?: string;
+}): Promise<ChatResult> {
+  const { userId, kind, config, modelKind, system, content, sourcePath, temperature, maxTokens, webSearch, modelOverride } = args;
+  const model = resolveModel(config, modelKind, modelOverride, webSearch);
 
-  const input: Record<string, unknown> = {
-    model: resolveModel(args.model, args.webSearch),
-    prompt: args.prompt,
-    temperature: args.temperature ?? 0.4,
-    max_tokens: args.maxTokens ?? 2048,
+  const messages: { role: string; content: unknown }[] = [];
+  if (system) messages.push({ role: "system", content: system });
+  messages.push({ role: "user", content });
+
+  const body: Record<string, unknown> = {
+    model,
+    messages,
+    max_tokens: maxTokens ?? 2048,
   };
-  if (args.system) input.system_prompt = args.system;
+  if (temperature !== undefined) body.temperature = temperature;
 
-  let raw: OpenRouterOutput | null = null;
+  // Audit-safe log: strip base64 payloads, keep the source file path instead.
+  const logContent = content.map((c) => {
+    if (c.type === "text") return c;
+    if (c.type === "image_url")
+      return { type: "image_url" as const, source: sourcePath ?? `[omitted ${c.image_url.url.length} chars]` };
+    return {
+      type: "input_audio" as const,
+      source: sourcePath ?? `[omitted ${c.input_audio.data.length} chars]`,
+      format: c.input_audio.format,
+    };
+  });
+
+  let raw: ChatCompletionsResponse | null = null;
   let errorMsg: string | null = null;
   try {
-    raw = await callEndpoint(TEXT_ENDPOINT, input);
-    if (raw?.error) {
-      errorMsg = typeof raw.error === "string" ? raw.error : JSON.stringify(raw.error);
-      throw new Error(errorMsg);
+    const res = await fetch(`${config.baseUrl}/chat/completions`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${config.apiKey}`,
+        "api-key": config.apiKey,
+      },
+      body: JSON.stringify(body),
+    });
+    raw = (await res.json().catch(() => null)) as ChatCompletionsResponse | null;
+    if (!res.ok || raw?.error) {
+      const m = raw?.error
+        ? typeof raw.error === "string"
+          ? raw.error
+          : raw.error.message ?? JSON.stringify(raw.error)
+        : `HTTP ${res.status}`;
+      throw new Error(m);
     }
   } catch (err) {
     errorMsg = err instanceof Error ? err.message : String(err);
@@ -96,60 +116,97 @@ export async function chat(args: ChatArgs): Promise<ChatResult> {
     await db
       .insert(aiMessages)
       .values({
-        userId: args.userId,
-        kind: args.kind,
-        prompt: { input },
+        userId,
+        kind,
+        prompt: { model, system, content: logContent },
         response: (raw as object | null) ?? null,
-        model: (input.model as string) ?? null,
-        costCents: extractCostCents(raw),
+        model,
+        costCents: null,
         errorMsg,
       })
       .catch(() => {});
   }
 
-  return { text: raw?.output ?? "", raw };
+  const text = raw?.choices?.[0]?.message?.content ?? "";
+  return { text, raw };
+}
+
+export async function chat(args: ChatArgs): Promise<ChatResult> {
+  const config = await getAiConfig(args.userId);
+  return chatCompletions({
+    userId: args.userId,
+    kind: args.kind,
+    config,
+    modelKind: "text",
+    system: args.system,
+    content: [{ type: "text", text: args.prompt }],
+    temperature: args.temperature,
+    maxTokens: args.maxTokens,
+    webSearch: args.webSearch,
+    modelOverride: args.model,
+  });
 }
 
 export async function vision(args: VisionArgs): Promise<ChatResult> {
-  configure();
-  if (!process.env.FAL_KEY) throw new Error("FAL_KEY is not configured");
+  const config = await getAiConfig(args.userId);
+  const content: ContentPart[] = [
+    ...args.imageUrls.map((url) => ({ type: "image_url", image_url: { url } } as ContentPart)),
+    { type: "text", text: args.prompt },
+  ];
+  return chatCompletions({
+    userId: args.userId,
+    kind: args.kind,
+    config,
+    modelKind: "image",
+    system: args.system,
+    content,
+    sourcePath: args.sourcePath,
+    temperature: args.temperature,
+    maxTokens: args.maxTokens,
+    webSearch: args.webSearch,
+    modelOverride: args.model,
+  });
+}
 
-  const input: Record<string, unknown> = {
-    model: args.model ?? DEFAULT_MODEL,
-    prompt: args.prompt,
-    image_urls: args.imageUrls,
-    temperature: args.temperature ?? 0.3,
-    max_tokens: args.maxTokens ?? 1024,
-  };
-  if (args.system) input.system_prompt = args.system;
+function audioFormat(contentType: string): string {
+  const ct = contentType.toLowerCase();
+  if (ct.includes("webm")) return "webm";
+  if (ct.includes("ogg")) return "ogg";
+  if (ct.includes("wav")) return "wav";
+  if (ct.includes("mp4") || ct.includes("m4a")) return "mp4";
+  if (ct.includes("mpeg") || ct.includes("mp3")) return "mp3";
+  if (ct.includes("flac")) return "flac";
+  if (ct.includes("aac")) return "aac";
+  return "wav";
+}
 
-  let raw: OpenRouterOutput | null = null;
-  let errorMsg: string | null = null;
-  try {
-    raw = await callEndpoint(VISION_ENDPOINT, input);
-    if (raw?.error) {
-      errorMsg = typeof raw.error === "string" ? raw.error : JSON.stringify(raw.error);
-      throw new Error(errorMsg);
-    }
-  } catch (err) {
-    errorMsg = err instanceof Error ? err.message : String(err);
-    throw err;
-  } finally {
-    await db
-      .insert(aiMessages)
-      .values({
-        userId: args.userId,
-        kind: args.kind,
-        prompt: { input },
-        response: (raw as object | null) ?? null,
-        model: (input.model as string) ?? null,
-        costCents: extractCostCents(raw),
-        errorMsg,
-      })
-      .catch(() => {});
-  }
+export type TranscribeArgs = {
+  userId: string;
+  audioBuffer: Buffer | Uint8Array;
+  contentType: string;
+  /** File name or path of the source audio, logged to ai_messages instead of the base64 payload. */
+  sourcePath?: string;
+};
 
-  return { text: raw?.output ?? "", raw };
+export async function transcribeAudio(args: TranscribeArgs): Promise<{ text: string; raw: unknown }> {
+  const config = await getAiConfig(args.userId);
+  const format = audioFormat(args.contentType);
+  const base64 = Buffer.from(args.audioBuffer).toString("base64");
+  const content: ContentPart[] = [
+    { type: "input_audio", input_audio: { data: base64, format } },
+    { type: "text", text: "Transcribe the spoken content of this audio. Return only the transcript text, nothing else." },
+  ];
+  const { text, raw } = await chatCompletions({
+    userId: args.userId,
+    kind: "freeform",
+    config,
+    modelKind: "audio",
+    content,
+    sourcePath: args.sourcePath,
+    temperature: 0,
+    maxTokens: 1024,
+  });
+  return { text, raw };
 }
 
 function tryParse(text: string): unknown {
@@ -208,74 +265,4 @@ export async function visionJson<T>(
   });
   const retryParsed = tryParse(retry.text);
   return schema.parse(retryParsed);
-}
-
-export async function uploadLocal(filePath: string): Promise<string> {
-  configure();
-  const fs = await import("node:fs/promises");
-  const path = await import("node:path");
-  const buf = await fs.readFile(filePath);
-  const name = path.basename(filePath);
-  const blob = new Blob([buf]);
-  const file = new File([blob], name);
-  const url = await fal.storage.upload(file);
-  return url;
-}
-
-export async function uploadBuffer(
-  buf: Buffer | Uint8Array,
-  filename: string,
-  contentType?: string,
-): Promise<string> {
-  configure();
-  const blob = new Blob([buf as BlobPart], contentType ? { type: contentType } : undefined);
-  const file = new File([blob], filename, contentType ? { type: contentType } : undefined);
-  return await fal.storage.upload(file);
-}
-
-const TRANSCRIBE_ENDPOINT = "fal-ai/wizper";
-
-export type TranscribeArgs = {
-  userId: string;
-  audioUrl: string;
-  language?: "tr" | "en" | "zh" | null;
-};
-
-export async function transcribeAudio(args: TranscribeArgs): Promise<{ text: string; raw: unknown }> {
-  configure();
-  if (!process.env.FAL_KEY) throw new Error("FAL_KEY is not configured");
-
-  const input: Record<string, unknown> = {
-    audio_url: args.audioUrl,
-    task: "transcribe",
-    language: args.language ?? null,
-    chunk_level: "segment",
-    version: "3",
-  };
-
-  let raw: unknown = null;
-  let errorMsg: string | null = null;
-  try {
-    const res = await fal.subscribe(TRANSCRIBE_ENDPOINT, { input: input as never });
-    raw = (res as { data?: unknown })?.data ?? res;
-  } catch (err) {
-    errorMsg = err instanceof Error ? err.message : String(err);
-    throw err;
-  } finally {
-    await db
-      .insert(aiMessages)
-      .values({
-        userId: args.userId,
-        kind: "freeform",
-        prompt: { input },
-        response: (raw as object | null) ?? null,
-        model: TRANSCRIBE_ENDPOINT,
-        costCents: null,
-        errorMsg,
-      })
-      .catch(() => {});
-  }
-
-  const text = (raw as { text?: string } | null)?.text ?? "";
-  return { text, raw };
 }
