@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Sparkles } from "lucide-react";
-import { useT } from "@/lib/i18n/client";
+import { useLocale, useT } from "@/lib/i18n/client";
+import { trCatalog } from "@/lib/i18n/exercise-zh";
 import { isAiError } from "@/lib/ai/ai-error";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
@@ -24,6 +25,7 @@ const EQUIPMENT = [
 export function AiProgramForm() {
   const router = useRouter();
   const t = useT();
+  const locale = useLocale();
 
   const [goal, setGoal] = useState<Goal>("hypertrophy");
   const [level, setLevel] = useState<Level>("intermediate");
@@ -163,7 +165,7 @@ export function AiProgramForm() {
                 onClick={() => toggleEquipment(item)}
                 className={active ? "chip chip--active" : "chip"}
               >
-                {item}
+                {trCatalog("equipment", item, locale)}
               </button>
             );
           })}

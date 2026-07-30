@@ -3,11 +3,14 @@
 import { useEffect, useState, useTransition } from "react";
 import Image from "next/image";
 import { Search, X } from "lucide-react";
+import { useLocale } from "@/lib/i18n/client";
+import { trCatalog } from "@/lib/i18n/exercise-zh";
 
 type PickerExercise = {
   id: string;
   nameEn: string;
   nameTr: string | null;
+  nameZh: string | null;
   bodyPart: string | null;
   equipment: string | null;
   target: string | null;
@@ -26,6 +29,9 @@ export function ExercisePicker({
   const [q, setQ] = useState("");
   const [rows, setRows] = useState<PickerExercise[]>([]);
   const [busy, startTransition] = useTransition();
+  const locale = useLocale();
+  const displayName = (ex: PickerExercise) =>
+    locale === "tr" ? ex.nameTr ?? ex.nameEn : locale === "zh" ? ex.nameZh ?? ex.nameEn : ex.nameEn;
 
   useEffect(() => {
     if (!open) return;
@@ -98,13 +104,13 @@ export function ExercisePicker({
                 <li key={ex.id}>
                   <button
                     type="button"
-                    onClick={() => onPick(ex.id, ex.nameEn)}
+                    onClick={() => onPick(ex.id, displayName(ex))}
                     className="w-full grid grid-cols-[64px_1fr] gap-3 text-left p-2 border border-[color:var(--border)] hover:border-[color:var(--text-display)] transition"
                   >
                     {ex.gifUrl ? (
                       <Image
                         src={ex.gifUrl}
-                        alt={ex.nameEn}
+                        alt={displayName(ex)}
                         width={128}
                         height={128}
                         unoptimized
@@ -115,10 +121,10 @@ export function ExercisePicker({
                     )}
                     <div className="min-w-0">
                       <div className="font-body text-base text-[color:var(--text-display)] truncate">
-                        {ex.nameEn}
+                        {displayName(ex)}
                       </div>
                       <div className="mono-label mt-1 truncate">
-                        {[ex.target, ex.equipment].filter(Boolean).join(" · ")}
+                        {[trCatalog("target", ex.target, locale), trCatalog("equipment", ex.equipment, locale)].filter(Boolean).join(" · ")}
                       </div>
                     </div>
                   </button>

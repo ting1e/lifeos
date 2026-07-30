@@ -113,6 +113,7 @@ pnpm install
 pnpm db:migrate
 pnpm bootstrap:admin
 pnpm seed:exercises              # ~1,324 records, ~30s, needs internet
+pnpm apply:zh                    # apply Chinese exercise name translations (optional)
 pnpm dev                         # http://localhost:3000
 ```
 

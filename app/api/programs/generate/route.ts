@@ -162,7 +162,7 @@ export async function POST(req: NextRequest) {
       prompt,
       schema: AiProgramSchema,
       temperature: 0.5,
-      maxTokens: 3500,
+      maxTokens: 32768,
     });
   } catch (e) {
     return NextResponse.json(
@@ -198,7 +198,13 @@ export async function POST(req: NextRequest) {
       }
       const note = [
         ex.notes,
-        ex.rest_seconds ? `rest ${ex.rest_seconds}s` : null,
+        ex.rest_seconds
+          ? user.locale === "tr"
+            ? `dinlen ${ex.rest_seconds}sn`
+            : user.locale === "zh"
+              ? `休息 ${ex.rest_seconds}秒`
+              : `rest ${ex.rest_seconds}s`
+          : null,
       ]
         .filter(Boolean)
         .join(" · ");

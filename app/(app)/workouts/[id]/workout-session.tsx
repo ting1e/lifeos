@@ -19,6 +19,7 @@ export type WorkoutExercise = {
   exerciseId: string;
   nameEn: string;
   nameTr: string | null;
+  nameZh: string | null;
   bodyPart: string | null;
   equipment: string | null;
   target: string | null;
@@ -26,6 +27,10 @@ export type WorkoutExercise = {
   secondaryMuscles: string[] | null;
   instructionsEn: string | null;
   instructionsTr: string | null;
+  instructionsZh: string | null;
+  instructionStepsEn?: string[] | null;
+  instructionStepsTr?: string[] | null;
+  instructionStepsZh?: string[] | null;
   imageUrl: string | null;
   gifUrl: string | null;
   targetSets: number | null;
@@ -102,6 +107,7 @@ export function WorkoutSession({
       exerciseId: match.id as string,
       nameEn: match.nameEn as string,
       nameTr: (match.nameTr as string | null) ?? null,
+      nameZh: (match.nameZh as string | null) ?? null,
       bodyPart: (match.bodyPart as string | null) ?? null,
       equipment: (match.equipment as string | null) ?? null,
       target: (match.target as string | null) ?? null,
@@ -109,6 +115,10 @@ export function WorkoutSession({
       secondaryMuscles: (match.secondaryMuscles as string[] | null) ?? null,
       instructionsEn: (match.instructionsEn as string | null) ?? null,
       instructionsTr: (match.instructionsTr as string | null) ?? null,
+      instructionsZh: (match.instructionsZh as string | null) ?? null,
+      instructionStepsEn: (match.instructionStepsEn as string[] | null) ?? null,
+      instructionStepsTr: (match.instructionStepsTr as string[] | null) ?? null,
+      instructionStepsZh: (match.instructionStepsZh as string[] | null) ?? null,
       imageUrl: (match.imageUrl as string | null) ?? null,
       gifUrl: (match.gifUrl as string | null) ?? null,
       targetSets: null,
@@ -135,6 +145,7 @@ export function WorkoutSession({
       id: ex.exerciseId,
       nameEn: ex.nameEn,
       nameTr: ex.nameTr,
+      nameZh: ex.nameZh,
       bodyPart: ex.bodyPart,
       equipment: ex.equipment,
       target: ex.target,
@@ -142,6 +153,10 @@ export function WorkoutSession({
       secondaryMuscles: ex.secondaryMuscles,
       instructionsEn: ex.instructionsEn,
       instructionsTr: ex.instructionsTr,
+      instructionsZh: ex.instructionsZh,
+      instructionStepsEn: ex.instructionStepsEn,
+      instructionStepsTr: ex.instructionStepsTr,
+      instructionStepsZh: ex.instructionStepsZh,
       imageUrl: ex.imageUrl,
       gifUrl: ex.gifUrl,
     });
@@ -161,7 +176,7 @@ export function WorkoutSession({
         const done = setsByExercise.get(ex.exerciseId) ?? [];
         const targetSets = ex.targetSets ?? 3;
         const rows = Array.from({ length: Math.max(targetSets, done.length + 1) });
-        const displayName = locale === "tr" ? ex.nameTr ?? ex.nameEn : ex.nameEn;
+        const displayName = locale === "tr" ? ex.nameTr ?? ex.nameEn : locale === "zh" ? ex.nameZh ?? ex.nameEn : ex.nameEn;
         return (
           <Card key={ex.exerciseId} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-[180px_1fr] gap-4 items-start">

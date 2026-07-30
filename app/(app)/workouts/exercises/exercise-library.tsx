@@ -7,6 +7,7 @@ import {
   ExerciseDetailDrawer,
   type ExerciseDetail,
 } from "@/components/workout/exercise-detail";
+import { trCatalog } from "@/lib/i18n/exercise-zh";
 
 export function ExerciseLibrary({
   locale,
@@ -21,7 +22,12 @@ export function ExerciseLibrary({
     <>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {rows.map((ex) => {
-          const name = locale === "tr" ? ex.nameTr ?? ex.nameEn : ex.nameEn;
+          const name =
+            locale === "tr"
+              ? ex.nameTr ?? ex.nameEn
+              : locale === "zh"
+                ? ex.nameZh ?? ex.nameEn
+                : ex.nameEn;
           return (
             <button
               key={ex.id}
@@ -45,7 +51,7 @@ export function ExerciseLibrary({
                 <div>
                   <div className="font-display text-lg leading-tight">{name}</div>
                   <div className="mono-label mt-1">
-                    {ex.target ?? ex.bodyPart ?? "—"} · {ex.equipment ?? "—"}
+                    {trCatalog("target", ex.target, locale) ?? trCatalog("bodyPart", ex.bodyPart, locale) ?? "—"} · {trCatalog("equipment", ex.equipment, locale) ?? "—"}
                   </div>
                 </div>
               </Card>

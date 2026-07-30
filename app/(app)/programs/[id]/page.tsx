@@ -6,6 +6,7 @@ import { db } from "@/lib/db/client";
 import { exercises, programDays, programExercises, programs } from "@/lib/db/schema";
 import { requireSession } from "@/lib/auth/session";
 import { getLocale, tFor } from "@/lib/i18n/server";
+import { trCatalog } from "@/lib/i18n/exercise-zh";
 import { notFound } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { StartDayForm } from "./start-day-form";
@@ -15,7 +16,8 @@ export const dynamic = "force-dynamic";
 
 export default async function ProgramDetail({ params }: { params: Promise<{ id: string }> }) {
   const { user } = await requireSession();
-  const t = tFor(await getLocale());
+  const locale = await getLocale();
+  const t = tFor(locale);
   const { id } = await params;
   const [p] = await db.select().from(programs).where(eq(programs.id, id)).limit(1);
   if (!p) return notFound();
@@ -44,6 +46,7 @@ export default async function ProgramDetail({ params }: { params: Promise<{ id: 
           exerciseId: exercises.id,
           name: localeNameCol,
           nameEn: exercises.nameEn,
+          nameZh: exercises.nameZh,
           bodyPart: exercises.bodyPart,
           equipment: exercises.equipment,
           target: exercises.target,
@@ -99,7 +102,7 @@ export default async function ProgramDetail({ params }: { params: Promise<{ id: 
             <ul className="space-y-2">
               {exs.map((e) => {
                 const media = e.gifUrl ?? e.imageUrl;
-                const displayName = e.name ?? e.nameEn;
+                const displayName = locale === "zh" ? (e.nameZh ?? e.nameEn) : e.nameEn;
                 return (
                   <li
                     key={e.id}
@@ -122,7 +125,7 @@ export default async function ProgramDetail({ params }: { params: Promise<{ id: 
                         {displayName}
                       </div>
                       <div className="mono-label mt-0.5 truncate">
-                        {[e.target, e.bodyPart, e.equipment].filter(Boolean).join(" · ")}
+                        {[trCatalog("target", e.target, locale), trCatalog("bodyPart", e.bodyPart, locale), trCatalog("equipment", e.equipment, locale)].filter(Boolean).join(" · ")}
                       </div>
                       {e.notes && (
                         <div className="font-mono text-[12px] text-[color:var(--text-disabled)] mt-1 truncate">

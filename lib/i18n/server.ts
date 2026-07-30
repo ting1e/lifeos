@@ -10,14 +10,14 @@ function isValidLocale(v: unknown): v is Locale {
 
 // Reads the signed-in user's saved locale from the session-bound user row.
 // For anonymous pages (no session) falls back to the "locale" cookie set by
-// the locale PATCH route, then to "en" for any unexpected value.
+// the locale PATCH route, then to "zh" for any unexpected value.
 export async function getLocale(): Promise<Locale> {
   const sess = await getSession().catch(() => null);
   const v = sess?.user.locale;
   if (isValidLocale(v)) return v;
   const cv = (await cookies()).get("locale")?.value;
   if (isValidLocale(cv)) return cv;
-  return "en";
+  return "zh";
 }
 
 // Bound translator — call once per server component, then `t("nav.home")`.

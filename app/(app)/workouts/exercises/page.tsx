@@ -1,16 +1,20 @@
+import Link from "next/link";
 import { sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { exercises } from "@/lib/db/schema";
 import { requireSession } from "@/lib/auth/session";
 import { getLocale, tFor } from "@/lib/i18n/server";
+import { trCatalog } from "@/lib/i18n/exercise-zh";
 import { ExerciseLibrary } from "./exercise-library";
 
 export const dynamic = "force-dynamic";
 
+const PAGE_SIZE = 60;
+
 export default async function ExercisesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; body_part?: string }>;
+  searchParams: Promise<{ q?: string; body_part?: string; page?: string }>;
 }) {
   const { user } = await requireSession();
   const locale = await getLocale();
@@ -18,6 +22,8 @@ export default async function ExercisesPage({
   const sp = await searchParams;
   const q = (sp.q ?? "").trim();
   const bodyPart = (sp.body_part ?? "").trim();
+  const page = Math.max(1, Number(sp.page) || 1);
+  const offset = (page - 1) * PAGE_SIZE;
 
   const rows = await db
     .select()
@@ -31,7 +37,20 @@ export default async function ExercisesPage({
         : undefined,
     )
     .orderBy(exercises.id)
-    .limit(60);
+    .offset(offset)
+    .limit(PAGE_SIZE + 1);
+
+  const hasNext = rows.length > PAGE_SIZE;
+  const pageRows = hasNext ? rows.slice(0, PAGE_SIZE) : rows;
+
+  function pageUrl(n: number): string {
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    if (bodyPart) params.set("body_part", bodyPart);
+    if (n > 1) params.set("page", String(n));
+    const qs = params.toString();
+    return qs ? `/workouts/exercises?${qs}` : "/workouts/exercises";
+  }
 
   const bodyParts = await db
     .select({ bodyPart: exercises.bodyPart })
@@ -67,7 +86,7 @@ export default async function ExercisesPage({
               .filter((b) => b.bodyPart)
               .map((b) => (
                 <option key={b.bodyPart!} value={b.bodyPart!}>
-                  {b.bodyPart}
+                  {trCatalog("bodyPart", b.bodyPart, locale)}
                 </option>
               ))}
           </select>
@@ -79,10 +98,11 @@ export default async function ExercisesPage({
 
       <ExerciseLibrary
         locale={locale}
-        rows={rows.map((ex) => ({
+        rows={pageRows.map((ex) => ({
           id: ex.id,
           nameEn: ex.nameEn,
           nameTr: ex.nameTr,
+          nameZh: ex.nameZh,
           bodyPart: ex.bodyPart,
           equipment: ex.equipment,
           target: ex.target,
@@ -90,12 +110,34 @@ export default async function ExercisesPage({
           secondaryMuscles: (ex.secondaryMuscles as string[] | null) ?? null,
           instructionsEn: ex.instructionsEn,
           instructionsTr: ex.instructionsTr,
+          instructionsZh: ex.instructionsZh,
           instructionStepsEn: (ex.instructionStepsEn as string[] | null) ?? null,
           instructionStepsTr: (ex.instructionStepsTr as string[] | null) ?? null,
+          instructionStepsZh: (ex.instructionStepsZh as string[] | null) ?? null,
           imageUrl: ex.imageUrl,
           gifUrl: ex.gifUrl,
         }))}
       />
+
+      {(page > 1 || hasNext) && (
+        <div className="flex items-center justify-between pt-2">
+          {page > 1 ? (
+            <Link href={pageUrl(page - 1)} className="btn btn--outline btn--sm">
+              ← {t("common.prev")}
+            </Link>
+          ) : (
+            <span />
+          )}
+          <span className="mono-label">{page}</span>
+          {hasNext ? (
+            <Link href={pageUrl(page + 1)} className="btn btn--outline btn--sm">
+              {t("common.next")} →
+            </Link>
+          ) : (
+            <span />
+          )}
+        </div>
+      )}
     </div>
   );
 }

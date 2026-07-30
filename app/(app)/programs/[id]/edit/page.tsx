@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db/client";
 import { exercises, programDays, programExercises, programs } from "@/lib/db/schema";
 import { requireSession } from "@/lib/auth/session";
+import { getLocale } from "@/lib/i18n/server";
+import { trCatalog } from "@/lib/i18n/exercise-zh";
 import { ProgramEditor, type EditorDay } from "./program-editor";
 
 export const dynamic = "force-dynamic";
@@ -27,6 +29,7 @@ export default async function ProgramEditPage({
     .orderBy(asc(programDays.dayIndex));
 
   void user;
+  const locale = await getLocale();
   const localeNameCol = exercises.nameEn;
 
   const editorDays: EditorDay[] = await Promise.all(
@@ -42,6 +45,7 @@ export default async function ProgramEditPage({
           exerciseId: exercises.id,
           name: localeNameCol,
           nameEn: exercises.nameEn,
+          nameZh: exercises.nameZh,
           bodyPart: exercises.bodyPart,
           equipment: exercises.equipment,
           target: exercises.target,
@@ -63,8 +67,8 @@ export default async function ProgramEditPage({
           targetWeightKg: e.targetWeightKg ? Number(e.targetWeightKg) : null,
           notes: e.notes,
           exerciseId: e.exerciseId,
-          name: e.name ?? e.nameEn,
-          subtitle: [e.target, e.bodyPart, e.equipment].filter(Boolean).join(" · "),
+          name: locale === "zh" ? (e.nameZh ?? e.nameEn) : (e.name ?? e.nameEn),
+          subtitle: [trCatalog("target", e.target, locale), trCatalog("bodyPart", e.bodyPart, locale), trCatalog("equipment", e.equipment, locale)].filter(Boolean).join(" · "),
           gifUrl: e.gifUrl,
         })),
       };

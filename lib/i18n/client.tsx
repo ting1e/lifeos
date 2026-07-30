@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, type ReactNode } from "react";
 import { translate, type DictKey, type Locale } from "./dict";
 
-const LocaleContext = createContext<Locale>("en");
+const LocaleContext = createContext<Locale>("zh");
 
 export function LocaleProvider({
   locale,

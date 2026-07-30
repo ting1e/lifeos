@@ -17,9 +17,15 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import fs from "node:fs";
 import fsp from "node:fs/promises";
 import path from "node:path";
+import { ProxyAgent, setGlobalDispatcher } from "undici";
 import { exercises } from "../lib/db/schema";
 
+if (process.env.HTTPS_PROXY) {
+  setGlobalDispatcher(new ProxyAgent(process.env.HTTPS_PROXY));
+}
+
 const DATASET_RAW =
+  process.env.EXERCISES_DATASET_BASE ??
   "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main";
 
 type DatasetRow = {
@@ -31,8 +37,8 @@ type DatasetRow = {
   target?: string;
   muscle_group?: string;
   secondary_muscles?: string[];
-  instructions?: { en?: string; tr?: string };
-  instruction_steps?: { en?: string[]; tr?: string[] };
+  instructions?: { en?: string; tr?: string; zh?: string };
+  instruction_steps?: { en?: string[]; tr?: string[]; zh?: string[] };
   image?: string;
   gif_url?: string;
 };
@@ -180,6 +186,7 @@ async function main() {
       id: r.id,
       nameEn,
       nameTr: nameEn,
+      nameZh: null, // populated by pnpm apply:zh
       category: r.category ?? null,
       bodyPart: r.body_part ?? null,
       equipment: r.equipment ?? null,
@@ -188,8 +195,10 @@ async function main() {
       secondaryMuscles: r.secondary_muscles ?? [],
       instructionsEn: r.instructions?.en ?? null,
       instructionsTr: r.instructions?.tr ?? null,
+      instructionsZh: r.instructions?.zh ?? null,
       instructionStepsEn: r.instruction_steps?.en ?? [],
       instructionStepsTr: r.instruction_steps?.tr ?? [],
+      instructionStepsZh: r.instruction_steps?.zh ?? [],
       imageUrl: localPath(r.image),
       gifUrl: localPath(r.gif_url),
     };
@@ -209,8 +218,10 @@ async function main() {
           secondaryMuscles: values.secondaryMuscles,
           instructionsEn: values.instructionsEn,
           instructionsTr: values.instructionsTr,
+          instructionsZh: values.instructionsZh,
           instructionStepsEn: values.instructionStepsEn,
           instructionStepsTr: values.instructionStepsTr,
+          instructionStepsZh: values.instructionStepsZh,
           imageUrl: values.imageUrl,
           gifUrl: values.gifUrl,
         },

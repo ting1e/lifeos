@@ -56,7 +56,7 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   role: roleEnum("role").notNull().default("admin"),
-  locale: localeEnum("locale").notNull().default("en"),
+  locale: localeEnum("locale").notNull().default("zh"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -133,6 +133,7 @@ export const exercises = pgTable(
     id: text("id").primaryKey(), // dataset id e.g. "0001"
     nameEn: text("name_en").notNull(),
     nameTr: text("name_tr"),
+    nameZh: text("name_zh"),
     category: text("category"),
     bodyPart: text("body_part"),
     equipment: text("equipment"),
@@ -141,8 +142,10 @@ export const exercises = pgTable(
     secondaryMuscles: jsonb("secondary_muscles").$type<string[]>().default([]),
     instructionsEn: text("instructions_en"),
     instructionsTr: text("instructions_tr"),
+    instructionsZh: text("instructions_zh"),
     instructionStepsEn: jsonb("instruction_steps_en").$type<string[]>().default([]),
     instructionStepsTr: jsonb("instruction_steps_tr").$type<string[]>().default([]),
+    instructionStepsZh: jsonb("instruction_steps_zh").$type<string[]>().default([]),
     imageUrl: text("image_url"),
     gifUrl: text("gif_url"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

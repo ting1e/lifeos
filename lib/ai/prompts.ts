@@ -314,31 +314,100 @@ const BODY_PARTS = [
 export function programGeneratorPrompt(p: ProgramInput): Prompt {
   const system =
     p.locale === "tr"
-      ? "Sen lisanslı bir kuvvet & kondisyon koçusun. Kullanıcının hedefi, deneyimi ve ekipmanına göre haftalık bir antrenman programı kur. SADECE tek bir geçerli JSON objesi döndür — Markdown veya açıklama yazma. Egzersiz isimlerini İngilizce olarak ver (ör. 'barbell bench press') ki sistem onları egzersiz veri tabanıyla eşleştirebilsin."
+      ? "Sen lisanslı bir kuvvet & kondisyon koçusun. Kullanıcının hedefi, deneyimi ve ekipmanına göre haftalık bir antrenman programı kur. Program adı, açıklama, gün adları ve notlar TÜRKÇE olsun. Sadece `search` alanı İngilizce hareket adı taşır (ör. 'barbell bench press'). SADECE tek bir geçerli JSON objesi döndür — Markdown veya açıklama yazma."
       : p.locale === "zh"
-        ? "你是一名持证的体能与力量教练。根据用户的目标、经验和器材，制定每周训练计划。仅返回一个有效的 JSON 对象——不要 markdown，不要任何解释性文字。请使用英文动作名称（例如 'barbell bench press'），以便系统将它们与动作数据库匹配。"
+        ? "你是一名持证的体能与力量教练。根据用户的目标、经验和器材，制定每周训练计划。计划名称、描述、训练日名称和动作备注必须用中文撰写。只有 `search` 字段保留英文动作名（例如 'barbell bench press'）以便系统匹配动作库。仅返回一个有效的 JSON 对象——不要 markdown，不要任何解释性文字。"
         : "You are a certified strength & conditioning coach. Build a weekly training program tailored to the user's goal, experience and equipment. Return ONLY a single valid JSON object — no markdown, no prose. Use English exercise names (e.g. 'barbell bench press') so the system can match them to the exercise database.";
 
-  const prompt = `Goal: ${p.goal}
-Experience level: ${p.level}
-Days per week: ${p.daysPerWeek}
-Session length: ~${p.sessionMinutes} min
-Equipment available: ${p.equipment.length ? p.equipment.join(", ") : "full commercial gym"}
-${p.focus ? `Focus / preferences: ${p.focus}` : ""}
-${p.injuries ? `Injuries / contraindications: ${p.injuries}` : ""}
-${p.recoveryAvg != null ? `Recent recovery avg (Whoop, 0-100): ${p.recoveryAvg}` : ""}
-${p.sleepAvgHours != null ? `Recent sleep avg: ${p.sleepAvgHours.toFixed(1)}h` : ""}
+  const inputLines = [
+    p.locale === "tr" ? `Hedef: ${p.goal}` : p.locale === "zh" ? `目标: ${p.goal}` : `Goal: ${p.goal}`,
+    p.locale === "tr" ? `Deneyim seviyesi: ${p.level}` : p.locale === "zh" ? `经验水平: ${p.level}` : `Experience level: ${p.level}`,
+    p.locale === "tr" ? `Haftalık gün sayısı: ${p.daysPerWeek}` : p.locale === "zh" ? `每周训练天数: ${p.daysPerWeek}` : `Days per week: ${p.daysPerWeek}`,
+    p.locale === "tr" ? `Seans süresi: ~${p.sessionMinutes} dk` : p.locale === "zh" ? `训练时长: ~${p.sessionMinutes} 分钟` : `Session length: ~${p.sessionMinutes} min`,
+    p.locale === "tr" ? `Mevcut ekipman: ${p.equipment.length ? p.equipment.join(", ") : "tam donanımlı spor salonu"}` : p.locale === "zh" ? `可用器材: ${p.equipment.length ? p.equipment.join(", ") : "全套商业健身房"}` : `Equipment available: ${p.equipment.length ? p.equipment.join(", ") : "full commercial gym"}`,
+    p.focus ? (p.locale === "tr" ? `Odak / tercihler: ${p.focus}` : p.locale === "zh" ? `重点 / 偏好: ${p.focus}` : `Focus / preferences: ${p.focus}`) : "",
+    p.injuries ? (p.locale === "tr" ? `Sakatlık / kontrendikasyonlar: ${p.injuries}` : p.locale === "zh" ? `伤病 / 禁忌: ${p.injuries}` : `Injuries / contraindications: ${p.injuries}`) : "",
+    p.recoveryAvg != null ? (p.locale === "tr" ? `Son ortalama toparlanma (Whoop, 0-100): ${p.recoveryAvg}` : p.locale === "zh" ? `近期平均恢复值 (Whoop, 0-100): ${p.recoveryAvg}` : `Recent recovery avg (Whoop, 0-100): ${p.recoveryAvg}`) : "",
+    p.sleepAvgHours != null ? (p.locale === "tr" ? `Son ortalama uyku: ${p.sleepAvgHours.toFixed(1)}s` : p.locale === "zh" ? `近期平均睡眠: ${p.sleepAvgHours.toFixed(1)}小时` : `Recent sleep avg: ${p.sleepAvgHours.toFixed(1)}h`) : "",
+  ].filter(Boolean).join("\n");
 
-Design exactly ${p.daysPerWeek} training day(s) per week.
-Each day must have between 4 and 8 exercises, sequenced from compound to isolation.
-Set/rep prescription must match the goal:
+  const designIntro =
+    p.locale === "tr"
+      ? `Tam olarak ${p.daysPerWeek} antrenman günü tasarla. Her gün 4-8 egzersiz içermeli, bileşikten izolasyona sıralanmalı.`
+      : p.locale === "zh"
+        ? `设计恰好 ${p.daysPerWeek} 个训练日。每个训练日包含 4-8 个动作，从复合动作到孤立动作排列。`
+        : `Design exactly ${p.daysPerWeek} training day(s) per week. Each day must have between 4 and 8 exercises, sequenced from compound to isolation.`;
+
+  const repGuide =
+    p.locale === "tr"
+      ? `Set/tekrar reçetesi hedefe uygun olmalı:
+  - strength: 3-5 set × 3-6 tekrar (büyük kaldırışlar), 8-12 tekrar ( yardımcılar)
+  - hypertrophy: 3-4 set × 6-12 tekrar
+  - fat_loss: 3-4 set × 10-15 tekrar, kısa dinlenme
+  - endurance: 2-3 set × 12-20 tekrar
+  - general: 3 set × 8-12 tekrar`
+      : p.locale === "zh"
+        ? `组数/次数需匹配目标:
+  - strength（力量）: 3-5 组 × 3-6 次（大重量动作），8-12 次（辅助动作）
+  - hypertrophy（增肌）: 3-4 组 × 6-12 次
+  - fat_loss（减脂）: 3-4 组 × 10-15 次，短休息
+  - endurance（耐力）: 2-3 组 × 12-20 次
+  - general（综合）: 3 组 × 8-12 次`
+        : `Set/rep prescription must match the goal:
   - strength: 3-5 sets × 3-6 reps for big lifts, 8-12 reps for accessories
   - hypertrophy: 3-4 sets × 6-12 reps
   - fat_loss: 3-4 sets × 10-15 reps, short rest
   - endurance: 2-3 sets × 12-20 reps
-  - general: 3 sets × 8-12 reps
+  - general: 3 sets × 8-12 reps`;
 
-Return JSON exactly:
+  const jsonTemplate =
+    p.locale === "tr"
+      ? `JSON olarak tam olarak şunu döndür:
+{
+  "name": "kısa program adı",
+  "description": "1-3 cümlelik genel bakış, haftalık split mantığı dahil",
+  "days": [
+    {
+      "name": "Gün 1 — <odak>",
+      "focus": "push | pull | legs | upper | lower | full | …",
+      "exercises": [
+        {
+          "search": "english exercise name (lowercase), e.g. 'barbell back squat'",
+          "body_part": "one of: ${BODY_PARTS.join(" | ")}",
+          "equipment": "e.g. barbell, dumbbell, cable, bodyweight, machine",
+          "sets": <int>,
+          "reps": <int>,
+          "rest_seconds": <int 30-300>,
+          "notes": "form ipucu veya ilerleme önerisi (kısa)"
+        }
+      ]
+    }
+  ]
+}`
+      : p.locale === "zh"
+        ? `返回 JSON，格式如下:
+{
+  "name": "简洁的计划名称",
+  "description": "1-3 句概述，包含每周分化逻辑",
+  "days": [
+    {
+      "name": "第1天 — <重点>",
+      "focus": "push | pull | legs | upper | lower | full | …",
+      "exercises": [
+        {
+          "search": "english exercise name (lowercase), e.g. 'barbell back squat'",
+          "body_part": "one of: ${BODY_PARTS.join(" | ")}",
+          "equipment": "e.g. barbell, dumbbell, cable, bodyweight, machine",
+          "sets": <int>,
+          "reps": <int>,
+          "rest_seconds": <int 30-300>,
+          "notes": "动作要领或进阶提示（简短）"
+        }
+      ]
+    }
+  ]
+}`
+        : `Return JSON exactly:
 {
   "name": "concise program name",
   "description": "1-3 sentence overview, including weekly split logic.",
@@ -359,9 +428,24 @@ Return JSON exactly:
       ]
     }
   ]
-}
+}`;
 
-Output ONLY the JSON. No \`\`\` fences, no commentary.`;
+  const outro =
+    p.locale === "tr"
+      ? "SADECE JSON döndür. ``` kod bloğu yok, yorum yok. `search` dışındaki tüm metinler TÜRKÇE olmalı."
+      : p.locale === "zh"
+        ? "只输出 JSON。不要 ``` 代码块，不要注释。除 `search` 外的所有文本必须用中文。"
+        : "Output ONLY the JSON. No ``` fences, no commentary.";
+
+  const prompt = `${inputLines}
+
+${designIntro}
+
+${repGuide}
+
+${jsonTemplate}
+
+${outro}`;
 
   return { system, prompt };
 }

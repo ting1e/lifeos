@@ -414,7 +414,7 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
       {result && (
         <div className="space-y-3 pt-2 border-t border-[color:var(--border)]">
           <div className="flex items-baseline justify-between">
-            <div className="mono-label">{t("food.preview")} · {result.meal.toUpperCase()}</div>
+            <div className="mono-label">{t("food.preview")} · {t(`meal.${result.meal}` as const)}</div>
             <div className="font-mono text-[13px] text-[color:var(--text-disabled)] uppercase tracking-[0.08em]">
               {result.confidence != null
                 ? t("food.confidence", { n: (result.confidence * 100).toFixed(0) })
@@ -432,7 +432,7 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
             >
               {MEAL_OPTIONS.map((m) => (
                 <option key={m} value={m}>
-                  {m}
+                  {t(`meal.${m}Lower` as const)}
                 </option>
               ))}
             </Select>

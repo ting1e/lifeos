@@ -2,9 +2,15 @@ import "dotenv/config";
 import { Pool } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { sql } from "drizzle-orm";
+import { ProxyAgent, setGlobalDispatcher } from "undici";
 import { exercises } from "../lib/db/schema";
 
+if (process.env.HTTPS_PROXY) {
+  setGlobalDispatcher(new ProxyAgent(process.env.HTTPS_PROXY));
+}
+
 const DATASET_BASE =
+  process.env.EXERCISES_DATASET_BASE ??
   "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main";
 const DATASET_URL = `${DATASET_BASE}/data/exercises.json`;
 
@@ -17,7 +23,8 @@ type Raw = {
   target?: string;
   muscle_group?: string;
   secondary_muscles?: string[];
-  instructions?: { en?: string; tr?: string };
+  instructions?: { en?: string; tr?: string; zh?: string };
+  instruction_steps?: { en?: string[]; tr?: string[]; zh?: string[] };
   image?: string;
   gif_url?: string;
 };
@@ -56,6 +63,7 @@ async function main() {
         id: r.id,
         nameEn,
         nameTr: nameEn, // dataset doesn't ship localized names; use en as fallback
+        nameZh: null, // dataset doesn't ship localized names; falls back to nameEn in UI
         category: r.category ?? null,
         bodyPart: r.body_part ?? null,
         equipment: r.equipment ?? null,
@@ -64,6 +72,10 @@ async function main() {
         secondaryMuscles: r.secondary_muscles ?? [],
         instructionsEn: r.instructions?.en ?? null,
         instructionsTr: r.instructions?.tr ?? null,
+        instructionsZh: r.instructions?.zh ?? null,
+        instructionStepsEn: r.instruction_steps?.en ?? [],
+        instructionStepsTr: r.instruction_steps?.tr ?? [],
+        instructionStepsZh: r.instruction_steps?.zh ?? [],
         imageUrl: abs(r.image),
         gifUrl: abs(r.gif_url),
       };

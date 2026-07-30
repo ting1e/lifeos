@@ -50,6 +50,20 @@
       "when": 1785466400000,
       "tag": "0006_ai_config",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1785344619151,
+      "tag": "0007_daily_purifiers",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1785347092543,
+      "tag": "0008_dark_the_phantom",
+      "breakpoints": true
     }
   ]
 }

@@ -66,7 +66,7 @@ export function AiConfigForm({ initial }: { initial: AiConfigInitial }) {
         <div className="col-span-2">
           <div className="mono-label mb-1">{t("prof.aiApiKey")}</div>
           <Input
-            type="password"
+            type="text"
             value={form.apiKey}
             placeholder={initial.hasKey ? initial.apiKeyMasked : ""}
             onChange={(e) => setForm({ ...form, apiKey: e.target.value })}

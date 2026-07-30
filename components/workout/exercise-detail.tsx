@@ -4,11 +4,13 @@ import { useEffect } from "react";
 import Image from "next/image";
 import { X } from "lucide-react";
 import { useT } from "@/lib/i18n/client";
+import { trCatalog } from "@/lib/i18n/exercise-zh";
 
 export type ExerciseDetail = {
   id: string;
   nameEn: string;
   nameTr: string | null;
+  nameZh: string | null;
   bodyPart: string | null;
   equipment: string | null;
   target: string | null;
@@ -16,8 +18,10 @@ export type ExerciseDetail = {
   secondaryMuscles: string[] | null;
   instructionsEn: string | null;
   instructionsTr: string | null;
+  instructionsZh: string | null;
   instructionStepsEn?: string[] | null;
   instructionStepsTr?: string[] | null;
+  instructionStepsZh?: string[] | null;
   imageUrl: string | null;
   gifUrl: string | null;
 };
@@ -54,21 +58,30 @@ export function ExerciseDetailDrawer({
   const structured =
     locale === "tr"
       ? exercise.instructionStepsTr ?? exercise.instructionStepsEn ?? null
-      : exercise.instructionStepsEn ?? null;
+      : locale === "zh"
+        ? exercise.instructionStepsZh ?? exercise.instructionStepsEn ?? null
+        : exercise.instructionStepsEn ?? null;
   const instructionsText =
     locale === "tr"
       ? exercise.instructionsTr ?? exercise.instructionsEn
-      : exercise.instructionsEn;
+      : locale === "zh"
+        ? exercise.instructionsZh ?? exercise.instructionsEn
+        : exercise.instructionsEn;
   const steps =
     structured && structured.length > 0
       ? structured
       : instructionsText
         ? instructionsText
-            .split(/(?<=[.!?])\s+/)
+            .split(/(?<=[.!?。！？])\s+/)
             .map((s) => s.trim())
             .filter(Boolean)
         : [];
-  const name = locale === "tr" ? exercise.nameTr ?? exercise.nameEn : exercise.nameEn;
+  const name =
+    locale === "tr"
+      ? exercise.nameTr ?? exercise.nameEn
+      : locale === "zh"
+        ? exercise.nameZh ?? exercise.nameEn
+        : exercise.nameEn;
 
   return (
     <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center">
@@ -110,7 +123,7 @@ export function ExerciseDetailDrawer({
               {name}
             </h2>
             <div className="mono-label mt-2">
-              {[exercise.target, exercise.bodyPart, exercise.equipment]
+              {[trCatalog("target", exercise.target, locale), trCatalog("bodyPart", exercise.bodyPart, locale), trCatalog("equipment", exercise.equipment, locale)]
                 .filter(Boolean)
                 .join(" · ")}
             </div>

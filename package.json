@@ -15,6 +15,7 @@
     "db:studio": "drizzle-kit studio",
     "seed:exercises": "tsx scripts/seed-exercises.ts",
     "sync:exercises": "tsx scripts/sync-exercises.ts",
+    "apply:zh": "tsx scripts/apply-exercise-zh.ts",
     "bootstrap:admin": "tsx scripts/bootstrap-admin.ts",
     "postinstall": "true"
   },
@@ -34,6 +35,7 @@
     "react-dom": "19.0.0",
     "recharts": "^2.15.0",
     "tailwind-merge": "^2.6.0",
+    "undici": "^8.9.0",
     "vaul": "^1.1.2",
     "zod": "^3.24.1"
   },

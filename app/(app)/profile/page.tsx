@@ -91,18 +91,6 @@ export default async function ProfilePage() {
       </Card>
 
       <Card>
-        <CardLabel>{t("prof.appearance")}</CardLabel>
-        <div className="mt-2 -mx-3">
-          <ThemeToggle />
-        </div>
-      </Card>
-
-      <Card>
-        <CardLabel>{t("prof.whoopIntegration")}</CardLabel>
-        <WhoopToggle enabled={whoopEnabled} />
-      </Card>
-
-      <Card>
         <CardLabel>{t("prof.aiIntegration")}</CardLabel>
         <AiConfigForm
           initial={{
@@ -114,6 +102,18 @@ export default async function ProfilePage() {
             hasKey: !!p?.aiApiKey,
           }}
         />
+      </Card>
+
+      <Card>
+        <CardLabel>{t("prof.appearance")}</CardLabel>
+        <div className="mt-2 -mx-3">
+          <ThemeToggle />
+        </div>
+      </Card>
+
+      <Card>
+        <CardLabel>{t("prof.whoopIntegration")}</CardLabel>
+        <WhoopToggle enabled={whoopEnabled} />
       </Card>
 
       <Card>
