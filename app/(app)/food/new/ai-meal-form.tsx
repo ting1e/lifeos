@@ -10,6 +10,7 @@ import { PhotoDrop } from "@/components/food/photo-drop";
 import { HistoryMatchHint } from "@/components/food/history-match-hint";
 import { useT } from "@/lib/i18n/client";
 import { isAiError } from "@/lib/ai/ai-error";
+import { readAiStream } from "@/lib/ai/sse";
 import { isoForDate, todayKey } from "@/lib/utils/day";
 
 type Meal = "breakfast" | "lunch" | "dinner" | "snack";
@@ -66,6 +67,7 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
   const [error, setError] = useState<string | null>(null);
   const [aiHint, setAiHint] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
+  const [streaming, setStreaming] = useState("");
   const [result, setResult] = useState<ParseResult | null>(null);
 
   // ---- photo ----
@@ -199,6 +201,7 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
     setError(null);
     setStatus(photoPath ? t("food.analyzingPhoto") : t("food.aiThinking"));
     setResult(null);
+    setStreaming("");
     try {
       const r = await fetch("/api/food/parse-meal", {
         method: "POST",
@@ -209,9 +212,15 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
           defaultMeal,
         }),
       });
-      const data = await r.json();
-      if (!r.ok) throw new Error(data?.error ?? `http_${r.status}`);
+      if (!r.ok) {
+        const j = await r.json().catch(() => ({}));
+        throw new Error(j?.error ?? `http_${r.status}`);
+      }
+      const data = (await readAiStream(r, {
+        onChunk: (text) => setStreaming((p) => p + text),
+      })) as { parsed: ParseResult };
       setResult(data.parsed);
+      setStreaming("");
       setStatus(
         t(data.parsed.search_used ? "food.parsedNItemsWeb" : "food.parsedNItems", {
           n: data.parsed.items.length,
@@ -398,6 +407,11 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
           <span className="font-mono text-[13px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)]">
             {status}
           </span>
+        )}
+        {streaming && !error && (
+          <div className="font-mono text-[12px] leading-relaxed text-[color:var(--text-secondary)] max-h-32 overflow-y-auto whitespace-pre-wrap border-l-2 border-[color:var(--accent)] pl-3">
+            {streaming}
+          </div>
         )}
         {error && (
           <span className="font-mono text-[13px] uppercase tracking-[0.08em] text-[color:var(--accent)]">

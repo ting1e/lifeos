@@ -1,4 +1,3 @@
-import { NextRequest, NextResponse } from "next/server";
 import { and, desc, eq, gte, sql } from "drizzle-orm";
 import { z } from "zod";
 import { requireSession } from "@/lib/auth/session";
@@ -11,9 +10,10 @@ import {
   whoopRecovery,
   whoopSleep,
 } from "@/lib/db/schema";
-import { chatJson } from "@/lib/ai/client";
+import { chatJsonStream } from "@/lib/ai/client";
 import { programGeneratorPrompt } from "@/lib/ai/prompts";
 import { AiProgramSchema } from "@/lib/ai/schemas";
+import { createChunkSender, createSSEStream } from "@/lib/ai/sse";
 
 const Body = z.object({
   goal: z.enum(["strength", "hypertrophy", "fat_loss", "general", "endurance"]),
@@ -85,12 +85,12 @@ async function matchExercise(input: {
   return null;
 }
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   const { user } = await requireSession();
 
   const parsed = Body.safeParse(await req.json().catch(() => ({})));
   if (!parsed.success) {
-    return NextResponse.json(
+    return Response.json(
       { error: "invalid_input", detail: parsed.error.flatten() },
       { status: 400 },
     );
@@ -153,117 +153,131 @@ export async function POST(req: NextRequest) {
     sleepAvgHours,
   });
 
-  let plan;
-  try {
-    plan = await chatJson({
-      userId: user.id,
-      kind: "plan",
-      system,
-      prompt,
-      schema: AiProgramSchema,
-      temperature: 0.5,
-      maxTokens: 32768,
-    });
-  } catch (e) {
-    return NextResponse.json(
-      { error: "ai_failed", detail: e instanceof Error ? e.message : String(e) },
-      { status: 502 },
-    );
-  }
-
-  // Match every AI exercise to a real row in the exercises table before we
-  // commit anything to the programs table.
-  const resolvedDays: {
-    name: string;
-    exercises: {
-      exerciseId: string;
-      sets: number;
-      reps: number;
-      notes: string | null;
-    }[];
-  }[] = [];
-  const unmatched: string[] = [];
-
-  for (const day of plan.days) {
-    const dayExs: (typeof resolvedDays)[number]["exercises"] = [];
-    for (const ex of day.exercises) {
-      const exerciseId = await matchExercise({
-        search: ex.search,
-        bodyPart: ex.body_part ?? null,
-        equipment: ex.equipment ?? null,
+  return createSSEStream(async (send) => {
+    const onChunk = createChunkSender(send);
+    let plan;
+    try {
+      plan = await chatJsonStream({
+        userId: user.id,
+        kind: "plan",
+        system,
+        prompt,
+        schema: AiProgramSchema,
+        temperature: 0.5,
+        maxTokens: 16384,
+        thinking: true,
+        onChunk,
       });
-      if (!exerciseId) {
-        unmatched.push(ex.search);
-        continue;
+    } catch (e) {
+      send({
+        type: "complete",
+        data: {
+          error: "ai_failed",
+          detail: e instanceof Error ? e.message : String(e),
+        },
+      });
+      return;
+    }
+
+    send({ type: "processing" });
+
+    const resolvedDays: {
+      name: string;
+      exercises: {
+        exerciseId: string;
+        sets: number;
+        reps: number;
+        notes: string | null;
+      }[];
+    }[] = [];
+    const unmatched: string[] = [];
+
+    for (const day of plan.days) {
+      const dayExs: (typeof resolvedDays)[number]["exercises"] = [];
+      for (const ex of day.exercises) {
+        const exerciseId = await matchExercise({
+          search: ex.search,
+          bodyPart: ex.body_part ?? null,
+          equipment: ex.equipment ?? null,
+        });
+        if (!exerciseId) {
+          unmatched.push(ex.search);
+          continue;
+        }
+        const note = [
+          ex.notes,
+          ex.rest_seconds
+            ? user.locale === "tr"
+              ? `dinlen ${ex.rest_seconds}sn`
+              : user.locale === "zh"
+                ? `休息 ${ex.rest_seconds}秒`
+                : `rest ${ex.rest_seconds}s`
+            : null,
+        ]
+          .filter(Boolean)
+          .join(" · ");
+        dayExs.push({
+          exerciseId,
+          sets: ex.sets,
+          reps: ex.reps,
+          notes: note || null,
+        });
       }
-      const note = [
-        ex.notes,
-        ex.rest_seconds
-          ? user.locale === "tr"
-            ? `dinlen ${ex.rest_seconds}sn`
-            : user.locale === "zh"
-              ? `休息 ${ex.rest_seconds}秒`
-              : `rest ${ex.rest_seconds}s`
-          : null,
-      ]
-        .filter(Boolean)
-        .join(" · ");
-      dayExs.push({
-        exerciseId,
-        sets: ex.sets,
-        reps: ex.reps,
-        notes: note || null,
-      });
+      if (dayExs.length > 0) {
+        resolvedDays.push({ name: day.name, exercises: dayExs });
+      }
     }
-    if (dayExs.length > 0) {
-      resolvedDays.push({ name: day.name, exercises: dayExs });
-    }
-  }
 
-  if (resolvedDays.length === 0) {
-    return NextResponse.json(
-      {
-        error: "no_exercises_matched",
-        detail: "AI returned exercises but none matched the exercise database.",
+    if (resolvedDays.length === 0) {
+      send({
+        type: "complete",
+        data: {
+          error: "no_exercises_matched",
+          detail:
+            "AI returned exercises but none matched the exercise database.",
+          unmatched,
+        },
+      });
+      return;
+    }
+
+    const [prog] = await db
+      .insert(programs)
+      .values({
+        userId: user.id,
+        name: plan.name,
+        description: plan.description || null,
+        isTemplate: false,
+      })
+      .returning({ id: programs.id });
+
+    for (let d = 0; d < resolvedDays.length; d++) {
+      const day = resolvedDays[d];
+      const [dayRow] = await db
+        .insert(programDays)
+        .values({ programId: prog.id, dayIndex: d, name: day.name })
+        .returning({ id: programDays.id });
+      for (let i = 0; i < day.exercises.length; i++) {
+        const e = day.exercises[i];
+        await db.insert(programExercises).values({
+          programDayId: dayRow.id,
+          exerciseId: e.exerciseId,
+          orderIndex: i,
+          targetSets: e.sets,
+          targetReps: e.reps,
+          notes: e.notes,
+        });
+      }
+    }
+
+    send({
+      type: "complete",
+      data: {
+        id: prog.id,
+        name: plan.name,
+        days: resolvedDays.length,
         unmatched,
       },
-      { status: 422 },
-    );
-  }
-
-  const [prog] = await db
-    .insert(programs)
-    .values({
-      userId: user.id,
-      name: plan.name,
-      description: plan.description || null,
-      isTemplate: false,
-    })
-    .returning({ id: programs.id });
-
-  for (let d = 0; d < resolvedDays.length; d++) {
-    const day = resolvedDays[d];
-    const [dayRow] = await db
-      .insert(programDays)
-      .values({ programId: prog.id, dayIndex: d, name: day.name })
-      .returning({ id: programDays.id });
-    for (let i = 0; i < day.exercises.length; i++) {
-      const e = day.exercises[i];
-      await db.insert(programExercises).values({
-        programDayId: dayRow.id,
-        exerciseId: e.exerciseId,
-        orderIndex: i,
-        targetSets: e.sets,
-        targetReps: e.reps,
-        notes: e.notes,
-      });
-    }
-  }
-
-  return NextResponse.json({
-    id: prog.id,
-    name: plan.name,
-    days: resolvedDays.length,
-    unmatched,
-  });
+    });
+  }, "programs/generate");
 }

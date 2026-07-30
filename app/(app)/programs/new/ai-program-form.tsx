@@ -6,6 +6,7 @@ import { Sparkles } from "lucide-react";
 import { useLocale, useT } from "@/lib/i18n/client";
 import { trCatalog } from "@/lib/i18n/exercise-zh";
 import { isAiError } from "@/lib/ai/ai-error";
+import { readAiStream } from "@/lib/ai/sse";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 
@@ -44,6 +45,8 @@ export function AiProgramForm() {
   const [status, setStatus] = useState<string | null>(null);
   const [errCode, setErrCode] = useState<string | null>(null);
   const [warnings, setWarnings] = useState<string[]>([]);
+  const [reasoning, setReasoning] = useState("");
+  const [content, setContent] = useState("");
 
   function toggleEquipment(item: string) {
     setEquipment((prev) =>
@@ -57,6 +60,8 @@ export function AiProgramForm() {
     setStatus(t("prog.generatingProgram"));
     setWarnings([]);
     setErrCode(null);
+    setReasoning("");
+    setContent("");
     try {
       const res = await fetch("/api/programs/generate", {
         method: "POST",
@@ -71,11 +76,32 @@ export function AiProgramForm() {
           injuries: injuries.trim() || undefined,
         }),
       });
-      const data = await res.json();
-      if (!res.ok || !data?.id) {
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
         setStatus(
-          `ERR · ${data?.error ?? `http_${res.status}`}${
-            data?.detail ? ` — ${typeof data.detail === "string" ? data.detail : ""}` : ""
+          `ERR · ${j?.error ?? `http_${res.status}`}${
+            j?.detail ? ` — ${typeof j.detail === "string" ? j.detail : ""}` : ""
+          }`,
+        );
+        setErrCode(typeof j?.error === "string" ? j.error : null);
+        return;
+      }
+      const data = (await readAiStream(res, {
+        onChunk: (text, _full, reasoning) => {
+          if (reasoning) {
+            setReasoning((p) => p + text);
+            setStatus(t("prog.aiThinking"));
+          } else {
+            setContent((p) => p + text);
+            setStatus(t("prog.generatingProgram"));
+          }
+        },
+        onProcessing: () => setStatus(t("prog.matchingExercises")),
+      })) as { id?: string; error?: string; detail?: string; unmatched?: string[] };
+      if (!data?.id) {
+        setStatus(
+          `ERR · ${data?.error ?? "unknown"}${
+            data?.detail ? ` — ${data.detail}` : ""
           }`,
         );
         setErrCode(typeof data?.error === "string" ? data.error : null);
@@ -197,6 +223,18 @@ export function AiProgramForm() {
       {status && (
         <div className="font-mono text-[13px] uppercase tracking-[0.1em] text-[color:var(--text-secondary)]">
           {status}
+        </div>
+      )}
+
+      {reasoning && (
+        <div className="font-mono text-[12px] leading-relaxed text-[color:var(--text-secondary)] max-h-40 overflow-y-auto whitespace-pre-wrap border-l-2 border-[color:var(--border-visible)] pl-3">
+          {reasoning}
+        </div>
+      )}
+
+      {content && (
+        <div className="font-mono text-[12px] leading-relaxed text-[color:var(--text-secondary)] max-h-60 overflow-y-auto whitespace-pre-wrap border-l-2 border-[color:var(--accent)] pl-3">
+          {content}
         </div>
       )}
 

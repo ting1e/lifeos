@@ -4,6 +4,7 @@ const PUBLIC_PATHS = [
   "/login",
   "/api/auth/login",
   "/api/whoop/webhook",
+  "/api/health/import",
   "/_next",
   "/favicon.ico",
   "/fonts",

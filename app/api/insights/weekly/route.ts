@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { and, asc, desc, eq, gte } from "drizzle-orm";
 import { requireSession } from "@/lib/auth/session";
 import { db } from "@/lib/db/client";
@@ -11,9 +10,10 @@ import {
   workouts,
   workoutSets,
 } from "@/lib/db/schema";
-import { chatJson } from "@/lib/ai/client";
+import { chatJsonStream } from "@/lib/ai/client";
 import { weeklyInsightsPrompt } from "@/lib/ai/prompts";
 import { InsightsSchema } from "@/lib/ai/schemas";
+import { createChunkSender, createSSEStream } from "@/lib/ai/sse";
 import { bmr, recommendedKcal, tdee } from "@/lib/nutrition";
 import { getMeasuredTdee } from "@/lib/whoop/tdee";
 
@@ -137,21 +137,18 @@ export async function POST() {
     goal: p?.goal ?? "maintain",
   });
 
-  try {
-    const out = await chatJson({
+  return createSSEStream(async (send) => {
+    const onChunk = createChunkSender(send);
+    const out = await chatJsonStream({
       userId: user.id,
       kind: "insights",
       system,
       prompt,
       schema: InsightsSchema,
       temperature: 0.4,
+      thinking: false,
+      onChunk,
     });
-    return NextResponse.json({ insights: out });
-  } catch (e) {
-    console.error("[insights/weekly]", e);
-    return NextResponse.json(
-      { error: "insights_failed", detail: e instanceof Error ? e.message : String(e) },
-      { status: 500 },
-    );
-  }
+    send({ type: "complete", data: { insights: out } });
+  }, "insights/weekly");
 }

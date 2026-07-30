@@ -4,6 +4,7 @@ import {
   Bar,
   BarChart as RBarChart,
   CartesianGrid,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -16,12 +17,14 @@ export function BarChart({
   yKey,
   height = 200,
   color,
+  referenceLine,
 }: {
   data: Array<Record<string, string | number>>;
   xKey: string;
   yKey: string;
   height?: number;
   color?: string;
+  referenceLine?: number;
 }) {
   return (
     <ResponsiveContainer width="100%" height={height}>
@@ -35,7 +38,7 @@ export function BarChart({
         <YAxis
           tick={{ fill: "var(--text-secondary)", fontSize: 10, fontFamily: "var(--font-mono)" }}
           stroke="var(--border-visible)"
-          width={36}
+          width={48}
         />
         <Tooltip
           contentStyle={{
@@ -46,6 +49,14 @@ export function BarChart({
           }}
         />
         <Bar dataKey={yKey} fill={color ?? "var(--text-display)"} />
+        {referenceLine != null && referenceLine > 0 && (
+          <ReferenceLine
+            y={referenceLine}
+            stroke="var(--accent)"
+            strokeDasharray="4 4"
+            strokeWidth={1.5}
+          />
+        )}
       </RBarChart>
     </ResponsiveContainer>
   );

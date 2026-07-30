@@ -5,6 +5,7 @@ import { requireSession } from "@/lib/auth/session";
 import { ProfileForm } from "./profile-form";
 import { PasswordForm } from "./password-form";
 import { WhoopToggle } from "./whoop-toggle";
+import { HealthSyncCard } from "@/components/profile/health-sync-card";
 import { AiConfigForm } from "./ai-config-form";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { LanguageSwitcher } from "@/components/profile/language-switcher";
@@ -102,6 +103,11 @@ export default async function ProfilePage() {
             hasKey: !!p?.aiApiKey,
           }}
         />
+      </Card>
+
+      <Card>
+        <CardLabel>{t("health.title")}</CardLabel>
+        <HealthSyncCard />
       </Card>
 
       <Card>

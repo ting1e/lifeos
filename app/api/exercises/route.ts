@@ -18,7 +18,7 @@ export async function GET(req: Request) {
     .select()
     .from(exercises)
     .where(sql`
-      (${q ? sql`lower(name_en) like ${`%${q}%`}` : sql`true`})
+      (${q ? sql`(lower(name_en) like ${`%${q}%`} or lower(coalesce(name_zh, '')) like ${`%${q}%`} or lower(coalesce(name_tr, '')) like ${`%${q}%`})` : sql`true`})
       and (${bodyPart ? sql`body_part = ${bodyPart}` : sql`true`})
       and (${equipment ? sql`equipment = ${equipment}` : sql`true`})
     `)

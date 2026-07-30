@@ -31,7 +31,7 @@ export default async function ExercisesPage({
     .where(
       q || bodyPart
         ? sql`
-            (${q ? sql`lower(name_en) like ${`%${q.toLowerCase()}%`}` : sql`true`})
+            (${q ? sql`(lower(name_en) like ${`%${q.toLowerCase()}%`} or lower(coalesce(name_zh, '')) like ${`%${q.toLowerCase()}%`} or lower(coalesce(name_tr, '')) like ${`%${q.toLowerCase()}%`})` : sql`true`})
             and (${bodyPart ? sql`body_part = ${bodyPart}` : sql`true`})
           `
         : undefined,

@@ -12,6 +12,7 @@ import {
   text,
   timestamp,
   unique,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
@@ -31,7 +32,11 @@ export const activityLevelEnum = pgEnum("activity_level", [
   "very_active",
 ]);
 export const goalEnum = pgEnum("goal", ["cut", "maintain", "bulk"]);
-export const metricSourceEnum = pgEnum("metric_source", ["manual", "whoop"]);
+export const metricSourceEnum = pgEnum("metric_source", [
+  "manual",
+  "whoop",
+  "apple_health",
+]);
 export const mealEnum = pgEnum("meal", ["breakfast", "lunch", "dinner", "snack"]);
 export const foodSourceEnum = pgEnum("food_source", ["manual", "ai_photo"]);
 export const preferenceKindEnum = pgEnum("preference_kind", [
@@ -99,6 +104,7 @@ export const profile = pgTable("profile", {
   aiTextModel: text("ai_text_model"),
   aiImageModel: text("ai_image_model"),
   aiAudioModel: text("ai_audio_model"),
+  healthSyncToken: text("health_sync_token"),
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .defaultNow()
@@ -120,6 +126,11 @@ export const bodyMetrics = pgTable(
   },
   (t) => ({
     userTimeIdx: index("body_metrics_user_time_idx").on(t.userId, t.recordedAt),
+    userRecordedSourceUniq: uniqueIndex("body_metrics_user_recorded_source_uniq").on(
+      t.userId,
+      t.recordedAt,
+      t.source,
+    ),
   }),
 );
 

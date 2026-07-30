@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useT } from "@/lib/i18n/client";
 import { isAiError } from "@/lib/ai/ai-error";
+import { readAiStream } from "@/lib/ai/sse";
 import { Card, CardLabel } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -17,16 +18,25 @@ export function WeeklyInsights() {
   const t = useT();
   const [data, setData] = useState<Insights | null>(null);
   const [busy, setBusy] = useState(false);
+  const [streaming, setStreaming] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   async function gen() {
     setBusy(true);
     setError(null);
+    setStreaming("");
+    setData(null);
     try {
       const r = await fetch("/api/insights/weekly", { method: "POST" });
-      const j = await r.json();
-      if (!r.ok) throw new Error(j?.error ?? `http_${r.status}`);
-      setData(j.insights as Insights);
+      if (!r.ok) {
+        const j = await r.json().catch(() => ({}));
+        throw new Error(j?.error ?? `http_${r.status}`);
+      }
+      const out = (await readAiStream(r, {
+        onChunk: (text) => setStreaming((p) => p + text),
+      })) as { insights: Insights };
+      setData(out.insights);
+      setStreaming("");
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -46,6 +56,11 @@ export function WeeklyInsights() {
       {error && isAiError(error) && (
         <div className="font-mono text-[13px] text-[color:var(--text-secondary)]">
           {t("common.checkAiConfig")}
+        </div>
+      )}
+      {streaming && (
+        <div className="font-mono text-[12px] leading-relaxed text-[color:var(--text-secondary)] max-h-48 overflow-y-auto whitespace-pre-wrap border-l-2 border-[color:var(--accent)] pl-3 mb-3">
+          {streaming}
         </div>
       )}
       {data ? (
@@ -82,11 +97,11 @@ export function WeeklyInsights() {
             </div>
           )}
         </div>
-      ) : (
+      ) : !streaming ? (
         <div className="font-mono text-base text-[color:var(--text-secondary)]">
           {t("anal.clickGenerate")}
         </div>
-      )}
+      ) : null}
     </Card>
   );
 }

@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { and, desc, eq, gte } from "drizzle-orm";
 import { z } from "zod";
 import { requireSession } from "@/lib/auth/session";
@@ -11,9 +10,10 @@ import {
   profile,
   shoppingLists,
 } from "@/lib/db/schema";
-import { chatJson } from "@/lib/ai/client";
+import { chatJsonStream } from "@/lib/ai/client";
 import { weeklyPlanPrompt } from "@/lib/ai/prompts";
 import { MealPlanSchema } from "@/lib/ai/schemas";
+import { createChunkSender, createSSEStream } from "@/lib/ai/sse";
 import { bmr, macroSplit, recommendedKcal, tdee } from "@/lib/nutrition";
 import { getMeasuredTdee } from "@/lib/whoop/tdee";
 
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
 
   const [p] = await db.select().from(profile).where(eq(profile.userId, user.id)).limit(1);
   if (!p?.weightKg || !p?.heightCm || !p?.age) {
-    return NextResponse.json({ error: "profile_incomplete" }, { status: 400 });
+    return Response.json({ error: "profile_incomplete" }, { status: 400 });
   }
   const whoopEnabled = p?.whoopEnabled ?? true;
   const w = Number(p.weightKg);
@@ -84,8 +84,9 @@ export async function POST(req: Request) {
     daysCount: days,
   });
 
-  try {
-    const out = await chatJson({
+  return createSSEStream(async (send) => {
+    const onChunk = createChunkSender(send);
+    const out = await chatJsonStream({
       userId: user.id,
       kind: "plan",
       system,
@@ -93,7 +94,11 @@ export async function POST(req: Request) {
       schema: MealPlanSchema,
       temperature: 0.5,
       maxTokens: 8192,
+      thinking: true,
+      onChunk,
     });
+
+    send({ type: "processing" });
 
     const [plan] = await db
       .insert(mealPlans)
@@ -117,12 +122,6 @@ export async function POST(req: Request) {
       items: out.shopping_list,
     });
 
-    return NextResponse.json({ id: plan.id, plan: out });
-  } catch (e) {
-    console.error("[plan/generate]", e);
-    return NextResponse.json(
-      { error: "generation_failed", detail: e instanceof Error ? e.message : String(e) },
-      { status: 500 },
-    );
-  }
+    send({ type: "complete", data: { id: plan.id, plan: out } });
+  }, "plan/generate");
 }

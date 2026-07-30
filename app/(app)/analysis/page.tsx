@@ -13,7 +13,10 @@ import { getLocale, tFor } from "@/lib/i18n/server";
 import { Card, CardLabel } from "@/components/ui/card";
 import { LineChart } from "@/components/charts/line-chart";
 import { BarChart } from "@/components/charts/bar-chart";
+import { BodyCompositionCharts } from "@/components/charts/body-composition-charts";
 import { WeeklyInsights } from "./weekly-insights";
+import { bmr, recommendedKcal, tdee } from "@/lib/nutrition";
+import { getMeasuredTdee } from "@/lib/whoop/tdee";
 
 export const dynamic = "force-dynamic";
 
@@ -24,22 +27,53 @@ function dayKey(d: Date) {
 export default async function AnalysisPage() {
   const { user } = await requireSession();
   const t = tFor(await getLocale());
-  const [prof] = await db.select({ whoopEnabled: profile.whoopEnabled }).from(profile).where(eq(profile.userId, user.id)).limit(1);
+  const [prof] = await db
+    .select({
+      whoopEnabled: profile.whoopEnabled,
+      weightKg: profile.weightKg,
+      heightCm: profile.heightCm,
+      age: profile.age,
+      sex: profile.sex,
+      activityLevel: profile.activityLevel,
+      goal: profile.goal,
+    })
+    .from(profile)
+    .where(eq(profile.userId, user.id))
+    .limit(1);
   const whoopEnabled = prof?.whoopEnabled ?? true;
-  const since90 = new Date(Date.now() - 90 * 86_400_000);
   const since14 = new Date(Date.now() - 14 * 86_400_000);
   const since30 = new Date(Date.now() - 30 * 86_400_000);
 
-  // Weight series 90d
+  // kcal target (same logic as dashboard)
+  const [recentWeight] = await db
+    .select()
+    .from(bodyMetrics)
+    .where(eq(bodyMetrics.userId, user.id))
+    .orderBy(desc(bodyMetrics.recordedAt))
+    .limit(1);
+  const wKg = Number(prof?.weightKg ?? recentWeight?.weightKg ?? 0);
+  const hCm = Number(prof?.heightCm ?? 0);
+  const age = prof?.age ?? 0;
+  const sex = prof?.sex ?? "m";
+  const activity = prof?.activityLevel ?? "moderate";
+  const goal = prof?.goal ?? "maintain";
+  const computedBmr = wKg && hCm && age ? bmr({ sex, weightKg: wKg, heightCm: hCm, age }) : 0;
+  const formulaTdee = computedBmr ? tdee(computedBmr, activity) : 0;
+  const measured = whoopEnabled ? await getMeasuredTdee(user.id) : null;
+  const computedTdee = measured?.kcal ?? formulaTdee;
+  const kcalTarget = computedTdee ? Math.round(recommendedKcal(computedTdee, goal)) : 0;
+
   const bm = await db
     .select()
     .from(bodyMetrics)
-    .where(and(eq(bodyMetrics.userId, user.id), gte(bodyMetrics.recordedAt, since90)))
-    .orderBy(desc(bodyMetrics.recordedAt));
-  const weightSeries = bm
-    .filter((b) => b.weightKg != null)
-    .reverse()
-    .map((b) => ({ date: dayKey(new Date(b.recordedAt)), weight: Number(b.weightKg) }));
+    .where(eq(bodyMetrics.userId, user.id))
+    .orderBy(bodyMetrics.recordedAt);
+  const bmSamples = bm.map((b) => ({
+    recordedAt: new Date(b.recordedAt).toISOString(),
+    weightKg: b.weightKg,
+    bodyFatPct: b.bodyFatPct,
+    muscleMassKg: b.muscleMassKg,
+  }));
 
   // Kcal per day, last 14
   const fe = await db
@@ -93,19 +127,12 @@ export default async function AnalysisPage() {
 
       <WeeklyInsights />
 
-      <Card>
-        <CardLabel>{t("anal.weight90d")}</CardLabel>
-        {weightSeries.length > 0 ? (
-          <LineChart data={weightSeries} xKey="date" yKey="weight" />
-        ) : (
-          <div className="font-mono text-base text-[color:var(--text-secondary)] py-6">{t("anal.noData")}</div>
-        )}
-      </Card>
+      <BodyCompositionCharts samples={bmSamples} />
 
       <Card>
         <CardLabel>{t("anal.kcal14d")}</CardLabel>
         {kcalSeries.length > 0 ? (
-          <BarChart data={kcalSeries} xKey="date" yKey="kcal" />
+          <BarChart data={kcalSeries} xKey="date" yKey="kcal" referenceLine={kcalTarget} />
         ) : (
           <div className="font-mono text-base text-[color:var(--text-secondary)] py-6">{t("anal.noData")}</div>
         )}

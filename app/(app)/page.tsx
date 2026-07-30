@@ -205,12 +205,27 @@ export default async function Dashboard({
         }`}
       >
         <Card>
-          <MonoStat
-            label={kcalLabel}
-            value={Math.round(totalKcal)}
-            unit={`/ ${kcalTarget || "?"}`}
-            icon={<Flame size={12} strokeWidth={1.75} />}
-          />
+          <div className="flex flex-col gap-2">
+            <div className="mono-label flex items-center gap-1.5">
+              <span className="inline-flex items-center justify-center text-[color:var(--text-secondary)]" aria-hidden>
+                <Flame size={12} strokeWidth={1.75} />
+              </span>
+              {kcalLabel}
+            </div>
+            <div className="flex items-baseline gap-3">
+              <div className="font-mono text-3xl md:text-4xl tabular-nums leading-none text-[color:var(--text-display)]">
+                {Math.round(totalKcal)}
+              </div>
+              <div className="font-mono text-[13px] tracking-[0.08em] uppercase text-[color:var(--text-secondary)]">
+                / {kcalTarget || "?"}
+              </div>
+              {kcalTarget > 0 && totalKcal > kcalTarget && (
+                <div className="font-mono text-4xl md:text-5xl tabular-nums leading-none text-[color:var(--accent)] ml-auto">
+                  +{Math.round(totalKcal - kcalTarget)}
+                </div>
+              )}
+            </div>
+          </div>
           {kcalTarget > 0 && (
             <div className="mt-4">
               <SegmentBar

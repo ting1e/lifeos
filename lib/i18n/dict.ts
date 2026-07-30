@@ -229,6 +229,22 @@ const en = {
   "prof.aiAudioModelHint": "Voice meal logging (speech to text).",
   "prof.aiModelsHint": "Leave blank to use server defaults.",
 
+  // ---- Apple Health sync
+  "health.title": "APPLE HEALTH SYNC",
+  "health.syncUrl": "SYNC URL",
+  "health.token": "TOKEN",
+  "health.lastSync": "LAST SYNC",
+  "health.never": "never",
+  "health.generate": "GENERATE TOKEN",
+  "health.regenerate": "REGENERATE",
+  "health.revoke": "REVOKE",
+  "health.notGenerated": "Not generated yet.",
+  "health.hint":
+    "Generate a token, then use it in your iOS Shortcut. POST weight / body fat / muscle mass samples to the sync URL with Authorization: Bearer <token>.",
+  "health.copy": "COPY",
+  "health.copied": "COPIED",
+  "health.confirmRevoke": "Revoke the sync token? You'll need to generate a new one.",
+
   // ---- Greetings
   "greet.morning": "good morning",
   "greet.afternoon": "good afternoon",
@@ -251,7 +267,12 @@ const en = {
   // ---- Analysis
   "anal.title": "analysis",
   "anal.trendsInsights": "TRENDS · AI INSIGHTS",
-  "anal.weight90d": "WEIGHT · 90D",
+  "anal.weight": "WEIGHT",
+  "anal.bodyFat": "BODY FAT",
+  "anal.muscleMass": "MUSCLE MASS",
+  "anal.range30": "30D",
+  "anal.range90": "90D",
+  "anal.rangeAll": "ALL",
   "anal.kcal14d": "KCAL · 14D",
   "anal.recovery30d": "RECOVERY · 30D",
   "anal.workoutVolume30d": "WORKOUT VOLUME · 30D",
@@ -356,6 +377,8 @@ const en = {
   "prog.injuriesLimits": "INJURIES / LIMITS (optional)",
   "prog.injuriesPlaceholder": "e.g. no overhead pressing, sensitive lower back",
   "prog.generatingProgram": "→ generating program with AI — this may take 30-60 seconds or longer…",
+  "prog.aiThinking": "→ AI is reasoning…",
+  "prog.matchingExercises": "→ matching exercises to database…",
   "prog.exercisesNotMatched": "exercise(s) could not be matched:",
   "prog.generateProgram": "GENERATE PROGRAM →",
   "prog.generating": "GENERATING…",
@@ -411,6 +434,8 @@ const en = {
   "plan.gen7Days": "7 days",
   "plan.gen14Days": "14 days",
   "plan.generatingForm": "GENERATING…",
+  "plan.aiThinking": "→ AI is reasoning…",
+  "plan.saving": "→ saving plan…",
   "plan.generateForm": "GENERATE →",
   "plan.usesProfile": "Uses profile goal + preferences + pantry. OpenAI-compatible endpoint, custom model.",
 
@@ -789,6 +814,22 @@ const tr: Record<DictKey, string> = {
   "prof.aiAudioModelHint": "Sesli öğün kaydı (konuşmadan metne).",
   "prof.aiModelsHint": "Sunucu varsayılanlarını kullanmak için boş bırakın.",
 
+  // ---- Apple Health sync
+  "health.title": "APPLE HEALTH SENK",
+  "health.syncUrl": "SENK URL",
+  "health.token": "TOKEN",
+  "health.lastSync": "SON SENK",
+  "health.never": "hiç",
+  "health.generate": "TOKEN OLUŞTUR",
+  "health.regenerate": "YENİDEN OLUŞTUR",
+  "health.revoke": "İPTAL ET",
+  "health.notGenerated": "Henüz oluşturulmadı.",
+  "health.hint":
+    "Token oluşturun, ardından iOS Kısayol'unda kullanın. Kilo / vücut yağ / kas kütlesi verilerini Authorization: Bearer <token> ile senk URL'sine POST edin.",
+  "health.copy": "KOPYALA",
+  "health.copied": "KOPYALANDI",
+  "health.confirmRevoke": "Senk token'ı iptal et? Yenisini oluşturmanız gerekecek.",
+
   // ---- Greetings
   "greet.morning": "günaydın",
   "greet.afternoon": "iyi günler",
@@ -811,7 +852,12 @@ const tr: Record<DictKey, string> = {
   // ---- Analysis
   "anal.title": "analiz",
   "anal.trendsInsights": "TRENDLER · AI İÇGÖRÜLERİ",
-  "anal.weight90d": "KİLO · 90G",
+  "anal.weight": "KİLO",
+  "anal.bodyFat": "VÜCUT YAĞI",
+  "anal.muscleMass": "KAS KÜTLESİ",
+  "anal.range30": "30G",
+  "anal.range90": "90G",
+  "anal.rangeAll": "TÜMÜ",
   "anal.kcal14d": "KCAL · 14G",
   "anal.recovery30d": "TOPARLANMA · 30G",
   "anal.workoutVolume30d": "ANTRENMAN HACİMİ · 30G",
@@ -916,6 +962,8 @@ const tr: Record<DictKey, string> = {
   "prog.injuriesLimits": "YARALANMALAR / KISITLAR (isteğe bağlı)",
   "prog.injuriesPlaceholder": "ör. baş üstü itme yok, hassas alt sırt",
   "prog.generatingProgram": "→ AI ile program oluşturuluyor — bu 30-60 saniye veya daha uzun sürebilir…",
+  "prog.aiThinking": "→ AI düşünüyor…",
+  "prog.matchingExercises": "→ egzersizler veritabanıyla eşleştiriliyor…",
   "prog.exercisesNotMatched": "egzersiz eşleştirilemedi:",
   "prog.generateProgram": "PROGRAM OLUŞTUR →",
   "prog.generating": "OLUŞTURULUYOR…",
@@ -971,6 +1019,8 @@ const tr: Record<DictKey, string> = {
   "plan.gen7Days": "7 gün",
   "plan.gen14Days": "14 gün",
   "plan.generatingForm": "OLUŞTURULUYOR…",
+  "plan.aiThinking": "→ AI düşünüyor…",
+  "plan.saving": "→ plan kaydediliyor…",
   "plan.generateForm": "OLUŞTUR →",
   "plan.usesProfile": "Profil hedefi + tercihleri + kileri kullanır. OpenAI uyumlu uç nokta, özel model.",
 
@@ -1346,6 +1396,22 @@ const zh: Record<DictKey, string> = {
   "prof.aiAudioModelHint": "语音记餐（语音转文字）。",
   "prof.aiModelsHint": "留空则使用服务器默认值。",
 
+  // ---- Apple Health 同步
+  "health.title": "APPLE HEALTH 同步",
+  "health.syncUrl": "同步地址",
+  "health.token": "TOKEN",
+  "health.lastSync": "最近同步",
+  "health.never": "从未",
+  "health.generate": "生成 TOKEN",
+  "health.regenerate": "重新生成",
+  "health.revoke": "撤销",
+  "health.notGenerated": "尚未生成。",
+  "health.hint":
+    "生成 Token 后，在 iOS 快捷指令中使用。通过 Authorization: Bearer <token> 将体重 / 体脂率 / 肌肉量数据 POST 到同步地址。",
+  "health.copy": "复制",
+  "health.copied": "已复制",
+  "health.confirmRevoke": "确定撤销同步 Token？需要重新生成才能继续使用。",
+
   // ---- Greetings
   "greet.morning": "早上好",
   "greet.afternoon": "下午好",
@@ -1368,7 +1434,12 @@ const zh: Record<DictKey, string> = {
   // ---- Analysis
   "anal.title": "分析",
   "anal.trendsInsights": "趋势 · AI 洞察",
-  "anal.weight90d": "体重 · 90天",
+  "anal.weight": "体重",
+  "anal.bodyFat": "体脂率",
+  "anal.muscleMass": "肌肉量",
+  "anal.range30": "30天",
+  "anal.range90": "90天",
+  "anal.rangeAll": "全部",
   "anal.kcal14d": "卡路里 · 14天",
   "anal.recovery30d": "恢复 · 30天",
   "anal.workoutVolume30d": "训练量 · 30天",
@@ -1473,6 +1544,8 @@ const zh: Record<DictKey, string> = {
   "prog.injuriesLimits": "伤病 / 限制（可选）",
   "prog.injuriesPlaceholder": "例如：不能过头上推，腰部敏感",
   "prog.generatingProgram": "→ AI 正在生成计划 — 可能需要 30-60 秒或更长时间…",
+  "prog.aiThinking": "→ AI 正在思考…",
+  "prog.matchingExercises": "→ 正在匹配动作到数据库…",
   "prog.exercisesNotMatched": "以下动作无法匹配：",
   "prog.generateProgram": "生成计划 →",
   "prog.generating": "生成中…",
@@ -1528,6 +1601,8 @@ const zh: Record<DictKey, string> = {
   "plan.gen7Days": "7 天",
   "plan.gen14Days": "14 天",
   "plan.generatingForm": "生成中…",
+  "plan.aiThinking": "→ AI 正在思考…",
+  "plan.saving": "→ 正在保存计划…",
   "plan.generateForm": "生成 →",
   "plan.usesProfile": "使用个人资料目标 + 偏好 + 食材库。OpenAI 兼容接口，自定义模型。",
 
