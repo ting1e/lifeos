@@ -245,6 +245,25 @@ const en = {
   "health.copied": "COPIED",
   "health.confirmRevoke": "Revoke the sync token? You'll need to generate a new one.",
 
+  // ---- Data export/import
+  "data.title": "DATA EXPORT / IMPORT",
+  "data.export": "EXPORT DATA",
+  "data.exporting": "EXPORTING…",
+  "data.exportHint":
+    "Download all your data as JSON — profile, body metrics, workouts, food entries, programs, meal plans, WHOOP data, and food photos.",
+  "data.import": "IMPORT DATA",
+  "data.importing": "IMPORTING…",
+  "data.merge": "MERGE",
+  "data.replace": "REPLACE",
+  "data.mergeHint": "Add imported data alongside existing. Duplicates skipped.",
+  "data.replaceHint": "Delete all existing data first, then import. Irreversible.",
+  "data.confirmReplace":
+    "This will DELETE ALL your existing data (workouts, food entries, body metrics, programs, etc.) and replace it with the imported data. Continue?",
+  "data.selectFile": "SELECT FILE",
+  "data.noFile": "no file selected",
+  "data.importFailed": "Import failed: {error}",
+  "data.imported": "Imported: {summary}",
+
   // ---- Greetings
   "greet.morning": "good morning",
   "greet.afternoon": "good afternoon",
@@ -830,6 +849,25 @@ const tr: Record<DictKey, string> = {
   "health.copied": "KOPYALANDI",
   "health.confirmRevoke": "Senk token'ı iptal et? Yenisini oluşturmanız gerekecek.",
 
+  // ---- Data export/import
+  "data.title": "VERİ DIŞA/İÇE AKTAR",
+  "data.export": "DIŞA AKTAR",
+  "data.exporting": "DIŞA AKTARILIYOR…",
+  "data.exportHint":
+    "Tüm verilerinizi JSON olarak indirin — profil, vücut ölçümleri, antrenmanlar, beslenme kayıtları, programlar, diyet planları, WHOOP verileri ve yemek fotoğrafları.",
+  "data.import": "İÇE AKTAR",
+  "data.importing": "İÇE AKTARILIYOR…",
+  "data.merge": "BİRLEŞTİR",
+  "data.replace": "DEĞİŞTİR",
+  "data.mergeHint": "Mevcut verinin yanına içe aktarılan veriyi ekle. Yinelenenler atlanır.",
+  "data.replaceHint": "Önce tüm mevcut veriyi sil, sonra içe aktar. Geri alınamaz.",
+  "data.confirmReplace":
+    "Bu, TÜM mevcut verinizi (antrenmanlar, beslenme kayıtları, vücut ölçümleri, programlar vb.) silecek ve içe aktarılan veriyle değiştirecek. Devam?",
+  "data.selectFile": "DOSYA SEÇ",
+  "data.noFile": "dosya seçilmedi",
+  "data.importFailed": "İçe aktarma başarısız: {error}",
+  "data.imported": "İçe aktarıldı: {summary}",
+
   // ---- Greetings
   "greet.morning": "günaydın",
   "greet.afternoon": "iyi günler",
@@ -1411,6 +1449,25 @@ const zh: Record<DictKey, string> = {
   "health.copy": "复制",
   "health.copied": "已复制",
   "health.confirmRevoke": "确定撤销同步 Token？需要重新生成才能继续使用。",
+
+  // ---- 数据导出/导入
+  "data.title": "数据导出 / 导入",
+  "data.export": "导出数据",
+  "data.exporting": "导出中…",
+  "data.exportHint":
+    "将所有数据下载为 JSON — 个人资料、体测数据、训练、饮食记录、计划、餐饮方案、WHOOP 数据和食物照片。",
+  "data.import": "导入数据",
+  "data.importing": "导入中…",
+  "data.merge": "合并",
+  "data.replace": "替换",
+  "data.mergeHint": "在现有数据基础上添加导入数据，重复项跳过。",
+  "data.replaceHint": "先删除所有现有数据，再导入。不可撤销。",
+  "data.confirmReplace":
+    "这将删除所有现有数据（训练、饮食记录、体测数据、计划等）并替换为导入数据。继续？",
+  "data.selectFile": "选择文件",
+  "data.noFile": "未选择文件",
+  "data.importFailed": "导入失败：{error}",
+  "data.imported": "已导入：{summary}",
 
   // ---- Greetings
   "greet.morning": "早上好",

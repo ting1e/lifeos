@@ -6,6 +6,7 @@ import { ProfileForm } from "./profile-form";
 import { PasswordForm } from "./password-form";
 import { WhoopToggle } from "./whoop-toggle";
 import { HealthSyncCard } from "@/components/profile/health-sync-card";
+import { DataIoCard } from "@/components/profile/data-io-card";
 import { AiConfigForm } from "./ai-config-form";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { LanguageSwitcher } from "@/components/profile/language-switcher";
@@ -108,6 +109,11 @@ export default async function ProfilePage() {
       <Card>
         <CardLabel>{t("health.title")}</CardLabel>
         <HealthSyncCard />
+      </Card>
+
+      <Card>
+        <CardLabel>{t("data.title")}</CardLabel>
+        <DataIoCard />
       </Card>
 
       <Card>
