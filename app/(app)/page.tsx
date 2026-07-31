@@ -161,7 +161,7 @@ export default async function Dashboard({
     { weekday: "long", day: "2-digit", month: "short" },
   );
 
-  const name = resolveDisplayName({ displayName: prof?.displayName, email: user.email });
+  const name = resolveDisplayName({ displayName: prof?.displayName, username: user.username });
   const greeting = greetingFor(locale, name);
   const kcalLabel = isToday
     ? t("dash.kcalToday")

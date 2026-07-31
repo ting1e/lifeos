@@ -1,6 +1,6 @@
 {
-  "id": "66de9ce5-139a-413c-bcf0-70908561f5da",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "5f6a546d-7e82-450e-86e3-2d0d36a3e936",
+  "prevId": "2db92705-866e-40b2-9933-ad56e7133d53",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -188,6 +188,33 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "body_metrics_user_recorded_source_uniq": {
+          "name": "body_metrics_user_recorded_source_uniq",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "recorded_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "source",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -229,6 +256,12 @@
         },
         "name_tr": {
           "name": "name_tr",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name_zh": {
+          "name": "name_zh",
           "type": "text",
           "primaryKey": false,
           "notNull": false
@@ -281,6 +314,33 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "instructions_zh": {
+          "name": "instructions_zh",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "instruction_steps_en": {
+          "name": "instruction_steps_en",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[]'::jsonb"
+        },
+        "instruction_steps_tr": {
+          "name": "instruction_steps_tr",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[]'::jsonb"
+        },
+        "instruction_steps_zh": {
+          "name": "instruction_steps_zh",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[]'::jsonb"
         },
         "image_url": {
           "name": "image_url",
@@ -714,6 +774,12 @@
           "primaryKey": true,
           "notNull": true
         },
+        "display_name": {
+          "name": "display_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "height_cm": {
           "name": "height_cm",
           "type": "numeric(5, 1)",
@@ -756,6 +822,49 @@
         "target_weight_kg": {
           "name": "target_weight_kg",
           "type": "numeric(5, 1)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "whoop_enabled": {
+          "name": "whoop_enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "ai_base_url": {
+          "name": "ai_base_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ai_api_key": {
+          "name": "ai_api_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ai_text_model": {
+          "name": "ai_text_model",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ai_image_model": {
+          "name": "ai_image_model",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ai_audio_model": {
+          "name": "ai_audio_model",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "health_sync_token": {
+          "name": "health_sync_token",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -1182,8 +1291,8 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "email": {
-          "name": "email",
+        "username": {
+          "name": "username",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -1208,7 +1317,7 @@
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
-          "default": "'tr'"
+          "default": "'zh'"
         },
         "created_at": {
           "name": "created_at",
@@ -1222,11 +1331,11 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "users_email_unique": {
-          "name": "users_email_unique",
+        "users_username_unique": {
+          "name": "users_username_unique",
           "nullsNotDistinct": false,
           "columns": [
-            "email"
+            "username"
           ]
         }
       },
@@ -2005,7 +2114,8 @@
       "schema": "public",
       "values": [
         "manual",
-        "whoop"
+        "whoop",
+        "apple_health"
       ]
     },
     "public.preference_kind": {

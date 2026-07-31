@@ -32,7 +32,7 @@ git clone https://github.com/egebese/lifeos.git
 cd lifeos
 
 cp .env.example .env
-# Fill in SESSION_SECRET, ADMIN_EMAIL, ADMIN_PASSWORD, FAL_KEY
+# Fill in SESSION_SECRET, ADMIN_USERNAME, ADMIN_PASSWORD, FAL_KEY
 
 docker compose up -d db
 pnpm install

@@ -6,18 +6,18 @@ import { eq } from "drizzle-orm";
 import { users } from "../lib/db/schema";
 
 async function main() {
-  const email = process.env.ADMIN_EMAIL;
+  const username = process.env.ADMIN_USERNAME ?? process.env.ADMIN_EMAIL;
   const password = process.env.ADMIN_PASSWORD;
-  if (!email || !password) {
-    console.warn("→ ADMIN_EMAIL or ADMIN_PASSWORD not set; skipping bootstrap");
+  if (!username || !password) {
+    console.warn("→ ADMIN_USERNAME or ADMIN_PASSWORD not set; skipping bootstrap");
     return;
   }
   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
   const db = drizzle(pool);
 
-  const existing = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  const existing = await db.select().from(users).where(eq(users.username, username)).limit(1);
   if (existing.length > 0) {
-    console.log(`→ admin user already exists (${email}); skipping`);
+    console.log(`→ admin user already exists (${username}); skipping`);
     await pool.end();
     return;
   }
@@ -29,13 +29,13 @@ async function main() {
   });
 
   await db.insert(users).values({
-    email,
+    username,
     passwordHash,
     role: "admin",
-    locale: "tr",
+    locale: "zh",
   });
 
-  console.log(`✓ bootstrapped admin user: ${email}`);
+  console.log(`✓ bootstrapped admin user: ${username}`);
   await pool.end();
 }
 

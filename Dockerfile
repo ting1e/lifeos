@@ -1,5 +1,5 @@
 ### --- deps ---
-FROM node:20-alpine AS deps
+FROM node:24-alpine AS deps
 WORKDIR /app
 RUN apk add --no-cache libc6-compat
 COPY package.json pnpm-lock.yaml* ./
@@ -7,13 +7,13 @@ RUN corepack enable && \
     (pnpm install --frozen-lockfile || pnpm install --no-frozen-lockfile)
 
 ### --- prod-deps (production deps only, no devDeps) ---
-FROM node:20-alpine AS prod-deps
+FROM node:24-alpine AS prod-deps
 WORKDIR /app
 COPY package.json pnpm-lock.yaml* ./
 RUN corepack enable && pnpm install --prod --frozen-lockfile
 
 ### --- builder ---
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
@@ -24,8 +24,10 @@ RUN corepack enable && \
     pnpm exec tsc -p tsconfig.scripts.json
 
 ### --- runner ---
-FROM node:20-alpine AS runner
+FROM node:24-alpine AS runner
 WORKDIR /app
+ARG VERSION=latest
+LABEL org.opencontainers.image.version="${VERSION}"
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000

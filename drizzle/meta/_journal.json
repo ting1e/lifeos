@@ -54,22 +54,36 @@
     {
       "idx": 7,
       "version": "7",
-      "when": 1785344619151,
+      "when": 1785466400001,
       "tag": "0007_daily_purifiers",
       "breakpoints": true
     },
     {
       "idx": 8,
       "version": "7",
-      "when": 1785347092543,
+      "when": 1785466400002,
       "tag": "0008_dark_the_phantom",
       "breakpoints": true
     },
     {
       "idx": 9,
       "version": "7",
-      "when": 1785402300339,
+      "when": 1785466400003,
       "tag": "0009_empty_mojo",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1785466400004,
+      "tag": "0010_rename_email_to_username",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1785466400005,
+      "tag": "0011_add_lean_body_mass",
       "breakpoints": true
     }
   ]

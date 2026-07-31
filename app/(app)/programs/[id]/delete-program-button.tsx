@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useT } from "@/lib/i18n/client";
 
 export function DeleteProgramButton({
   programId,
@@ -13,6 +14,7 @@ export function DeleteProgramButton({
   programName: string;
 }) {
   const router = useRouter();
+  const t = useT();
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -40,10 +42,10 @@ export function DeleteProgramButton({
         variant="ghost"
         size="sm"
         onClick={() => setConfirming(true)}
-        aria-label={`delete ${programName}`}
+        aria-label={t("common.delete")}
       >
         <Trash2 size={14} strokeWidth={1.5} className="mr-2" />
-        DELETE
+        {t("prog.deleteButtonLabel")}
       </Button>
     );
   }
@@ -51,13 +53,13 @@ export function DeleteProgramButton({
   return (
     <div className="flex items-center gap-2">
       <span className="font-mono text-[13px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)]">
-        SURE?
+        {t("prog.deleteConfirmation")}
       </span>
       <Button variant="ghost" size="sm" onClick={() => setConfirming(false)} disabled={busy}>
-        CANCEL
+        {t("common.cancel")}
       </Button>
       <Button variant="danger" size="sm" onClick={doDelete} disabled={busy}>
-        {busy ? "DELETING…" : "YES, DELETE"}
+        {busy ? t("common.busy") : t("common.delete")}
       </Button>
       {err && (
         <span className="font-mono text-[13px] uppercase text-[color:var(--accent)]">

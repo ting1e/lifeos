@@ -1,25 +1,8 @@
 services:
-  db:
-    image: postgres:16-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: lifetracker
-      POSTGRES_USER: lifetracker
-      POSTGRES_PASSWORD: lifetracker
-
-    # 开发时打开，以便宿主机用 psql / GUI 工具连库调试
-    # ports:
-    #   - "127.0.0.1:5432:5432"
-    volumes:
-      - ./dbdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U lifetracker"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
+  
 
   web:
-    image: tingle/lifeos
+    image: ghcr.io/ting1e/lifeos:latest
     restart: unless-stopped
     depends_on:
       db:
@@ -28,8 +11,8 @@ services:
       DATABASE_URL: postgres://lifetracker:lifetracker@db:5432/lifetracker
       # 部署时务必修改：用 `openssl rand -base64 64` 生成 64 字节随机串
       SESSION_SECRET: dev_secret_change_me_dev_secret_change_me_dev_secret_change_me
-      # 部署时改为管理员邮箱
-      ADMIN_EMAIL: admin@local
+      # 部署时改为管理员用户名
+      ADMIN_USERNAME: admin
       # 部署时改为强密码（首次启动后可在 /profile 修改）
       ADMIN_PASSWORD: changeme
       # 以下 Whoop 配置仅在启用 Whoop 同步时需要填写
@@ -53,3 +36,22 @@ services:
       - "3000:3000"
     volumes:
       - ./uploads:/data/uploads
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: lifetracker
+      POSTGRES_USER: lifetracker
+      POSTGRES_PASSWORD: lifetracker
+
+    # 开发时打开，以便宿主机用 psql / GUI 工具连库调试
+    # ports:
+    #   - "127.0.0.1:5432:5432"
+    volumes:
+      - ./dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lifetracker"]
+      interval: 5s
+      timeout: 3s
+      retries: 10

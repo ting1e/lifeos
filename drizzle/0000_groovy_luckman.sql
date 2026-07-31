@@ -2,7 +2,7 @@ CREATE TYPE "public"."activity_level" AS ENUM('sedentary', 'light', 'moderate', 
 CREATE TYPE "public"."ai_kind" AS ENUM('food_vision', 'plan', 'insights', 'freeform');--> statement-breakpoint
 CREATE TYPE "public"."food_source" AS ENUM('manual', 'ai_photo');--> statement-breakpoint
 CREATE TYPE "public"."goal" AS ENUM('cut', 'maintain', 'bulk');--> statement-breakpoint
-CREATE TYPE "public"."locale" AS ENUM('tr', 'en');--> statement-breakpoint
+CREATE TYPE "public"."locale" AS ENUM('tr', 'en', 'zh');--> statement-breakpoint
 CREATE TYPE "public"."meal" AS ENUM('breakfast', 'lunch', 'dinner', 'snack');--> statement-breakpoint
 CREATE TYPE "public"."metric_source" AS ENUM('manual', 'whoop');--> statement-breakpoint
 CREATE TYPE "public"."preference_kind" AS ENUM('liked', 'disliked', 'allergy');--> statement-breakpoint

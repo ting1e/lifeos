@@ -22,7 +22,7 @@ export const dynamic = "force-dynamic";
 export default async function ProfilePage() {
   const { user } = await requireSession();
   const [p] = await db.select().from(profile).where(eq(profile.userId, user.id)).limit(1);
-  const name = resolveDisplayName({ displayName: p?.displayName, email: user.email });
+  const name = resolveDisplayName({ displayName: p?.displayName, username: user.username });
   const currentLocale = await getLocale();
   const t = tFor(currentLocale);
 
@@ -49,7 +49,7 @@ export default async function ProfilePage() {
         <div className="mono-label">{t("prof.userProfile")}</div>
         <h1 className="font-display text-4xl mt-1">{name}</h1>
         <div className="font-mono text-[13px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)] mt-1">
-          {user.email}
+          {user.username}
         </div>
       </header>
 

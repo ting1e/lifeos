@@ -10,6 +10,7 @@ export type BodySample = {
   weightKg: string | null;
   bodyFatPct: string | null;
   muscleMassKg: string | null;
+  leanBodyMassKg: string | null;
 };
 
 type Range = "30" | "90" | "all";
@@ -61,6 +62,17 @@ export function BodyCompositionCharts({ samples }: { samples: BodySample[] }) {
   const muscleSeries = Array.from(muscleByDay.entries())
     .sort()
     .map(([date, muscle]) => ({ date, muscle }));
+
+  const leanByDay = new Map<string, number>();
+  for (const b of filtered) {
+    if (b.leanBodyMassKg == null) continue;
+    const k = dayKey(b.recordedAt);
+    const l = Number(b.leanBodyMassKg);
+    leanByDay.set(k, Math.max(leanByDay.get(k) ?? -Infinity, l));
+  }
+  const leanSeries = Array.from(leanByDay.entries())
+    .sort()
+    .map(([date, lean]) => ({ date, lean }));
 
   const ranges: Array<{ key: Range; label: string }> = [
     { key: "30", label: t("anal.range30") },
@@ -125,6 +137,20 @@ export function BodyCompositionCharts({ samples }: { samples: BodySample[] }) {
             xKey="date"
             yKey="muscle"
             color="var(--success)"
+          />
+        ) : (
+          noData
+        )}
+      </Card>
+
+      <Card>
+        <CardLabel>{t("anal.leanBodyMass")}</CardLabel>
+        {leanSeries.length > 0 ? (
+          <LineChart
+            data={leanSeries}
+            xKey="date"
+            yKey="lean"
+            color="var(--text-display)"
           />
         ) : (
           noData

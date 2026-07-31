@@ -9,7 +9,7 @@
 [**▸ 在线演示**](https://lifeos-demo-nu.vercel.app)  ·  数据仅保存在你的浏览器中，不会上传至服务器
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-black.svg)](LICENSE)
-![Node 20+](https://img.shields.io/badge/node-%E2%89%A520-black)
+![Node 24+](https://img.shields.io/badge/node-%E2%89%A524-black)
 ![Next.js 15](https://img.shields.io/badge/next.js-15-black)
 ![PostgreSQL 16](https://img.shields.io/badge/postgres-16-black)
 ![AI: OpenAI-compatible](https://img.shields.io/badge/AI-OpenAI--compatible-black)
@@ -78,6 +78,7 @@ LifeOS 是我为自己搭建的自托管个人操作系统：记录每一次训�
 | 🍳 **饮食** | 手动记录 + AI 拍照估算 + 语音转写。每日宏量营养素，kcal 目标 vs 实际 |
 | 🥗 **规划与采购** | AI 生成 3–14 天饮食计划，综合考虑目标、喜欢/不喜欢/过敏偏好、食材库存以及最近吃过的餐食。购物清单自动扣除库存 |
 | ⌚ **Whoop** | OAuth2 连接，全量同步（恢复、睡眠、强度、训练、身体测量），HMAC webhook，每日兜底定时任务 |
+| 📱 **Apple Health** | [iPhone 快捷指令同步](docs/apple-health-shortcut.md)体重、体脂率、肌肉量、去脂体重 |
 | 🧮 **分析** | 体重 90 天 · kcal 14 天 · 恢复 30 天 · 训练量 30 天。AI 每周洞察 |
 | 🔐 **认证** | 单管理员，argon2id 哈希，加密的 httpOnly cookie，1 年有效期 |
 | 🎨 **界面** | Nothing 设计美学 —— Doto/Space Grotesk/Space Mono，OLED 纯黑，点阵点缀。移动优先，底部导航 + 安全区域内边距 |
@@ -89,12 +90,12 @@ LifeOS 是我为自己搭建的自托管个人操作系统：记录每一次训�
 ```bash
 # 下载docker-compose.yml 并修改配置
 docker compose up -d 
-# 打开 http://localhost:3000  ·  使用 ADMIN_EMAIL / ADMIN_PASSWORD 登录
+# 打开 http://localhost:3000  ·  使用 ADMIN_USERNAME / ADMIN_PASSWORD 登录
 ```
 
 ### 方案 B —— 开发模式（热重载）
 
-需要 **Node 20+**、**pnpm** 和 **Docker**（用于 Postgres）。
+需要 **Node 24+**、**pnpm** 和 **Docker**（用于 Postgres）。
 
 ```bash
 git clone https://github.com/ting1e/lifeos.git
@@ -117,7 +118,7 @@ pnpm dev                         # http://localhost:3000
 |---|---|---|
 | `DATABASE_URL` | ✅ | Postgres 连接字符串 |
 | `SESSION_SECRET` | ✅ | 64 字节 base64（`openssl rand -base64 64`），用于 `iron-session` |
-| `ADMIN_EMAIL` | ✅ | 首次启动时引导创建唯一管理员账号 |
+| `ADMIN_USERNAME` | ✅ | 首次启动时引导创建唯一管理员账号 |
 | `ADMIN_PASSWORD` | ✅ | 首次启动密码（之后在 `/profile` 修改） |
 | `OPENAI_BASE_URL` | ✅（AI 功能） | 任意 OpenAI 兼容的 `/chat/completions` base URL（如 `https://api.openai.com/v1`、`https://openrouter.ai/api/v1`）—— 驱动**所有** AI 功能 |
 | `OPENAI_API_KEY` | ✅（AI 功能） | 上述服务商的 API key |

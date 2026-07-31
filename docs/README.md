@@ -9,7 +9,7 @@ One OpenAI-compatible API key powers every AI feature in the app.
 [**▸ Live demo**](https://lifeos-demo-nu.vercel.app)  ·  data stays in your browser, nothing is sent server-side
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-black.svg)](../LICENSE)
-![Node 20+](https://img.shields.io/badge/node-%E2%89%A520-black)
+![Node 24+](https://img.shields.io/badge/node-%E2%89%A524-black)
 ![Next.js 15](https://img.shields.io/badge/next.js-15-black)
 ![PostgreSQL 16](https://img.shields.io/badge/postgres-16-black)
 ![AI: OpenAI-compatible](https://img.shields.io/badge/AI-OpenAI--compatible-black)
@@ -78,6 +78,7 @@ Set `OPENAI_BASE_URL` + `OPENAI_API_KEY` in `.env` (or later from `/profile`), d
 | 🍳 **Food** | Manual log + AI photo estimate + voice transcription. Daily macros, kcal targets vs actuals |
 | 🥗 **Plan & Shop** | AI-generated 3–14 day meal plans factoring goal, liked/disliked/allergy preferences, pantry inventory, and recently-eaten meals. Shopping list auto-subtracts pantry |
 | ⌚ **Whoop** | OAuth2 connect, full sync (recovery, sleep, strain, workouts, body measurement), HMAC webhook, daily safety-net cron |
+| 📱 **Apple Health** | [iPhone Shortcuts sync](apple-health-shortcut.md) for weight, body fat, muscle mass, lean body mass |
 | 🧮 **Analysis** | Weight 90d · kcal 14d · recovery 30d · workout volume 30d. AI weekly insights |
 | 🔐 **Auth** | Single admin, argon2id hash, sealed httpOnly cookie, 1-year expiry |
 | 🎨 **UI** | Nothing-design aesthetic — Doto/Space Grotesk/Space Mono, OLED black, dot-matrix accents. Mobile-first with bottom nav + safe-area insets |
@@ -89,12 +90,12 @@ Set `OPENAI_BASE_URL` + `OPENAI_API_KEY` in `.env` (or later from `/profile`), d
 ```bash
 # Download docker-compose.yml and tweak the config
 docker compose up -d 
-# Open http://localhost:3000  ·  login with ADMIN_EMAIL / ADMIN_PASSWORD
+# Open http://localhost:3000  ·  login with ADMIN_USERNAME / ADMIN_PASSWORD
 ```
 
 ### Option B — dev mode (hot reload)
 
-Requires **Node 20+**, **pnpm**, and **Docker** (for Postgres).
+Requires **Node 24+**, **pnpm**, and **Docker** (for Postgres).
 
 ```bash
 git clone https://github.com/ting1e/lifeos.git
@@ -117,7 +118,7 @@ pnpm dev                         # http://localhost:3000
 |---|---|---|
 | `DATABASE_URL` | ✅ | Postgres connection string |
 | `SESSION_SECRET` | ✅ | 64-byte base64 (`openssl rand -base64 64`) for `iron-session` |
-| `ADMIN_EMAIL` | ✅ | Bootstraps the single admin account on first boot |
+| `ADMIN_USERNAME` | ✅ | Bootstraps the single admin account on first boot |
 | `ADMIN_PASSWORD` | ✅ | First-boot password (change from `/profile` after) |
 | `OPENAI_BASE_URL` | ✅ (for AI) | Any OpenAI-compatible `/chat/completions` base URL (e.g. `https://api.openai.com/v1`, `https://openrouter.ai/api/v1`) — powers **all** AI features |
 | `OPENAI_API_KEY` | ✅ (for AI) | API key for the provider above |
@@ -167,7 +168,7 @@ Tested on Coolify v4 with a single $5 VPS:
 1. **DB** — create a Postgres 16 resource; copy connection string.
 2. **App** — from your GitHub repo, build pack = Dockerfile, port `3000`.
 3. **Volume** — persistent volume mounted at `/data/uploads`.
-4. **Env vars** — `DATABASE_URL`, `SESSION_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `OPENAI_BASE_URL`, `OPENAI_API_KEY`, optional `WHOOP_*`, `ENABLE_CRON=1`, `TZ=Europe/Istanbul`.
+4. **Env vars** — `DATABASE_URL`, `SESSION_SECRET`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `OPENAI_BASE_URL`, `OPENAI_API_KEY`, optional `WHOOP_*`, `ENABLE_CRON=1`, `TZ=Europe/Istanbul`.
 5. **Domain** — your subdomain with Let's Encrypt.
 6. **DNS** (Cloudflare) — A record → Coolify server IP (proxy=off until LE cert issues, then flip on).
 7. **Whoop (optional)** — register at [developer.whoop.com](https://developer.whoop.com) with redirect URI `https://<your-domain>/api/whoop/callback`. Add webhook `https://<your-domain>/api/whoop/webhook` and copy secret into env.

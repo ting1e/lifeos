@@ -58,7 +58,7 @@ export const aiKindEnum = pgEnum("ai_kind", [
 
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
-  email: text("email").notNull().unique(),
+  username: text("username").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   role: roleEnum("role").notNull().default("admin"),
   locale: localeEnum("locale").notNull().default("zh"),
@@ -122,6 +122,7 @@ export const bodyMetrics = pgTable(
     weightKg: numeric("weight_kg", { precision: 5, scale: 1 }),
     bodyFatPct: numeric("body_fat_pct", { precision: 4, scale: 1 }),
     muscleMassKg: numeric("muscle_mass_kg", { precision: 5, scale: 1 }),
+    leanBodyMassKg: numeric("lean_body_mass_kg", { precision: 5, scale: 1 }),
     source: metricSourceEnum("source").notNull().default("manual"),
   },
   (t) => ({

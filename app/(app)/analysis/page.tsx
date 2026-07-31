@@ -73,6 +73,7 @@ export default async function AnalysisPage() {
     weightKg: b.weightKg,
     bodyFatPct: b.bodyFatPct,
     muscleMassKg: b.muscleMassKg,
+    leanBodyMassKg: b.leanBodyMassKg,
   }));
 
   // Kcal per day, last 14

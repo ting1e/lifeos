@@ -28,15 +28,14 @@ export function diffDays(a: Date, b: Date): number {
 }
 
 // Derive a friendly display name. Prefer the explicit `displayName`, else
-// take the local-part of the email and title-case it ("ege.bese" → "Ege Bese").
+// title-case the username ("john.doe" → "John Doe").
 export function resolveDisplayName(args: {
   displayName?: string | null;
-  email: string;
+  username: string;
 }): string {
   const explicit = args.displayName?.trim();
   if (explicit) return explicit;
-  const local = args.email.split("@")[0] ?? args.email;
-  return local
+  return args.username
     .split(/[._\-+]/)
     .filter(Boolean)
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())

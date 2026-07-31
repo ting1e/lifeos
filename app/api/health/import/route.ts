@@ -11,12 +11,14 @@ const Sample = z
     weightKg: z.number().optional(),
     bodyFatPct: z.number().optional(),
     muscleMassKg: z.number().optional(),
+    leanBodyMassKg: z.number().optional(),
   })
   .refine(
     (v) =>
       v.weightKg !== undefined ||
       v.bodyFatPct !== undefined ||
-      v.muscleMassKg !== undefined,
+      v.muscleMassKg !== undefined ||
+      v.leanBodyMassKg !== undefined,
     { message: "at_least_one_metric_required" },
   );
 
@@ -75,6 +77,7 @@ export async function POST(req: NextRequest) {
     weightKg: s.weightKg != null ? String(s.weightKg) : null,
     bodyFatPct: s.bodyFatPct != null ? String(s.bodyFatPct) : null,
     muscleMassKg: s.muscleMassKg != null ? String(s.muscleMassKg) : null,
+    leanBodyMassKg: s.leanBodyMassKg != null ? String(s.leanBodyMassKg) : null,
     source: "apple_health" as const,
   }));
 
@@ -86,6 +89,7 @@ export async function POST(req: NextRequest) {
       prev.weightKg = prev.weightKg ?? r.weightKg;
       prev.bodyFatPct = prev.bodyFatPct ?? r.bodyFatPct;
       prev.muscleMassKg = prev.muscleMassKg ?? r.muscleMassKg;
+      prev.leanBodyMassKg = prev.leanBodyMassKg ?? r.leanBodyMassKg;
     } else {
       deduped.set(key, { ...r });
     }
@@ -105,6 +109,7 @@ export async function POST(req: NextRequest) {
         weightKg: sql`COALESCE(excluded."weight_kg", "body_metrics"."weight_kg")`,
         bodyFatPct: sql`COALESCE(excluded."body_fat_pct", "body_metrics"."body_fat_pct")`,
         muscleMassKg: sql`COALESCE(excluded."muscle_mass_kg", "body_metrics"."muscle_mass_kg")`,
+        leanBodyMassKg: sql`COALESCE(excluded."lean_body_mass_kg", "body_metrics"."lean_body_mass_kg")`,
       },
     });
 

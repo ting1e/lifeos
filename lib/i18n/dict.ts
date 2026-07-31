@@ -289,6 +289,7 @@ const en = {
   "anal.weight": "WEIGHT",
   "anal.bodyFat": "BODY FAT",
   "anal.muscleMass": "MUSCLE MASS",
+  "anal.leanBodyMass": "LEAN MASS",
   "anal.range30": "30D",
   "anal.range90": "90D",
   "anal.rangeAll": "ALL",
@@ -519,11 +520,11 @@ const en = {
   // ---- Auth / Login
   "auth.appVersion": "LIFETRACKER / V1",
   "auth.signIn": "sign in",
-  "auth.email": "email",
+  "auth.username": "username",
   "auth.password": "password",
   "auth.enter": "ENTER →",
   "auth.tooManyAttempts": "Too many attempts",
-  "auth.invalidCredentials": "Invalid credentials",
+  "auth.invalidCredentials": "Invalid username or password",
 
   // ---- Rest timer
   "timer.pause": "PAUSE",
@@ -596,7 +597,7 @@ const en = {
   // ---- Profile form
   "prof.displayName": "DISPLAY NAME",
   "prof.displayNamePlaceholder": "Ege",
-  "prof.displayNameHint": "shown in the dashboard greeting · leave blank to fall back to your email",
+  "prof.displayNameHint": "shown in the dashboard greeting · leave blank to fall back to your username",
   "prof.bmr": "BMR",
   "prof.height": "HEIGHT (CM)",
   "prof.weight": "WEIGHT (KG)",
@@ -896,6 +897,7 @@ const tr: Record<DictKey, string> = {
   "anal.weight": "KİLO",
   "anal.bodyFat": "VÜCUT YAĞI",
   "anal.muscleMass": "KAS KÜTLESİ",
+  "anal.leanBodyMass": "YAĞSIZ KÜTLE",
   "anal.range30": "30G",
   "anal.range90": "90G",
   "anal.rangeAll": "TÜMÜ",
@@ -1126,11 +1128,11 @@ const tr: Record<DictKey, string> = {
   // ---- Auth / Login
   "auth.appVersion": "LIFETRACKER / V1",
   "auth.signIn": "giriş yap",
-  "auth.email": "e-posta",
+  "auth.username": "kullanıcı adı",
   "auth.password": "şifre",
   "auth.enter": "GİRİŞ →",
   "auth.tooManyAttempts": "Çok fazla deneme",
-  "auth.invalidCredentials": "Geçersiz bilgiler",
+  "auth.invalidCredentials": "Geçersiz kullanıcı adı veya şifre",
 
   // ---- Rest timer
   "timer.pause": "DURAKLAT",
@@ -1203,7 +1205,7 @@ const tr: Record<DictKey, string> = {
   // ---- Profile form
   "prof.displayName": "GÖRÜNEN AD",
   "prof.displayNamePlaceholder": "Ege",
-  "prof.displayNameHint": "pano karşılamasında görünür · boş bırakılırsa e-postana geri düşer",
+  "prof.displayNameHint": "pano karşılamasında görünür · boş bırakılırsa kullanıcı adına geri düşer",
   "prof.bmr": "BMR",
   "prof.height": "BOY (CM)",
   "prof.weight": "KİLO (KG)",
@@ -1500,6 +1502,7 @@ const zh: Record<DictKey, string> = {
   "anal.weight": "体重",
   "anal.bodyFat": "体脂率",
   "anal.muscleMass": "肌肉量",
+  "anal.leanBodyMass": "去脂体重",
   "anal.range30": "30天",
   "anal.range90": "90天",
   "anal.rangeAll": "全部",
@@ -1730,11 +1733,11 @@ const zh: Record<DictKey, string> = {
   // ---- Auth / Login
   "auth.appVersion": "LIFETRACKER / V1",
   "auth.signIn": "登录",
-  "auth.email": "邮箱",
+  "auth.username": "用户名",
   "auth.password": "密码",
   "auth.enter": "进入 →",
   "auth.tooManyAttempts": "尝试次数过多",
-  "auth.invalidCredentials": "邮箱或密码错误",
+  "auth.invalidCredentials": "用户名或密码错误",
 
   // ---- Rest timer
   "timer.pause": "暂停",
@@ -1805,7 +1808,7 @@ const zh: Record<DictKey, string> = {
   // ---- Profile form
   "prof.displayName": "显示名称",
   "prof.displayNamePlaceholder": "小明",
-  "prof.displayNameHint": "在仪表盘问候语中显示 · 留空则使用邮箱",
+  "prof.displayNameHint": "在仪表盘问候语中显示 · 留空则使用用户名",
   "prof.bmr": "基础代谢",
   "prof.height": "身高 (厘米)",
   "prof.weight": "体重 (公斤)",

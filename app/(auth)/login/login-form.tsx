@@ -9,7 +9,7 @@ export function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
   const from = params.get("from") ?? "/";
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -20,7 +20,7 @@ export function LoginForm() {
     const res = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ username, password }),
     });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
@@ -37,13 +37,13 @@ export function LoginForm() {
     <form onSubmit={onSubmit} className="space-y-6">
       <div>
         <label className="block font-mono text-[13px] uppercase tracking-[0.1em] text-[color:var(--text-secondary)] mb-2">
-          {t("auth.email")}
+          {t("auth.username")}
         </label>
         <input
-          type="email"
+          type="text"
           autoComplete="username"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
           required
           className="w-full bg-transparent border-b border-[color:var(--border-visible)] py-3 font-body text-lg text-[color:var(--text-display)] focus:outline-none focus:border-[color:var(--accent)] caret-[color:var(--accent)]"
         />

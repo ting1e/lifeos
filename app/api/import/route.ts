@@ -158,6 +158,7 @@ export async function POST(req: NextRequest) {
             weightKg: (r.weightKg as string | null) ?? null,
             bodyFatPct: (r.bodyFatPct as string | null) ?? null,
             muscleMassKg: (r.muscleMassKg as string | null) ?? null,
+            leanBodyMassKg: (r.leanBodyMassKg as string | null) ?? null,
             source: (r.source as "manual" | "whoop" | "apple_health" | null) ?? "manual",
           }));
         for (const batch of chunks(rows, 500)) {
@@ -170,6 +171,7 @@ export async function POST(req: NextRequest) {
                 weightKg: sql`COALESCE(excluded."weight_kg", "body_metrics"."weight_kg")`,
                 bodyFatPct: sql`COALESCE(excluded."body_fat_pct", "body_metrics"."body_fat_pct")`,
                 muscleMassKg: sql`COALESCE(excluded."muscle_mass_kg", "body_metrics"."muscle_mass_kg")`,
+                leanBodyMassKg: sql`COALESCE(excluded."lean_body_mass_kg", "body_metrics"."lean_body_mass_kg")`,
               },
             });
         }
@@ -197,13 +199,24 @@ export async function POST(req: NextRequest) {
       }
 
       if (Array.isArray(data.pantryItems)) {
-        const rows = data.pantryItems.filter(isObj).map((r) => ({
-          userId,
-          name: (r.name as string) ?? "unknown",
-          qty: (r.qty as string | null) ?? null,
-          unit: (r.unit as string | null) ?? null,
-          expiresAt: dateOnly(r.expiresAt),
-        }));
+        let existingPantry = new Set<string>();
+        if (mode === "merge") {
+          const existing = await tx
+            .select({ name: pantryItems.name })
+            .from(pantryItems)
+            .where(eq(pantryItems.userId, userId));
+          existingPantry = new Set(existing.map((r) => r.name));
+        }
+        const rows = data.pantryItems
+          .filter(isObj)
+          .map((r) => ({
+            userId,
+            name: (r.name as string) ?? "unknown",
+            qty: (r.qty as string | null) ?? null,
+            unit: (r.unit as string | null) ?? null,
+            expiresAt: dateOnly(r.expiresAt),
+          }))
+          .filter((r) => !existingPantry.has(r.name));
         for (const batch of chunks(rows, 500)) {
           await tx.insert(pantryItems).values(batch);
         }
@@ -212,18 +225,28 @@ export async function POST(req: NextRequest) {
 
       const programIdMap: Record<string, string> = {};
       if (Array.isArray(data.programs)) {
-        const rows = data.programs.filter(isObj).map((r) => {
+        let existingProgramNames = new Set<string>();
+        if (mode === "merge") {
+          const existing = await tx
+            .select({ name: programs.name })
+            .from(programs)
+            .where(eq(programs.userId, userId));
+          existingProgramNames = new Set(existing.map((r) => r.name));
+        }
+        const rows = data.programs.filter(isObj).flatMap((r) => {
+          const name = (r.name as string) ?? "imported program";
+          if (mode === "merge" && existingProgramNames.has(name)) return [];
           const oldId = (r.id as string) ?? randomUUID();
           const newId = randomUUID();
           programIdMap[oldId] = newId;
-          return {
+          return [{
             id: newId,
             userId,
-            name: (r.name as string) ?? "imported program",
+            name,
             description: (r.description as string | null) ?? null,
             isTemplate: (r.isTemplate as boolean | null) ?? false,
             createdAt: ts(r.createdAt),
-          };
+          }];
         });
         for (const batch of chunks(rows, 500)) {
           await tx.insert(programs).values(batch);
@@ -233,18 +256,20 @@ export async function POST(req: NextRequest) {
 
       const programDayIdMap: Record<string, string> = {};
       if (Array.isArray(data.programDays)) {
-        const rows = data.programDays.filter(isObj).map((r) => {
+        const rows = data.programDays.filter(isObj).flatMap((r) => {
+          const oldProgramId = r.programId as string | undefined;
+          const newProgramId = oldProgramId ? (programIdMap[oldProgramId] ?? null) : null;
+          if (!newProgramId) return [];
           const oldId = (r.id as string) ?? randomUUID();
           const newId = randomUUID();
           programDayIdMap[oldId] = newId;
-          const oldProgramId = r.programId as string | undefined;
-          return {
+          return [{
             id: newId,
-            programId: oldProgramId ? (programIdMap[oldProgramId] ?? null) : null,
+            programId: newProgramId,
             dayIndex: (r.dayIndex as number) ?? 0,
             name: (r.name as string) ?? "Day",
-          };
-        }).filter((r) => r.programId !== null) as { id: string; programId: string; dayIndex: number; name: string }[];
+          }];
+        });
         for (const batch of chunks(rows, 500)) {
           await tx.insert(programDays).values(batch);
         }
@@ -277,22 +302,32 @@ export async function POST(req: NextRequest) {
 
       const workoutIdMap: Record<string, string> = {};
       if (Array.isArray(data.workouts)) {
-        const rows = data.workouts.filter(isObj).map((r) => {
+        let existingWorkoutStarts = new Set<string>();
+        if (mode === "merge") {
+          const existing = await tx
+            .select({ startedAt: workouts.startedAt })
+            .from(workouts)
+            .where(eq(workouts.userId, userId));
+          existingWorkoutStarts = new Set(existing.map((r) => r.startedAt.toISOString()));
+        }
+        const rows = data.workouts.filter(isObj).flatMap((r) => {
+          const startedAt = ts(r.startedAt);
+          if (mode === "merge" && existingWorkoutStarts.has(startedAt.toISOString())) return [];
           const oldId = (r.id as string) ?? randomUUID();
           const newId = randomUUID();
           workoutIdMap[oldId] = newId;
           const oldProgramId = r.programId as string | undefined;
           const oldProgramDayId = r.programDayId as string | undefined;
-          return {
+          return [{
             id: newId,
             userId,
             programId: oldProgramId ? (programIdMap[oldProgramId] ?? null) : null,
             programDayId: oldProgramDayId ? (programDayIdMap[oldProgramDayId] ?? null) : null,
-            startedAt: ts(r.startedAt),
+            startedAt,
             endedAt: tsOrNull(r.endedAt),
             notes: (r.notes as string | null) ?? null,
             source: (r.source as "manual" | "whoop" | null) ?? "manual",
-          };
+          }];
         });
         for (const batch of chunks(rows, 500)) {
           await tx.insert(workouts).values(batch);
@@ -324,19 +359,29 @@ export async function POST(req: NextRequest) {
 
       const mealPlanIdMap: Record<string, string> = {};
       if (Array.isArray(data.mealPlans)) {
-        const rows = data.mealPlans.filter(isObj).map((r) => {
+        let existingMealPlanStarts = new Set<string>();
+        if (mode === "merge") {
+          const existing = await tx
+            .select({ startsOn: mealPlans.startsOn })
+            .from(mealPlans)
+            .where(eq(mealPlans.userId, userId));
+          existingMealPlanStarts = new Set(existing.map((r) => r.startsOn));
+        }
+        const rows = data.mealPlans.filter(isObj).flatMap((r) => {
+          const startsOn = dateOnly(r.startsOn) ?? new Date().toISOString().slice(0, 10);
+          if (mode === "merge" && existingMealPlanStarts.has(startsOn)) return [];
           const oldId = (r.id as string) ?? randomUUID();
           const newId = randomUUID();
           mealPlanIdMap[oldId] = newId;
-          return {
+          return [{
             id: newId,
             userId,
-            startsOn: dateOnly(r.startsOn) ?? new Date().toISOString().slice(0, 10),
+            startsOn,
             endsOn: dateOnly(r.endsOn) ?? new Date().toISOString().slice(0, 10),
             goalSnapshot: r.goalSnapshot ?? null,
             plan: r.plan ?? null,
             createdAt: ts(r.createdAt),
-          };
+          }];
         });
         for (const batch of chunks(rows, 200)) {
           await tx.insert(mealPlans).values(batch);
@@ -362,22 +407,39 @@ export async function POST(req: NextRequest) {
       }
 
       if (Array.isArray(data.foodEntries)) {
-        const rows = data.foodEntries.filter(isObj).map((r) => {
-          const oldPhoto = r.photoPath as string | undefined;
-          return {
-            userId,
-            consumedAt: ts(r.consumedAt),
-            meal: (r.meal as "breakfast" | "lunch" | "dinner" | "snack" | null) ?? "snack",
-            name: (r.name as string) ?? "unknown",
-            kcal: (r.kcal as string | null) ?? null,
-            proteinG: (r.proteinG as string | null) ?? null,
-            carbsG: (r.carbsG as string | null) ?? null,
-            fatG: (r.fatG as string | null) ?? null,
-            photoPath: oldPhoto ? (photoMapping[oldPhoto] ?? null) : null,
-            aiEstimate: r.aiEstimate ?? null,
-            source: (r.source as "manual" | "ai_photo" | null) ?? "manual",
-          };
-        });
+        let existingFoodKeys = new Set<string>();
+        if (mode === "merge") {
+          const existing = await tx
+            .select({ consumedAt: foodEntries.consumedAt, name: foodEntries.name })
+            .from(foodEntries)
+            .where(eq(foodEntries.userId, userId));
+          existingFoodKeys = new Set(existing.map((r) => `${r.consumedAt.toISOString()}|${r.name}`));
+        }
+        const rows = data.foodEntries
+          .filter(isObj)
+          .map((r) => {
+            const oldPhoto = r.photoPath as string | undefined;
+            const consumedAt = ts(r.consumedAt);
+            const name = (r.name as string) ?? "unknown";
+            return {
+              row: {
+                userId,
+                consumedAt,
+                meal: (r.meal as "breakfast" | "lunch" | "dinner" | "snack" | null) ?? "snack",
+                name,
+                kcal: (r.kcal as string | null) ?? null,
+                proteinG: (r.proteinG as string | null) ?? null,
+                carbsG: (r.carbsG as string | null) ?? null,
+                fatG: (r.fatG as string | null) ?? null,
+                photoPath: oldPhoto ? (photoMapping[oldPhoto] ?? null) : null,
+                aiEstimate: r.aiEstimate ?? null,
+                source: (r.source as "manual" | "ai_photo" | null) ?? "manual",
+              },
+              dedupKey: `${consumedAt.toISOString()}|${name}`,
+            };
+          })
+          .filter((r) => !existingFoodKeys.has(r.dedupKey))
+          .map((r) => r.row);
         for (const batch of chunks(rows, 500)) {
           await tx.insert(foodEntries).values(batch);
         }
