@@ -1,13 +1,13 @@
-node_modules/
+/node_modules/
 .next/
 .turbo/
-out/
-dist/
-dist-scripts/
+/out/
+/dist/
+/dist-scripts/
 .vercel/
 *.tsbuildinfo
-dbdata
-docker_test
+/dbdata/
+/docker_test/
 .env
 .env.local
 .env.production
@@ -16,7 +16,7 @@ docker_test
 *.log
 .DS_Store
 
-uploads/
+/uploads/
 /data/
 .pnpm-store/
 
