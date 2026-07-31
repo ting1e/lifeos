@@ -27,6 +27,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "invalid_input" }, { status: 400 });
   }
   const v = parsed.data;
+  const photoPath = v.photoPath && v.photoPath.length > 0 ? v.photoPath : null;
   const [row] = await db
     .insert(foodEntries)
     .values({
@@ -37,8 +38,8 @@ export async function POST(req: Request) {
       proteinG: n(v.protein_g),
       carbsG: n(v.carbs_g),
       fatG: n(v.fat_g),
-      photoPath: v.photoPath ?? null,
-      source: v.photoPath ? "ai_photo" : "manual",
+      photoPath,
+      source: photoPath ? "ai_photo" : "manual",
       ...(v.consumedAt ? { consumedAt: new Date(v.consumedAt) } : {}),
     })
     .returning({ id: foodEntries.id });

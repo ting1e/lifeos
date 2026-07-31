@@ -40,6 +40,16 @@ export async function POST(req: Request) {
       : v.displayName === null || v.displayName.trim() === ""
         ? null
         : v.displayName.trim();
+  const set: Record<string, string | number | null> = {};
+  if (displayName !== undefined) set.displayName = displayName;
+  if (v.heightCm !== undefined) set.heightCm = s(v.heightCm);
+  if (v.weightKg !== undefined) set.weightKg = s(v.weightKg);
+  if (v.age !== undefined) set.age = n(v.age);
+  if (v.sex !== undefined) set.sex = v.sex;
+  if (v.activityLevel !== undefined) set.activityLevel = v.activityLevel;
+  if (v.goal !== undefined) set.goal = v.goal;
+  if (v.targetWeightKg !== undefined) set.targetWeightKg = s(v.targetWeightKg);
+
   await db
     .insert(profile)
     .values({
@@ -55,16 +65,7 @@ export async function POST(req: Request) {
     })
     .onConflictDoUpdate({
       target: profile.userId,
-      set: {
-        ...(displayName !== undefined ? { displayName } : {}),
-        heightCm: s(v.heightCm),
-        weightKg: s(v.weightKg),
-        age: n(v.age),
-        sex: v.sex ?? null,
-        activityLevel: v.activityLevel ?? null,
-        goal: v.goal ?? null,
-        targetWeightKg: s(v.targetWeightKg),
-      },
+      set,
     });
 
   const w = s(v.weightKg);

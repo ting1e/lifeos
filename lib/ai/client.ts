@@ -221,6 +221,8 @@ async function* chatCompletionsStream(args: {
     };
   });
 
+  const ac = new AbortController();
+  let reader: ReadableStreamDefaultReader<Uint8Array> | null = null;
   let contentText = "";
   let errorMsg: string | null = null;
 
@@ -233,6 +235,7 @@ async function* chatCompletionsStream(args: {
         "api-key": config.apiKey,
       },
       body: JSON.stringify(body),
+      signal: ac.signal,
     });
 
     if (!res.ok || !res.body) {
@@ -266,7 +269,7 @@ async function* chatCompletionsStream(args: {
       return;
     }
 
-    const reader = res.body.getReader();
+    reader = res.body.getReader();
     const decoder = new TextDecoder();
     let buffer = "";
 
@@ -304,9 +307,15 @@ async function* chatCompletionsStream(args: {
       }
     }
   } catch (err) {
-    errorMsg = err instanceof Error ? err.message : String(err);
+    if ((err as Error)?.name === "AbortError") {
+      errorMsg = "aborted";
+    } else {
+      errorMsg = err instanceof Error ? err.message : String(err);
+    }
     throw err;
   } finally {
+    reader?.cancel().catch(() => {});
+    ac.abort();
     await db
       .insert(aiMessages)
       .values({

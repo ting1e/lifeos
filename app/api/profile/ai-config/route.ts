@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 
 const Body = z.object({
   baseUrl: z.string().max(200).optional(),
-  apiKey: z.string().max(200).optional(),
+  apiKey: z.string().max(200).nullable().optional(),
   textModel: z.string().max(100).optional(),
   imageModel: z.string().max(100).optional(),
   audioModel: z.string().max(100).optional(),
@@ -53,7 +53,7 @@ export async function PATCH(req: Request) {
 
   const set: Record<string, string | null> = {};
   if (v.baseUrl !== undefined) set.aiBaseUrl = v.baseUrl.trim() || null;
-  if (v.apiKey !== undefined && v.apiKey !== "") set.aiApiKey = v.apiKey.trim();
+  if (v.apiKey !== undefined) set.aiApiKey = v.apiKey === null || v.apiKey === "" ? null : v.apiKey.trim();
   if (v.textModel !== undefined) set.aiTextModel = v.textModel.trim() || null;
   if (v.imageModel !== undefined) set.aiImageModel = v.imageModel.trim() || null;
   if (v.audioModel !== undefined) set.aiAudioModel = v.audioModel.trim() || null;

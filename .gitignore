@@ -3,10 +3,11 @@ node_modules/
 .turbo/
 out/
 dist/
+dist-scripts/
 .vercel/
 *.tsbuildinfo
 dbdata
-
+docker_test
 .env
 .env.local
 .env.production

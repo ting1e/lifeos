@@ -8,3 +8,13 @@ node_modules
 *.log
 uploads
 /data
+dbdata
+demo
+dist-scripts
+docs
+.github
+.vscode
+.idea
+*.md
+tsconfig.tsbuildinfo
+docker_test

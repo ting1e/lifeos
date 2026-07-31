@@ -6,8 +6,10 @@ services:
       POSTGRES_DB: lifetracker
       POSTGRES_USER: lifetracker
       POSTGRES_PASSWORD: lifetracker
-    ports:
-      - "127.0.0.1:5432:5432"
+
+    # 开发时打开，以便宿主机用 psql / GUI 工具连库调试
+    # ports:
+    #   - "127.0.0.1:5432:5432"
     volumes:
       - ./dbdata:/var/lib/postgresql/data
     healthcheck:
@@ -17,31 +19,37 @@ services:
       retries: 10
 
   web:
-    build: .
+    image: tingle/lifeos
     restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
     environment:
       DATABASE_URL: postgres://lifetracker:lifetracker@db:5432/lifetracker
-      SESSION_SECRET: ${SESSION_SECRET:-dev_secret_change_me_dev_secret_change_me_dev_secret_change_me}
-      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@local}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-changeme}
-      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
-      OPENAI_TEXT_MODEL: ${OPENAI_TEXT_MODEL:-gpt-4o-mini}
-      OPENAI_IMAGE_MODEL: ${OPENAI_IMAGE_MODEL:-gpt-4o-mini}
-      OPENAI_AUDIO_MODEL: ${OPENAI_AUDIO_MODEL:-gpt-4o-mini}
-      WHOOP_CLIENT_ID: ${WHOOP_CLIENT_ID:-}
-      WHOOP_CLIENT_SECRET: ${WHOOP_CLIENT_SECRET:-}
-      WHOOP_REDIRECT_URI: ${WHOOP_REDIRECT_URI:-http://localhost:3000/api/whoop/callback}
-      WHOOP_WEBHOOK_SECRET: ${WHOOP_WEBHOOK_SECRET:-}
-      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
-      ENABLE_CRON: ${ENABLE_CRON:-0}
-      TZ: Europe/Istanbul
+      # 部署时务必修改：用 `openssl rand -base64 64` 生成 64 字节随机串
+      SESSION_SECRET: dev_secret_change_me_dev_secret_change_me_dev_secret_change_me
+      # 部署时改为管理员邮箱
+      ADMIN_EMAIL: admin@local
+      # 部署时改为强密码（首次启动后可在 /profile 修改）
+      ADMIN_PASSWORD: changeme
+      # 以下 Whoop 配置仅在启用 Whoop 同步时需要填写
+      WHOOP_CLIENT_ID: ""
+      WHOOP_CLIENT_SECRET: ""
+      # 部署到自定义域名时，需同步修改为实际回调地址
+      WHOOP_REDIRECT_URI: http://localhost:3000/api/whoop/callback
+      WHOOP_WEBHOOK_SECRET: ""
+      # 部署到自定义域名时，改为实际访问地址（如 https://lifeos.example.com）
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      ENABLE_CRON: "0"
+      TZ: Asia/Shanghai
+      # 动作数据集地址（首次启动 seed-exercises 拉取用）；默认直连 GitHub raw，
+      # 国内若被墙可换镜像：
+      #   https://cdn.jsdelivr.net/gh/hasaneyldrm/exercises-dataset@main
+      #   https://raw.gitmirror.com/hasaneyldrm/exercises-dataset/main
+      EXERCISES_DATASET_BASE: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main
+      # 可选：若需走 HTTP 代理拉取数据集（而非镜像），取消注释并填写
+      # HTTPS_PROXY: http://127.0.0.1:7890
     ports:
       - "3000:3000"
     volumes:
-      - lt_uploads:/data/uploads
-
-volumes:
-  lt_uploads:
+      - ./uploads:/data/uploads

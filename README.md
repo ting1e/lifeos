@@ -2,11 +2,11 @@
 
 # LifeOS
 
-**Self-hosted personal life tracker — workouts, nutrition, Whoop, AI photo calories, AI diet planner.**
+**自托管个人生活追踪器 —— 训练、营养、Whoop、AI 拍照估卡、AI 饮食规划。**
 
-One OpenAI-compatible API key powers every AI feature in the app.
+一个 OpenAI 兼容 API key 即可驱动应用内所有 AI 功能。
 
-[**▸ Live demo**](https://lifeos-demo-nu.vercel.app)  ·  data stays in your browser, nothing is sent server-side
+[**▸ 在线演示**](https://lifeos-demo-nu.vercel.app)  ·  数据仅保存在你的浏览器中，不会上传至服务器
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-black.svg)](LICENSE)
 ![Node 20+](https://img.shields.io/badge/node-%E2%89%A520-black)
@@ -18,17 +18,19 @@ One OpenAI-compatible API key powers every AI feature in the app.
 
 </div>
 
-## Screens
+> 🌐 **语言：** [English](docs/README.md) · 简体中文
+
+## 界面预览
 
 | | |
 |---|---|
 | ![Workouts](docs/screenshots/workouts.png) | ![Food log](docs/screenshots/food.png) |
-| Workouts — log sets, rest timer, programs, 1RM tracking | Food log — manual or AI photo, daily macros vs target |
+| 训练 —— 记录组数、休息计时器、训练计划、1RM 追踪 | 饮食记录 —— 手动记录或 AI 拍照，每日宏量营养素对比目标 |
 | ![Whoop](docs/screenshots/whoop.png) | ![Programs](docs/screenshots/programs.png) |
-| Whoop — 30-day recovery / sleep / strain history | Programs — saved splits or AI-generated |
+| Whoop —— 30 天恢复 / 睡眠 / 强度历史 | 训练计划 —— 保存的方案或 AI 生成 |
 
 <details>
-<summary>Mobile (the app is mobile-first)</summary>
+<summary>移动端（应用为移动优先设计）</summary>
 
 | Dashboard | Food log |
 |---|---|
@@ -39,172 +41,158 @@ One OpenAI-compatible API key powers every AI feature in the app.
 
 ---
 
-LifeOS is the self-hosted personal OS I built for myself: log every workout, every meal, every Whoop recovery score, and let one OpenAI-compatible AI provider handle the smart parts (photo-to-calories, meal planning, weekly insights, voice-to-meal transcription, workout program generation).
+LifeOS 是我为自己搭建的自托管个人操作系统：记录每一次训练、每一餐、每一个 Whoop 恢复分数，并让一个 OpenAI 兼容的 AI 服务商处理所有智能部分（拍照估卡、饮食规划、每周洞察、语音转饮食记录、训练计划生成）。
 
-It is intentionally **single-admin**: one user, one Postgres database, one Docker container, one OpenAI-compatible API key. Deploy it on a $5 VPS, point a domain at it, and you own all your fitness/nutrition data. MIT licensed.
+它被刻意设计为**单管理员**模式：一个用户、一个 Postgres 数据库、一个 Docker 容器、一个 OpenAI 兼容 API key。把它部署在一台 $5 的 VPS 上，指向一个域名，你就拥有全部的健身/营养数据。MIT 许可证。
 
-> The project is internally called `lifetracker` (package name, docker volumes, db name). The public/repo name is **LifeOS**.
+> 项目内部代号是 `lifetracker`（包名、docker 卷名、数据库名）。公开/仓库名称是 **LifeOS**。
 
-## Why the AI layer is provider-agnostic
+## 为什么 AI 层是服务商无关的
 
-Every AI surface in this app — without exception — calls a single OpenAI-compatible `/chat/completions` endpoint. One base URL + API key, the entire feature set lights up. Models are configurable per usage (text / image / audio) from your Profile page, or via `OPENAI_*` env vars as a server fallback (default `gpt-4o-mini`):
+本应用中的每一个 AI 功能 —— 无一例外 —— 都调用同一个 OpenAI 兼容的 `/chat/completions` 端点。一个 base URL + API key，整套功能即可点亮。模型可按用途（文本 / 图像 / 音频）在个人资料页配置，或通过 `OPENAI_*` 环境变量作为服务端兜底（默认 `gpt-4o-mini`）：
 
-| Feature | Endpoint | Model | What it does |
+| 功能 | 端点 | 模型 | 作用 |
 |---|---|---|---|
-| **Food photo → macros** | `/chat/completions` (vision) | `OPENAI_IMAGE_MODEL` | Snap a meal, get kcal/protein/carbs/fat breakdown |
-| **Free-form meal parser** | `/chat/completions` | `OPENAI_TEXT_MODEL` | "two eggs and toast" → structured macros |
-| **Voice → meal log** | `/chat/completions` (`input_audio`) | `OPENAI_AUDIO_MODEL` | Record audio, transcribe + parse the meal from speech |
-| **Meal planner (3–14 days)** | `/chat/completions` | `OPENAI_TEXT_MODEL` | Goal + preferences + pantry → full plan + shopping list |
-| **Workout program generator** | `/chat/completions` | `OPENAI_TEXT_MODEL` | Goal/level/equipment → multi-day periodised program |
-| **Weekly insights** | `/chat/completions` | `OPENAI_TEXT_MODEL` | Highlights / warnings / recommendations from 30d data |
-| **Web-search augmentation** | `/chat/completions` (`:online` suffix) | same model, web variant | Up-to-date brand/portion lookups (OpenRouter endpoints only) |
+| **食物照片 → 宏量营养素** | `/chat/completions`（视觉） | `OPENAI_IMAGE_MODEL` | 拍一餐，得到 kcal/蛋白质/碳水/脂肪拆解 |
+| **自由文本饮食解析** | `/chat/completions` | `OPENAI_TEXT_MODEL` | "两个鸡蛋和一片吐司" → 结构化宏量营养素 |
+| **语音 → 饮食记录** | `/chat/completions`（`input_audio`） | `OPENAI_AUDIO_MODEL` | 录音，转写并从语音中解析出这餐 |
+| **饮食规划（3–14 天）** | `/chat/completions` | `OPENAI_TEXT_MODEL` | 目标 + 偏好 + 食材库存 → 完整计划 + 购物清单 |
+| **训练计划生成器** | `/chat/completions` | `OPENAI_TEXT_MODEL` | 目标/水平/器材 → 多日周期化训练计划 |
+| **每周洞察** | `/chat/completions` | `OPENAI_TEXT_MODEL` | 基于 30 天数据的亮点 / 警告 / 建议 |
+| **联网搜索增强** | `/chat/completions`（`:online` 后缀） | 同模型，联网变体 | 实时的品牌/份量查询（仅 OpenRouter 端点支持） |
 
-**Why this matters as a self-hoster:**
+**为什么这点对自托管者很重要：**
 
-- **Bring your own provider.** Point `OPENAI_BASE_URL` at any OpenAI-compatible endpoint — OpenAI, OpenRouter, Groq, a local Ollama/LM Studio server, anything that speaks `/chat/completions`. One key, one bill, every feature works.
-- **Provider-agnostic routing.** Swap the default `OPENAI_TEXT_MODEL` for any other supported model (GPT, Llama, Gemini, Claude, etc.) by passing a different `model` string — no code changes required, and overridable per-user from the Profile page.
-- **Every call is metered & logged.** `lib/ai/client.ts` records every prompt, response, model id, and cost (in cents) into the `ai_messages` table. You can audit and budget per-feature.
-- **No vendor lock-in.** All AI calls go through one thin `fetch()` wrapper — no SDK dependency. Point it at a different base URL and you've switched providers.
+- **自带服务商。** 将 `OPENAI_BASE_URL` 指向任意 OpenAI 兼容端点 —— OpenAI、OpenRouter、Groq、本地 Ollama/LM Studio 服务器，任何支持 `/chat/completions` 的服务均可。一个 key、一份账单、全部功能可用。
+- **服务商无关的路由。** 把默认的 `OPENAI_TEXT_MODEL` 换成任何其他受支持模型（GPT、Llama、Gemini、Claude 等），只需传入不同的 `model` 字符串 —— 无需改代码，且可在个人资料页按用户覆盖。
+- **每次调用都计量并记录。** `lib/ai/client.ts` 将每条 prompt、响应、模型 id 和成本（以分计）记录到 `ai_messages` 表中。你可以按功能审计和控制预算。
+- **无供应商锁定。** 所有 AI 调用都经过一个轻薄的 `fetch()` 封装 —— 无 SDK 依赖。换一个 base URL 就完成了服务商切换。
 
-Set `OPENAI_BASE_URL` + `OPENAI_API_KEY` in `.env` (or later from `/profile`), done.
+在 `.env` 里设置 `OPENAI_BASE_URL` + `OPENAI_API_KEY`（或之后在 `/profile` 设置），即可。
 
-## Features
+## 功能特性
 
 | | |
 |---|---|
-| 🏋️ **Workouts** | 1,324 exercises (en/tr) from the public `exercises-dataset`; create programs, log sets/reps/weight with RPE, rest timer, last-time overlay, Epley 1RM tracking |
-| 🍳 **Food** | Manual log + AI photo estimate + voice transcription. Daily macros, kcal targets vs actuals |
-| 🥗 **Plan & Shop** | AI-generated 3–14 day meal plans factoring goal, liked/disliked/allergy preferences, pantry inventory, and recently-eaten meals. Shopping list auto-subtracts pantry |
-| ⌚ **Whoop** | OAuth2 connect, full sync (recovery, sleep, strain, workouts, body measurement), HMAC webhook, daily safety-net cron |
-| 🧮 **Analysis** | Weight 90d · kcal 14d · recovery 30d · workout volume 30d. AI weekly insights |
-| 🔐 **Auth** | Single admin, argon2id hash, sealed httpOnly cookie, 1-year expiry |
-| 🎨 **UI** | Nothing-design aesthetic — Doto/Space Grotesk/Space Mono, OLED black, dot-matrix accents. Mobile-first with bottom nav + safe-area insets |
+| 🏋️ **训练** | 1,324 个动作（en/tr/zh）来自公开的 `exercises-dataset`；创建训练计划、按组数/次数/重量记录并标注 RPE，休息计时器，上次表现叠加显示，Epley 1RM 追踪 |
+| 🍳 **饮食** | 手动记录 + AI 拍照估算 + 语音转写。每日宏量营养素，kcal 目标 vs 实际 |
+| 🥗 **规划与采购** | AI 生成 3–14 天饮食计划，综合考虑目标、喜欢/不喜欢/过敏偏好、食材库存以及最近吃过的餐食。购物清单自动扣除库存 |
+| ⌚ **Whoop** | OAuth2 连接，全量同步（恢复、睡眠、强度、训练、身体测量），HMAC webhook，每日兜底定时任务 |
+| 🧮 **分析** | 体重 90 天 · kcal 14 天 · 恢复 30 天 · 训练量 30 天。AI 每周洞察 |
+| 🔐 **认证** | 单管理员，argon2id 哈希，加密的 httpOnly cookie，1 年有效期 |
+| 🎨 **界面** | Nothing 设计美学 —— Doto/Space Grotesk/Space Mono，OLED 纯黑，点阵点缀。移动优先，底部导航 + 安全区域内边距 |
 
-## Quick start (local)
+## 快速开始（本地）
 
-Requires **Node 20+**, **pnpm**, and **Docker** (for Postgres).
+### 方案 A —— 完整 Docker 栈（最快）
 
 ```bash
-git clone https://github.com/egebese/lifeos.git
+# 下载docker-compose.yml 并修改配置
+docker compose up -d 
+# 打开 http://localhost:3000  ·  使用 ADMIN_EMAIL / ADMIN_PASSWORD 登录
+```
+
+### 方案 B —— 开发模式（热重载）
+
+需要 **Node 20+**、**pnpm** 和 **Docker**（用于 Postgres）。
+
+```bash
+git clone https://github.com/ting1e/lifeos.git
 cd lifeos
 
 cp .env.example .env
-# Edit at minimum:
-#   SESSION_SECRET   → openssl rand -base64 64
-#   ADMIN_EMAIL      → your email
-#   ADMIN_PASSWORD   → first-boot password (change from /profile after login)
-#   OPENAI_BASE_URL  → any OpenAI-compatible endpoint (api.openai.com/v1, openrouter.ai/api/v1, …)
-#   OPENAI_API_KEY   → your provider key
-```
 
-### Option A — full Docker stack (fastest)
-
-```bash
-docker compose up --build
-# → migrate → bootstrap admin → seed 1,324 exercises → seed templates → next start
-# Open http://localhost:3000  ·  login with ADMIN_EMAIL / ADMIN_PASSWORD
-```
-
-### Option B — dev mode (hot reload)
-
-```bash
-docker compose up -d db          # just Postgres
+docker compose up -d db          # 仅启动 Postgres
 pnpm install
 pnpm db:migrate
 pnpm bootstrap:admin
-pnpm seed:exercises              # ~1,324 records, ~30s, needs internet
-pnpm apply:zh                    # apply Chinese exercise name translations (optional)
+pnpm seed:exercises              # 约 1,324 条记录，约 30 秒，需要联网
+pnpm apply:zh                    # 应用动作中文名称翻译（可选）
 pnpm dev                         # http://localhost:3000
 ```
 
-## Environment variables
+## 环境变量
 
-| Var | Required | Purpose |
+| 变量 | 必需 | 用途 |
 |---|---|---|
-| `DATABASE_URL` | ✅ | Postgres connection string |
-| `SESSION_SECRET` | ✅ | 64-byte base64 (`openssl rand -base64 64`) for `iron-session` |
-| `ADMIN_EMAIL` | ✅ | Bootstraps the single admin account on first boot |
-| `ADMIN_PASSWORD` | ✅ | First-boot password (change from `/profile` after) |
-| `OPENAI_BASE_URL` | ✅ (for AI) | Any OpenAI-compatible `/chat/completions` base URL (e.g. `https://api.openai.com/v1`, `https://openrouter.ai/api/v1`) — powers **all** AI features |
-| `OPENAI_API_KEY` | ✅ (for AI) | API key for the provider above |
-| `OPENAI_TEXT_MODEL` | optional | Default text model id (defaults to `gpt-4o-mini`); overridable per-user from `/profile` |
-| `WHOOP_CLIENT_ID` | optional | From [developer.whoop.com](https://developer.whoop.com) |
-| `WHOOP_CLIENT_SECRET` | optional | OAuth client secret |
-| `WHOOP_REDIRECT_URI` | optional | `https://yourdomain.com/api/whoop/callback` |
-| `WHOOP_WEBHOOK_SECRET` | optional | Only if you set a custom webhook secret in the Whoop portal |
-| `NEXT_PUBLIC_APP_URL` | optional | Public origin (used in OAuth + emails) |
-| `ENABLE_CRON` | optional | `1` to enable background jobs in the Node process |
-| `TZ` | optional | Defaults to `Europe/Istanbul`; set yours |
-| `UPLOADS_DIR` | optional | Defaults to `./uploads` locally, `/data/uploads` in Docker |
+| `DATABASE_URL` | ✅ | Postgres 连接字符串 |
+| `SESSION_SECRET` | ✅ | 64 字节 base64（`openssl rand -base64 64`），用于 `iron-session` |
+| `ADMIN_EMAIL` | ✅ | 首次启动时引导创建唯一管理员账号 |
+| `ADMIN_PASSWORD` | ✅ | 首次启动密码（之后在 `/profile` 修改） |
+| `OPENAI_BASE_URL` | ✅（AI 功能） | 任意 OpenAI 兼容的 `/chat/completions` base URL（如 `https://api.openai.com/v1`、`https://openrouter.ai/api/v1`）—— 驱动**所有** AI 功能 |
+| `OPENAI_API_KEY` | ✅（AI 功能） | 上述服务商的 API key |
+| `OPENAI_TEXT_MODEL` | 可选 | 默认文本模型 id（默认 `gpt-4o-mini`）；可在 `/profile` 按用户覆盖 |
+| `OPENAI_IMAGE_MODEL` | 可选 | 默认图像（视觉）模型 id（默认 `gpt-4o-mini`）；可在 `/profile` 按用户覆盖 |
+| `OPENAI_AUDIO_MODEL` | 可选 | 默认音频（转写）模型 id（默认 `gpt-4o-mini`）；可在 `/profile` 按用户覆盖 |
+| `EXERCISES_DATASET_BASE` | 可选 | `seed-exercises` 使用的动作数据集 base URL（默认为 GitHub raw）；GitHub 被墙时换成镜像 |
+| `HTTPS_PROXY` | 可选 | 仅在填充/同步脚本拉取动作数据集时使用的 HTTP(S) 代理 |
+| `WHOOP_CLIENT_ID` | 可选 | 来自 [developer.whoop.com](https://developer.whoop.com) |
+| `WHOOP_CLIENT_SECRET` | 可选 | OAuth 客户端密钥 |
+| `WHOOP_REDIRECT_URI` | 可选 | `https://yourdomain.com/api/whoop/callback` |
+| `WHOOP_WEBHOOK_SECRET` | 可选 | 仅当你在 Whoop 门户设置了自定义 webhook 密钥时 |
+| `NEXT_PUBLIC_APP_URL` | 可选 | 公开 origin（用于 OAuth 和邮件） |
+| `ENABLE_CRON` | 可选 | `1` 以在 Node 进程中启用后台任务 |
+| `TZ` | 可选 | 默认 `Asia/Shanghai`；设置你的时区 |
+| `UPLOADS_DIR` | 可选 | 本地默认 `./uploads`，Docker 中默认 `/data/uploads` |
 
-## Architecture
+## 架构
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │  Next.js 15 (App Router, RSC, TypeScript strict)             │
-│  └─ app/(app)/*    UI routes (mobile-first, Nothing design)  │
-│  └─ app/api/*      REST handlers                             │
+│  └─ app/(app)/*    UI 路由（移动优先，Nothing 设计）          │
+│  └─ app/api/*      REST 处理器                                │
 │                                                              │
-│  lib/ai/client.ts  ──────────────►  OpenAI-compatible API   │
+│  lib/ai/client.ts  ──────────────►  OpenAI 兼容 API          │
 │    chat()                            /chat/completions       │
 │    vision()                          /chat/completions       │
 │    transcribeAudio()                 /chat/completions       │
 │                                                              │
 │  lib/auth         iron-session + argon2id                    │
 │  lib/whoop        OAuth2 + HMAC webhook + sync               │
-│  lib/nutrition    macro math, BMR/TDEE, Epley 1RM            │
+│  lib/nutrition    宏量营养素计算, BMR/TDEE, Epley 1RM         │
 │                                                              │
 │  Drizzle ORM  ────────────────►  PostgreSQL 16               │
-│  node-cron    ────────────────►  daily Whoop safety-net      │
+│  node-cron    ────────────────►  每日 Whoop 兜底任务          │
 └──────────────────────────────────────────────────────────────┘
 ```
 
-(Photos are sent inline as base64 data URIs; no separate storage
-upload, no `uploadBuffer()` exists in the current client.)
+（照片以 base64 data URI 内联发送；无单独存储上传，
+当前客户端中不存在 `uploadBuffer()`。）
 
-## Deploy on Coolify
 
-Tested on Coolify v4 with a single $5 VPS:
+## 技术栈
 
-1. **DB** — create a Postgres 16 resource; copy connection string.
-2. **App** — from your GitHub repo, build pack = Dockerfile, port `3000`.
-3. **Volume** — persistent volume mounted at `/data/uploads`.
-4. **Env vars** — `DATABASE_URL`, `SESSION_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `OPENAI_BASE_URL`, `OPENAI_API_KEY`, optional `WHOOP_*`, `ENABLE_CRON=1`, `TZ=Europe/Istanbul`.
-5. **Domain** — your subdomain with Let's Encrypt.
-6. **DNS** (Cloudflare) — A record → Coolify server IP (proxy=off until LE cert issues, then flip on).
-7. **Whoop (optional)** — register at [developer.whoop.com](https://developer.whoop.com) with redirect URI `https://<your-domain>/api/whoop/callback`. Add webhook `https://<your-domain>/api/whoop/webhook` and copy secret into env.
-8. **Daily Whoop sync (optional)** — schedule a Coolify task hitting `POST /api/whoop/sync` once a day (or rely on webhook + manual sync).
+- **运行时** —— Next.js 15 App Router · React 19 · TypeScript strict · Tailwind v4
+- **数据库** —— PostgreSQL 16 · Drizzle ORM 0.36
+- **AI** —— OpenAI 兼容 `/chat/completions`（文本 / 视觉 / 音频；模型通过 `OPENAI_*` 环境变量或 `/profile` 设置）
+- **认证** —— `iron-session`（加密 httpOnly cookies）· `@node-rs/argon2`
+- **界面** —— `recharts` 图表 · `lucide-react` 图标 · `vaul` 抽屉 · 自定义 Nothing 设计系统
+- **任务** —— `node-cron`（Whoop 每日兜底任务）
+- **包管理器** —— pnpm 9.15
 
-First deploy auto-runs: migrate → bootstrap admin → seed 1,324 exercises → seed default 3-day full-body template.
+## 贡献
 
-## Tech
+欢迎提交 PR！请查看 [CONTRIBUTING.md](CONTRIBUTING.md) 了解开发配置、代码规范，以及哪些变更在/不在范围内。
 
-- **Runtime** — Next.js 15 App Router · React 19 · TypeScript strict · Tailwind v4
-- **Database** — PostgreSQL 16 · Drizzle ORM 0.36
-- **AI** — OpenAI-compatible `/chat/completions` (text / vision / audio; model set via `OPENAI_*` env or `/profile`)
-- **Auth** — `iron-session` (sealed httpOnly cookies) · `@node-rs/argon2`
-- **UI** — `recharts` charts · `lucide-react` icons · `vaul` drawers · custom Nothing-design system
-- **Jobs** — `node-cron` (Whoop daily safety-net)
-- **Package manager** — pnpm 9.15
+请注意，LifeOS 被刻意设计为**单用户**。如果你想要多租户 SaaS 式认证，请先开一个 issue —— 那个方向很可能在 fork 中实现。
 
-## Contributing
+## 安全
 
-PRs welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for dev setup, code conventions, and what kinds of changes are in/out of scope.
+如果你发现安全问题，**请不要公开 issue**。请查看 [SECURITY.md](SECURITY.md) 了解披露流程。
 
-Note that LifeOS is intentionally **single-user**. If you want multi-tenant SaaS-style auth, please open an issue first — that direction will likely live in a fork.
+## 数据归属
 
-## Security
+动作数据集（1,324 条记录，含图片 + GIF）来自 [`hasaneyldrm/exercises-dataset`](https://github.com/hasaneyldrm/exercises-dataset)。仅供教育用途 —— 媒体直接引用上游 raw URL，不在本仓库中重新分发。商业使用前请核实许可一致性。
 
-If you find a security issue, **do not open a public issue**. See [SECURITY.md](SECURITY.md) for disclosure instructions.
+Nothing 风格的视觉语言灵感来自 [Nothing Design Skill](https://github.com/dominikmartn/nothing-design-skill)（瑞士派 + 工业风）。字体：Doto、Space Grotesk、Space Mono —— 均为开源。
 
-## Data attribution
+## 致谢
 
-Exercise dataset (1,324 records with images + GIFs) is from [`hasaneyldrm/exercises-dataset`](https://github.com/hasaneyldrm/exercises-dataset). It is provided for educational use only — media is referenced directly from the upstream raw URLs and not redistributed in this repo. Verify license alignment before commercial use.
+本项目派生自 [egebese/lifeos](https://github.com/egebese/lifeos)，并将原本的 fal.ai 迁移为服务商无关的 OpenAI 兼容 API。感谢 [@egebese](https://github.com/egebese) 的原创工作。
 
-Nothing-style visual language inspired by the [Nothing Design Skill](https://github.com/dominikmartn/nothing-design-skill) (Swiss + industrial). Fonts: Doto, Space Grotesk, Space Mono — all open-source.
+## 许可证
 
-## License
+MIT —— 见 [LICENSE](LICENSE)。
 
-MIT — see [LICENSE](LICENSE).
-
-Built with ❤️ by [@egebese](https://github.com/egebese), powered by any OpenAI-compatible provider.
+由 [@ting1e](https://github.com/ting1e) 用 ❤️ 打造，由任意 OpenAI 兼容服务商驱动。

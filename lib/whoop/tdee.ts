@@ -1,12 +1,9 @@
 import { and, eq, gte } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { whoopStrain } from "@/lib/db/schema";
+import { ymdLocal } from "@/lib/utils/day";
 
 const KJ_PER_KCAL = 4.184;
-
-function dayKey(d: Date) {
-  return d.toISOString().slice(0, 10);
-}
 
 /**
  * Whoop reports each day's total energy expenditure as kilojoules on the
@@ -21,7 +18,7 @@ export async function getMeasuredTdee(
   const lookback = opts.lookbackDays ?? 14;
   const minSamples = opts.minSamples ?? 3;
   const since = new Date(Date.now() - lookback * 86_400_000);
-  const sinceStr = dayKey(since);
+  const sinceStr = ymdLocal(since);
 
   const rows = await db
     .select({ kj: whoopStrain.kilojoules })

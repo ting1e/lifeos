@@ -13,6 +13,7 @@ import {
   fetchSleep,
   fetchWorkouts,
 } from "./api";
+import { ymdLocal } from "@/lib/utils/day";
 
 function toDate(iso?: string | null): Date | null {
   if (!iso) return null;
@@ -21,7 +22,7 @@ function toDate(iso?: string | null): Date | null {
 }
 
 function dayString(iso: string | undefined): string {
-  return (iso ?? new Date().toISOString()).slice(0, 10);
+  return ymdLocal(iso ? new Date(iso) : new Date());
 }
 
 export type SyncResult = {

@@ -1,7 +1,29 @@
 // Prompt builders. Each returns { system, prompt } strings (the fal openrouter
 // endpoint takes them as separate fields).
 
+import { ymdLocal } from "@/lib/utils/day";
+
 export type Prompt = { system: string; prompt: string };
+
+const MAX_TEXT = 2000;
+const MAX_FIELD = 200;
+const MAX_LIST_ITEMS = 20;
+
+/** Sanitize untrusted user text before interpolating into a prompt.
+ *  Strips triple-quote / code-fence sequences that could close delimited
+ *  blocks, removes non-printable control chars, and caps length. */
+function sanitize(s: string, max = MAX_FIELD): string {
+  return s
+    .replace(/```/g, "'''")
+    .replace(/"""/g, "'''")
+    .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, "")
+    .trim()
+    .slice(0, max);
+}
+
+function sanitizeList(items: string[], max = MAX_FIELD): string[] {
+  return items.slice(0, MAX_LIST_ITEMS).map((s) => sanitize(s, max));
+}
 
 export function foodVisionPrompt(locale: "tr" | "en" | "zh" = "en"): Prompt {
   // For zh the AI replies in Chinese (dish name + notes). en/tr stay English.
@@ -50,10 +72,11 @@ export type FoodVisionParseInput = {
 };
 
 export function foodVisionParsePrompt(p: FoodVisionParseInput): Prompt {
-  const textHint = p.text?.trim()
+  const userText = p.text ? sanitize(p.text, MAX_TEXT) : "";
+  const textHint = userText
     ? p.locale === "zh"
-      ? `\n用户额外描述："""\n${p.text.trim()}\n"""\n请结合照片与文字描述进行估算。`
-      : `\nUser additional description:\n"""\n${p.text.trim()}\n"""\nUse both the photo and this text for your estimate.`
+      ? `\n用户额外描述："""\n${userText}\n"""\n请结合照片与文字描述进行估算。`
+      : `\nUser additional description:\n"""\n${userText}\n"""\nUse both the photo and this text for your estimate.`
     : "";
 
   const mealHint = p.defaultMeal
@@ -153,19 +176,24 @@ export function weeklyPlanPrompt(p: PlanInput): Prompt {
 - 1 个中等大小的鸡蛋：~50 g
 - 1 把坚果：~30 g`;
 
-    const today = new Date().toISOString().slice(0, 10);
+    const today = ymdLocal(new Date());
+    const liked = sanitizeList(p.liked);
+    const disliked = sanitizeList(p.disliked);
+    const allergies = sanitizeList(p.allergies);
+    const pantry = p.pantry.slice(0, MAX_LIST_ITEMS).map((x) => ({ ...x, name: sanitize(x.name) }));
+    const recentMeals = sanitizeList(p.recentMeals);
     const prompt = `目标：${p.goal}（~${p.targetKcal} 千卡/天）
 宏量营养素目标：蛋白质 ${p.proteinG}g，碳水 ${p.carbsG}g，脂肪 ${p.fatG}g。
-喜欢的：${p.liked.join("、") || "无"}
-不喜欢的：${p.disliked.join("、") || "无"}
-过敏：${p.allergies.join("、") || "无"}
+喜欢的：${liked.join("、") || "无"}
+不喜欢的：${disliked.join("、") || "无"}
+过敏：${allergies.join("、") || "无"}
 现有食材：${
-      p.pantry
+      pantry
         .map((x) => `${x.name}${x.qty ? `（${x.qty}${x.unit ?? ""}）` : ""}`)
         .join("、") || "无"
     }
 近期吃过的（避免大量重复）：${
-      p.recentMeals.slice(0, 20).join("、") || "无"
+      recentMeals.join("、") || "无"
     }
 
 生成从 ${today} 开始的 ${p.daysCount} 天饮食计划。每天的热量与宏量营养素应接近目标值。
@@ -220,19 +248,24 @@ Hand-measure cheatsheet (use these when describing portions):
 - 1 orta boy yumurta: ~50 g
 - 1 avuç fındık/badem (handful of nuts): ~30 g`;
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = ymdLocal(new Date());
+  const liked = sanitizeList(p.liked);
+  const disliked = sanitizeList(p.disliked);
+  const allergies = sanitizeList(p.allergies);
+  const pantry = p.pantry.slice(0, MAX_LIST_ITEMS).map((x) => ({ ...x, name: sanitize(x.name) }));
+  const recentMeals = sanitizeList(p.recentMeals);
   const prompt = `Goal: ${p.goal} (~${p.targetKcal} kcal/day)
 Macros target: protein ${p.proteinG}g, carbs ${p.carbsG}g, fat ${p.fatG}g.
-Liked: ${p.liked.join(", ") || "-"}
-Disliked: ${p.disliked.join(", ") || "-"}
-Allergies: ${p.allergies.join(", ") || "-"}
+Liked: ${liked.join(", ") || "-"}
+Disliked: ${disliked.join(", ") || "-"}
+Allergies: ${allergies.join(", ") || "-"}
 Pantry on hand: ${
-    p.pantry
+    pantry
       .map((x) => `${x.name}${x.qty ? ` (${x.qty}${x.unit ?? ""})` : ""}`)
       .join(", ") || "empty"
   }
 Recently eaten (avoid repeating heavily): ${
-    p.recentMeals.slice(0, 20).join(", ") || "-"
+    recentMeals.join(", ") || "-"
   }
 
 Generate a ${p.daysCount}-day meal plan starting ${today}. Each day MUST be close to the kcal & macro targets.
@@ -319,14 +352,18 @@ export function programGeneratorPrompt(p: ProgramInput): Prompt {
         ? "你是一名持证的体能与力量教练。根据用户的目标、经验和器材，制定每周训练计划。计划名称、描述、训练日名称和动作备注必须用中文撰写。只有 `search` 字段保留英文动作名（例如 'barbell bench press'）以便系统匹配动作库。仅返回一个有效的 JSON 对象——不要 markdown，不要任何解释性文字。"
         : "You are a certified strength & conditioning coach. Build a weekly training program tailored to the user's goal, experience and equipment. Return ONLY a single valid JSON object — no markdown, no prose. Use English exercise names (e.g. 'barbell bench press') so the system can match them to the exercise database.";
 
+  const equipment = sanitizeList(p.equipment);
+  const focus = p.focus ? sanitize(p.focus) : "";
+  const injuries = p.injuries ? sanitize(p.injuries) : "";
+
   const inputLines = [
     p.locale === "tr" ? `Hedef: ${p.goal}` : p.locale === "zh" ? `目标: ${p.goal}` : `Goal: ${p.goal}`,
     p.locale === "tr" ? `Deneyim seviyesi: ${p.level}` : p.locale === "zh" ? `经验水平: ${p.level}` : `Experience level: ${p.level}`,
     p.locale === "tr" ? `Haftalık gün sayısı: ${p.daysPerWeek}` : p.locale === "zh" ? `每周训练天数: ${p.daysPerWeek}` : `Days per week: ${p.daysPerWeek}`,
     p.locale === "tr" ? `Seans süresi: ~${p.sessionMinutes} dk` : p.locale === "zh" ? `训练时长: ~${p.sessionMinutes} 分钟` : `Session length: ~${p.sessionMinutes} min`,
-    p.locale === "tr" ? `Mevcut ekipman: ${p.equipment.length ? p.equipment.join(", ") : "tam donanımlı spor salonu"}` : p.locale === "zh" ? `可用器材: ${p.equipment.length ? p.equipment.join(", ") : "全套商业健身房"}` : `Equipment available: ${p.equipment.length ? p.equipment.join(", ") : "full commercial gym"}`,
-    p.focus ? (p.locale === "tr" ? `Odak / tercihler: ${p.focus}` : p.locale === "zh" ? `重点 / 偏好: ${p.focus}` : `Focus / preferences: ${p.focus}`) : "",
-    p.injuries ? (p.locale === "tr" ? `Sakatlık / kontrendikasyonlar: ${p.injuries}` : p.locale === "zh" ? `伤病 / 禁忌: ${p.injuries}` : `Injuries / contraindications: ${p.injuries}`) : "",
+    p.locale === "tr" ? `Mevcut ekipman: ${equipment.length ? equipment.join(", ") : "tam donanımlı spor salonu"}` : p.locale === "zh" ? `可用器材: ${equipment.length ? equipment.join(", ") : "全套商业健身房"}` : `Equipment available: ${equipment.length ? equipment.join(", ") : "full commercial gym"}`,
+    focus ? (p.locale === "tr" ? `Odak / tercihler: ${focus}` : p.locale === "zh" ? `重点 / 偏好: ${focus}` : `Focus / preferences: ${focus}`) : "",
+    injuries ? (p.locale === "tr" ? `Sakatlık / kontrendikasyonlar: ${injuries}` : p.locale === "zh" ? `伤病 / 禁忌: ${injuries}` : `Injuries / contraindications: ${injuries}`) : "",
     p.recoveryAvg != null ? (p.locale === "tr" ? `Son ortalama toparlanma (Whoop, 0-100): ${p.recoveryAvg}` : p.locale === "zh" ? `近期平均恢复值 (Whoop, 0-100): ${p.recoveryAvg}` : `Recent recovery avg (Whoop, 0-100): ${p.recoveryAvg}`) : "",
     p.sleepAvgHours != null ? (p.locale === "tr" ? `Son ortalama uyku: ${p.sleepAvgHours.toFixed(1)}s` : p.locale === "zh" ? `近期平均睡眠: ${p.sleepAvgHours.toFixed(1)}小时` : `Recent sleep avg: ${p.sleepAvgHours.toFixed(1)}h`) : "",
   ].filter(Boolean).join("\n");
@@ -469,13 +506,15 @@ function existingBlock(p: MealParserInput): string {
   const e = p.existing;
   if (!e) return "";
   const fmt = (n: number | null) => (n != null ? `${n}g` : "—");
+  const name = sanitize(e.name);
   if (p.locale === "zh") {
-    return `\n用户正在编辑一条已有的餐食记录，当前值为：\n  名称："${e.name}"\n  热量：${e.kcal ?? "—"}，蛋白质：${fmt(e.protein_g)}，碳水：${fmt(e.carbs_g)}，脂肪：${fmt(e.fat_g)}\n\n新输入可能是修正（如"其实吃了两片，不是一片"→替换）或补充（如"还有半碗米饭"→合并）。返回更新后的完整条目——如果现有内容应保留，则包含现有项目和新输入的项目，而不仅是新输入。\n`;
+    return `\n用户正在编辑一条已有的餐食记录，当前值为：\n  名称："${name}"\n  热量：${e.kcal ?? "—"}，蛋白质：${fmt(e.protein_g)}，碳水：${fmt(e.carbs_g)}，脂肪：${fmt(e.fat_g)}\n\n新输入可能是修正（如"其实吃了两片，不是一片"→替换）或补充（如"还有半碗米饭"→合并）。返回更新后的完整条目——如果现有内容应保留，则包含现有项目和新输入的项目，而不仅是新输入。\n`;
   }
-  return `\nThe user is EDITING an existing food entry with these current values:\n  Name: "${e.name}"\n  Kcal: ${e.kcal ?? "—"}, Protein: ${fmt(e.protein_g)}, Carbs: ${fmt(e.carbs_g)}, Fat: ${fmt(e.fat_g)}\n\nThe new input may be a CORRECTION ("actually it was 2 slices, not 1" → replace) or an ADDITION ("add half avocado" → merge). Return the COMPLETE updated entry — all items including the existing ones if they should be kept, not just the new input.\n`;
+  return `\nThe user is EDITING an existing food entry with these current values:\n  Name: "${name}"\n  Kcal: ${e.kcal ?? "—"}, Protein: ${fmt(e.protein_g)}, Carbs: ${fmt(e.carbs_g)}, Fat: ${fmt(e.fat_g)}\n\nThe new input may be a CORRECTION ("actually it was 2 slices, not 1" → replace) or an ADDITION ("add half avocado" → merge). Return the COMPLETE updated entry — all items including the existing ones if they should be kept, not just the new input.\n`;
 }
 
 export function mealParserPrompt(p: MealParserInput): Prompt {
+  const userText = sanitize(p.text, MAX_TEXT);
   // For zh the AI replies in Chinese (item names + notes). en/tr keep the
   // existing English-output behavior but still recognize Turkish portion idioms.
   if (p.locale === "zh") {
@@ -502,7 +541,7 @@ ${hint}
 ${existingBlock(p)}
 用户输入：
 """
-${p.text.trim()}
+${userText}
 """
 
 从"早餐/breakfast"、"午餐/lunch"、"晚餐/dinner"、"加餐/snack"等词判断餐别——否则默认为 ${p.defaultMeal ?? "snack"}。
@@ -559,7 +598,7 @@ ${hint}
 ${existingBlock(p)}
 User input:
 """
-${p.text.trim()}
+${userText}
 """
 
 Detect meal slot from words like "breakfast/kahvaltı", "lunch/öğle", "dinner/akşam", "snack/ara öğün" — otherwise default to ${p.defaultMeal ?? "snack"}.
