@@ -8,14 +8,14 @@ import { Select } from "@/components/ui/select";
 import { FoodNameAutocomplete } from "@/components/food/name-autocomplete";
 import type { FoodSuggestion } from "@/app/api/food/suggest/route";
 import { useT } from "@/lib/i18n/client";
-import { isoForDate, todayKey } from "@/lib/utils/day";
+import { isoForDate, todayKey, mealForNow } from "@/lib/utils/day";
 
 export function NewFoodForm({ initialDate }: { initialDate?: string } = {}) {
   const router = useRouter();
   const t = useT();
   const today = todayKey();
   const [date, setDate] = useState<string>(initialDate ?? today);
-  const [meal, setMeal] = useState<"breakfast" | "lunch" | "dinner" | "snack">("snack");
+  const [meal, setMeal] = useState<"breakfast" | "lunch" | "dinner" | "snack">(mealForNow());
   const [name, setName] = useState("");
   const [kcal, setKcal] = useState("");
   const [p, setP] = useState("");

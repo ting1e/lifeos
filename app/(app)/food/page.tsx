@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { and, asc, eq, gte, lt } from "drizzle-orm";
+import { and, asc, desc, eq, gte, lt } from "drizzle-orm";
 import {
   Apple,
   Coffee,
@@ -13,7 +13,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { db } from "@/lib/db/client";
-import { foodEntries } from "@/lib/db/schema";
+import { foodEntries, profile as profileTable } from "@/lib/db/schema";
 import { requireSession } from "@/lib/auth/session";
 import { getLocale, tFor } from "@/lib/i18n/server";
 import { Card, CardLabel } from "@/components/ui/card";
@@ -21,8 +21,11 @@ import { Button } from "@/components/ui/button";
 import { MacroBar } from "@/components/food/macro-bar";
 import { MonoStat } from "@/components/nothing/mono-stat";
 import { DayNav } from "@/components/dashboard/day-nav";
-import { todayKey } from "@/lib/utils/day";
+import { RecentHistory } from "@/components/food/recent-history";
+import { todayKey, ymdLocal } from "@/lib/utils/day";
 import { bcp47For } from "@/lib/utils";
+import { bmr, recommendedKcal, tdee } from "@/lib/nutrition";
+import { getMeasuredTdee } from "@/lib/whoop/tdee";
 
 export const dynamic = "force-dynamic";
 
@@ -84,6 +87,80 @@ export default async function FoodPage({
     snack: t("meal.snacks"),
   };
 
+  // Last 7 days (relative to today, not selectedKey)
+  const nowMid = new Date();
+  nowMid.setHours(0, 0, 0, 0);
+  const rangeStart = new Date(nowMid);
+  rangeStart.setDate(rangeStart.getDate() - 6);
+  const rangeEnd = new Date(nowMid);
+  rangeEnd.setDate(rangeEnd.getDate() + 1);
+
+  const recentEntries = await db
+    .select()
+    .from(foodEntries)
+    .where(
+      and(
+        eq(foodEntries.userId, user.id),
+        gte(foodEntries.consumedAt, rangeStart),
+        lt(foodEntries.consumedAt, rangeEnd),
+      ),
+    )
+    .orderBy(desc(foodEntries.consumedAt));
+
+  // Group by local day, newest first
+  const recentByDay = new Map<string, typeof recentEntries>();
+  for (const e of recentEntries) {
+    const key = ymdLocal(new Date(e.consumedAt));
+    if (!recentByDay.has(key)) recentByDay.set(key, []);
+    recentByDay.get(key)!.push(e);
+  }
+  const recentDays = Array.from(recentByDay.entries())
+    .sort((a, b) => b[0].localeCompare(a[0]))
+    .map(([date, items]) => {
+      const byMeal: Record<Meal, typeof items> = {
+        breakfast: [],
+        lunch: [],
+        dinner: [],
+        snack: [],
+      };
+      for (const e of items) {
+        const m = (e.meal as Meal) ?? "snack";
+        byMeal[m]?.push(e);
+      }
+      return {
+        date,
+        totals: {
+          kcal: items.reduce((a, e) => a + Number(e.kcal ?? 0), 0),
+          p: items.reduce((a, e) => a + Number(e.proteinG ?? 0), 0),
+          c: items.reduce((a, e) => a + Number(e.carbsG ?? 0), 0),
+          f: items.reduce((a, e) => a + Number(e.fatG ?? 0), 0),
+        },
+        byMeal,
+      };
+    });
+
+  // Compute kcal target (same logic as dashboard)
+  const [prof] = await db
+    .select()
+    .from(profileTable)
+    .where(eq(profileTable.userId, user.id))
+    .limit(1);
+  const heightCm = Number(prof?.heightCm ?? 0);
+  const weightKg = Number(prof?.weightKg ?? 0);
+  const age = prof?.age ?? 0;
+  const sex = prof?.sex ?? "m";
+  const activity = prof?.activityLevel ?? "moderate";
+  const goal = prof?.goal ?? "maintain";
+  const whoopEnabled = prof?.whoopEnabled ?? true;
+  const computedBmr =
+    weightKg && heightCm && age ? bmr({ sex, weightKg, heightCm, age }) : 0;
+  const formulaTdee = computedBmr ? tdee(computedBmr, activity) : 0;
+  const measured = whoopEnabled ? await getMeasuredTdee(user.id) : null;
+  const computedTdee = measured?.kcal ?? formulaTdee;
+  const kcalTarget = computedTdee
+    ? Math.round(recommendedKcal(computedTdee, goal))
+    : 0;
+
   const dayTitle = isToday
     ? t("food.title")
     : dayStart.toLocaleDateString(bcp47For(locale), {
@@ -119,7 +196,7 @@ export default async function FoodPage({
         </CardLabel>
         <div className="grid grid-cols-4 gap-3 mb-4">
           <MonoStat
-            label="KCAL"
+            label={t("food.kcal")}
             value={Math.round(kcal)}
             icon={<Flame size={12} strokeWidth={1.75} />}
           />
@@ -175,7 +252,7 @@ export default async function FoodPage({
                     {mealLabels[meal]} · {items.length} {t("food.items")}
                   </CardLabel>
                   <div className="font-mono text-[13px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)] tabular-nums">
-                    {Math.round(mealKcal)} kcal · P{Math.round(mealP)} C{Math.round(mealC)} F{Math.round(mealF)}
+                    {Math.round(mealKcal)} {t("food.kcal")} · P{Math.round(mealP)} C{Math.round(mealC)} F{Math.round(mealF)}
                   </div>
                 </div>
                 <ul>
@@ -204,7 +281,7 @@ export default async function FoodPage({
                           <div className="font-mono text-2xl text-[color:var(--text-display)] tabular-nums">
                             {Math.round(Number(e.kcal ?? 0))}
                           </div>
-                          <div className="mono-label">KCAL</div>
+                          <div className="mono-label">{t("food.kcal")}</div>
                         </div>
                       </Link>
                     </li>
@@ -214,6 +291,11 @@ export default async function FoodPage({
             );
           })
         )}
+      </section>
+
+      <section className="space-y-3">
+        <div className="mono-label">{t("food.recent7d")}</div>
+        <RecentHistory days={recentDays} todayKey={today} kcalTarget={kcalTarget} />
       </section>
     </div>
   );

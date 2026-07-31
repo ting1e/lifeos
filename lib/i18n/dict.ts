@@ -446,6 +446,8 @@ const en = {
   "food.addOne": "add one",
   "food.items": "items",
   "food.log": "+ LOG",
+  "food.recent7d": "RECENT · 7 DAYS",
+  "food.noRecentEntries": "No entries in the last 7 days.",
 
   // ---- Plan generation
   "plan.genDays": "DAYS",
@@ -461,6 +463,7 @@ const en = {
   // ---- Workout detail / session
   "work.back": "← BACK",
   "work.workoutNotFound": "workout not found —",
+  "work.confirmDelete": "Delete this workout and all its sets?",
   "work.startDay": "START DAY →",
   "work.newSession": "NEW SESSION",
   "work.startWorkoutTitle": "start workout",
@@ -1050,6 +1053,8 @@ const tr: Record<DictKey, string> = {
   "food.addOne": "bir tane ekle",
   "food.items": "kalem",
   "food.log": "+ EKLE",
+  "food.recent7d": "SON 7 GÜN",
+  "food.noRecentEntries": "Son 7 günde giriş yok.",
 
   // ---- Plan generation
   "plan.genDays": "GÜN",
@@ -1065,6 +1070,7 @@ const tr: Record<DictKey, string> = {
   // ---- Workout detail / session
   "work.back": "← GERİ",
   "work.workoutNotFound": "antrenman bulunamadı —",
+  "work.confirmDelete": "Bu antrenmanı ve tüm setlerini silmek istiyor musun?",
   "work.startDay": "GÜNÜ BAŞLAT →",
   "work.newSession": "YENİ OTURUM",
   "work.startWorkoutTitle": "antrenman başlat",
@@ -1651,6 +1657,8 @@ const zh: Record<DictKey, string> = {
   "food.addOne": "添加记录",
   "food.items": "条",
   "food.log": "+ 记录",
+  "food.recent7d": "最近 7 天",
+  "food.noRecentEntries": "最近 7 天无记录。",
 
   // ---- Plan generation
   "plan.genDays": "天数",
@@ -1666,6 +1674,7 @@ const zh: Record<DictKey, string> = {
   // ---- Workout detail / session
   "work.back": "← 返回",
   "work.workoutNotFound": "未找到训练 —",
+  "work.confirmDelete": "删除这次训练及其所有组？",
   "work.startDay": "开始训练日 →",
   "work.newSession": "新训练",
   "work.startWorkoutTitle": "开始训练",

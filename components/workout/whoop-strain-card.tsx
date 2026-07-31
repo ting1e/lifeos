@@ -85,7 +85,7 @@ export function WhoopStrainCard({ workoutId }: { workoutId: string }) {
             label={t("whoopStrain.strain")}
             value={data.strain != null ? data.strain.toFixed(1) : "—"}
           />
-          <MonoStat label={t("whoopStrain.kcal")} value={data.kcal ?? "—"} unit="kcal" />
+          <MonoStat label={t("whoopStrain.kcal")} value={data.kcal ?? "—"} unit={t("food.kcal")} />
           <MonoStat label={t("whoopStrain.avgHr")} value={data.avgHr ?? "—"} unit="bpm" />
           <MonoStat label={t("whoopStrain.maxHr")} value={data.maxHr ?? "—"} unit="bpm" />
           <div className="col-span-2 md:col-span-4 mono-label">

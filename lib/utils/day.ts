@@ -28,3 +28,13 @@ export function isoForDate(ymd: string): string {
     : new Date(y, m - 1, d, 12, 0, 0);
   return dt.toISOString();
 }
+
+// Pick a meal type based on the current local hour.
+// 7–10 breakfast, 11–14 lunch, 17–20 dinner, else snack.
+export function mealForNow(): "breakfast" | "lunch" | "dinner" | "snack" {
+  const h = new Date().getHours();
+  if (h >= 7 && h <= 10) return "breakfast";
+  if (h >= 11 && h <= 14) return "lunch";
+  if (h >= 17 && h <= 20) return "dinner";
+  return "snack";
+}

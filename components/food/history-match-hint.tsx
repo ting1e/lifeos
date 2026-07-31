@@ -98,7 +98,7 @@ export function HistoryMatchHint({ text, mealHint }: Props) {
                 {s.name}
               </div>
               <div className="font-mono text-[12px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)] flex flex-wrap gap-x-3">
-                <span>{s.kcal ?? "?"} KCAL</span>
+                <span>{s.kcal ?? "?"} {t("food.kcal")}</span>
                 <span>
                   {s.proteinG ?? "?"}P · {s.carbsG ?? "?"}C · {s.fatG ?? "?"}F
                 </span>

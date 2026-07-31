@@ -58,7 +58,7 @@ export default async function ProfilePage() {
           <MonoStat label={t("dash.bmi")} value={b ? b.toFixed(1) : "—"} unit={b ? bmiCategory(b).slice(0, 4).toUpperCase() : undefined} />
         </Card>
         <Card>
-          <MonoStat label={t("prof.bmr")} value={bm ? Math.round(bm) : "—"} unit="kcal" />
+          <MonoStat label={t("prof.bmr")} value={bm ? Math.round(bm) : "—"} unit={t("food.kcal")} />
         </Card>
         <Card>
           <MonoStat
@@ -68,11 +68,11 @@ export default async function ProfilePage() {
                 : t("dash.tdeeEst")
             }
             value={td ? Math.round(td) : "—"}
-            unit="kcal"
+            unit={t("food.kcal")}
           />
         </Card>
         <Card>
-          <MonoStat label={t("dash.target")} value={target || "—"} unit="kcal" accent />
+          <MonoStat label={t("dash.target")} value={target || "—"} unit={t("food.kcal")} accent />
         </Card>
       </section>
 

@@ -114,7 +114,7 @@ export async function MacroBlock({
           {kcalSafe && (
             <span className="text-[color:var(--text-secondary)]">
               {" "}
-              / {Math.round(kcalSafe)} kcal · {Math.round(kcalPct)}%
+              / {Math.round(kcalSafe)} {t("food.kcal")} · {Math.round(kcalPct)}%
             </span>
           )}
         </div>

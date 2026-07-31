@@ -13,6 +13,7 @@ import { getLocale, tFor } from "@/lib/i18n/server";
 import { bcp47For } from "@/lib/utils";
 import { notFound } from "next/navigation";
 import { WorkoutSession, type WorkoutExercise } from "./workout-session";
+import { DeleteWorkoutButton } from "./delete-workout-button";
 import { WhoopStrainCard } from "@/components/workout/whoop-strain-card";
 
 export const dynamic = "force-dynamic";
@@ -156,10 +157,11 @@ export default async function WorkoutDetail({
             })}
           </h1>
         </div>
-        <div className="text-right">
+        <div className="text-right space-y-2">
           <div className="mono-label">
             {w.endedAt ? t("work.completed") : t("work.inProgress")}
           </div>
+          <DeleteWorkoutButton workoutId={w.id} />
         </div>
       </header>
 

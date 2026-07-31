@@ -83,7 +83,6 @@ export function PhotoDrop({
       <input
         type="file"
         accept="image/*,image/heic,image/heif"
-        capture="environment"
         className="hidden"
         disabled={disabled || busy}
         onChange={(e) => handle(e.target.files)}

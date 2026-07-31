@@ -11,7 +11,7 @@ import { HistoryMatchHint } from "@/components/food/history-match-hint";
 import { useT } from "@/lib/i18n/client";
 import { isAiError } from "@/lib/ai/ai-error";
 import { readAiStream } from "@/lib/ai/sse";
-import { isoForDate, todayKey } from "@/lib/utils/day";
+import { isoForDate, todayKey, mealForNow } from "@/lib/utils/day";
 
 type Meal = "breakfast" | "lunch" | "dinner" | "snack";
 
@@ -60,7 +60,7 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
     setAiHint(isAiError(rawMsg));
   }
   const [date, setDate] = useState<string>(initialDate ?? today);
-  const [defaultMeal, setDefaultMeal] = useState<Meal>("breakfast");
+  const [defaultMeal, setDefaultMeal] = useState<Meal>(mealForNow());
   const [text, setText] = useState("");
   const [parsing, setParsing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -488,6 +488,7 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
                 <div className="grid grid-cols-4 gap-3">
                   <NumCell
                     label={t("food.kcal")}
+                    step="1"
                     value={it.kcal}
                     onChange={(v) => updateItem(i, { kcal: v })}
                   />
@@ -542,11 +543,13 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
 function NumCell({
   label,
   unit,
+  step = "0.1",
   value,
   onChange,
 }: {
   label: string;
   unit?: string;
+  step?: string;
   value: number;
   onChange: (v: number) => void;
 }) {
@@ -556,7 +559,7 @@ function NumCell({
       <div className="flex items-baseline gap-1">
         <input
           type="number"
-          step={label === "KCAL" ? "1" : "0.1"}
+          step={step}
           min={0}
           value={Number.isFinite(value) ? value : 0}
           onChange={(e) => onChange(Number(e.target.value) || 0)}

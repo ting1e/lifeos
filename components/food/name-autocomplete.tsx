@@ -122,7 +122,7 @@ export function FoodNameAutocomplete({ value, onChange, onPick, disabled }: Prop
                 {s.name}
               </div>
               <div className="font-mono text-[12px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)] mt-0.5 flex flex-wrap gap-x-3">
-                <span>{s.kcal ?? "?"} KCAL</span>
+                <span>{s.kcal ?? "?"} {t("food.kcal")}</span>
                 <span>{s.proteinG ?? "?"}P</span>
                 <span>{s.carbsG ?? "?"}C</span>
                 <span>{s.fatG ?? "?"}F</span>

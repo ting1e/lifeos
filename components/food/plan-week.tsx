@@ -116,7 +116,7 @@ export function PlanWeek({ days, todayKey }: Props) {
                 </div>
                 <div className="font-mono text-[12px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)]">
                   {d.totals
-                    ? `${Math.round(d.totals.kcal)} KCAL · P${Math.round(
+                    ? `${Math.round(d.totals.kcal)} ${t("food.kcal")} · P${Math.round(
                         d.totals.protein_g,
                       )} · C${Math.round(d.totals.carbs_g)} · F${Math.round(
                         d.totals.fat_g,
@@ -162,7 +162,7 @@ export function PlanWeek({ days, todayKey }: Props) {
                               <div className="font-mono text-base text-[color:var(--text-display)] tabular-nums">
                                 {Math.round(it.kcal)}
                                 <span className="text-[color:var(--text-secondary)] text-[12px] ml-1">
-                                  kcal
+                                  {t("food.kcal")}
                                 </span>
                               </div>
                               <div className="font-mono text-[12px] text-[color:var(--text-secondary)] tabular-nums">
