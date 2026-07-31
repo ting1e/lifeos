@@ -46,7 +46,7 @@ export function HistoryMatchHint({ text, mealHint }: Props) {
         });
         if (!r.ok) return;
         const data = (await r.json()) as { suggestions: FoodSuggestion[] };
-        setItems(data.suggestions.slice(0, 3));
+        setItems(data.suggestions.filter((s) => s.source === "history").slice(0, 3));
       } catch {
         /* aborted */
       }
@@ -93,6 +93,16 @@ export function HistoryMatchHint({ text, mealHint }: Props) {
       <ul className="space-y-1">
         {items.map((s) => (
           <li key={s.name + s.lastUsed} className="flex items-center gap-3">
+            {s.photoPath ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={`/api/uploads/${s.photoPath}`}
+                alt=""
+                className="w-9 h-9 object-cover border border-[color:var(--border)] shrink-0"
+              />
+            ) : (
+              <div className="w-9 h-9 dot-grid-subtle border border-[color:var(--border)] shrink-0" />
+            )}
             <div className="flex-1 min-w-0">
               <div className="font-body text-base text-[color:var(--text-display)] truncate">
                 {s.name}

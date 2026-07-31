@@ -17,13 +17,26 @@ const ITEMS: Item[] = [
   { href: "/profile", labelKey: "nav.meShort", icon: User2 },
 ];
 
-export function BottomNav({ whoopEnabled = true }: { whoopEnabled?: boolean }) {
+export function BottomNav({
+  whoopEnabled = true,
+  hiddenRoutes,
+}: {
+  whoopEnabled?: boolean;
+  hiddenRoutes?: Set<string>;
+}) {
   const pathname = usePathname();
   const t = useT();
-  const items = whoopEnabled ? ITEMS : ITEMS.filter((it) => it.href !== "/whoop");
+  const items = ITEMS.filter(
+    (it) =>
+      !hiddenRoutes?.has(it.href) &&
+      (it.href !== "/whoop" || whoopEnabled),
+  );
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[color:var(--black)] border-t border-[color:var(--border)] safe-bottom z-50">
-      <div className={`grid ${whoopEnabled ? "grid-cols-5" : "grid-cols-4"}`}>
+      <div
+        className="grid"
+        style={{ gridTemplateColumns: `repeat(${items.length}, 1fr)` }}
+      >
         {items.map((it) => {
           const active =
             it.href === "/" ? pathname === "/" : pathname.startsWith(it.href);

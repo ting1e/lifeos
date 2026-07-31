@@ -22,6 +22,7 @@ const en = {
   "nav.foodLog": "Food Log",
   "nav.mealPlan": "Meal Plan",
   "nav.pantry": "Pantry",
+  "nav.foodLibrary": "Food Library",
   "nav.preferences": "Preferences",
   "nav.whoop": "Whoop",
   "nav.analysis": "Analysis",
@@ -32,6 +33,8 @@ const en = {
   "nav.sectionTrain": "TRAIN",
   "nav.sectionEat": "EAT",
   "nav.sectionData": "DATA",
+  "nav.settingsTitle": "Navigation",
+  "nav.settingsHint": "Hidden items are still accessible via direct URL.",
   // ---- Bottom nav (short, uppercase)
   "nav.dashShort": "DASH",
   "nav.trainShort": "TRAIN",
@@ -42,6 +45,7 @@ const en = {
   // ---- Common buttons
   "common.save": "SAVE",
   "common.cancel": "CANCEL",
+  "common.confirm": "CONFIRM",
   "common.delete": "DELETE",
   "common.edit": "EDIT",
   "common.add": "ADD",
@@ -152,6 +156,9 @@ const en = {
   "food.orPhotoManual": "OR · MANUAL",
   "food.fromHistorySkipAi": "FROM YOUR HISTORY · SKIP AI",
   "food.fromHistory": "FROM HISTORY",
+  "food.fromLibrary": "FROM LIBRARY",
+  "food.saveToLibrary": "Save to food library",
+  "food.savedToLibrary": "saved",
   "food.matchKcalUse": "MATCH · {kcal} KCAL · USE →",
   "food.editEntry": "EDIT ENTRY",
   "food.editTitle": "edit meal",
@@ -275,6 +282,20 @@ const en = {
   "pantry.inventory": "INVENTORY",
   "pantry.addItem": "ADD ITEM",
   "pantry.onHand": "ON HAND",
+
+  // ---- Food Library
+  "foodLibrary.templates": "TEMPLATES",
+  "foodLibrary.title": "Food Library",
+  "foodLibrary.aiAdd": "AI · AUTOFILL",
+  "foodLibrary.manualAdd": "ADD ITEM",
+  "foodLibrary.saved": "SAVED",
+  "foodLibrary.empty": "empty",
+  "foodLibrary.namePlaceholder": "name (e.g. white rice)",
+  "foodLibrary.saveN": "SAVE {n} ITEM(S) →",
+  "foodLibrary.edit": "edit",
+  "foodLibrary.pickFrom": "FROM LIBRARY",
+  "foodLibrary.searchPlaceholder": "search…",
+  "foodLibrary.noMatch": "no match",
 
   // ---- Preferences
   "pref.title": "preferences",
@@ -630,6 +651,7 @@ const tr: Record<DictKey, string> = {
   "nav.foodLog": "Beslenme Günlüğü",
   "nav.mealPlan": "Diyet Planı",
   "nav.pantry": "Kiler",
+  "nav.foodLibrary": "Yemek Kütüphanesi",
   "nav.preferences": "Tercihler",
   "nav.whoop": "Whoop",
   "nav.analysis": "Analiz",
@@ -640,6 +662,8 @@ const tr: Record<DictKey, string> = {
   "nav.sectionTrain": "ANTRENMAN",
   "nav.sectionEat": "BESLENME",
   "nav.sectionData": "VERİ",
+  "nav.settingsTitle": "Gezinme",
+  "nav.settingsHint": "Gizli öğelere doğrudan URL ile erişilebilir.",
   // ---- Bottom nav
   "nav.dashShort": "ANA",
   "nav.trainShort": "TREN",
@@ -650,6 +674,7 @@ const tr: Record<DictKey, string> = {
   // ---- Common buttons
   "common.save": "KAYDET",
   "common.cancel": "İPTAL",
+  "common.confirm": "ONAYLA",
   "common.delete": "SİL",
   "common.edit": "DÜZENLE",
   "common.add": "EKLE",
@@ -760,6 +785,9 @@ const tr: Record<DictKey, string> = {
   "food.orPhotoManual": "VEYA · MANUEL",
   "food.fromHistorySkipAi": "GEÇMİŞTEN · AI'I ATLA",
   "food.fromHistory": "GEÇMİŞTEN",
+  "food.fromLibrary": "KÜTÜPHANEDEN",
+  "food.saveToLibrary": "Yemek kütüphanesine kaydet",
+  "food.savedToLibrary": "kaydedildi",
   "food.matchKcalUse": "EŞLEŞME · {kcal} KCAL · KULLAN →",
   "food.editEntry": "GİRİŞİ DÜZENLE",
   "food.editTitle": "öğünü düzenle",
@@ -883,6 +911,20 @@ const tr: Record<DictKey, string> = {
   "pantry.inventory": "ENVANTER",
   "pantry.addItem": "ÜRÜN EKLE",
   "pantry.onHand": "ELİNDE OLANLAR",
+
+  // ---- Food Library
+  "foodLibrary.templates": "ŞABLONLAR",
+  "foodLibrary.title": "Yemek Kütüphanesi",
+  "foodLibrary.aiAdd": "AI · OTOMATİK",
+  "foodLibrary.manualAdd": "ÜRÜN EKLE",
+  "foodLibrary.saved": "KAYITLI",
+  "foodLibrary.empty": "boş",
+  "foodLibrary.namePlaceholder": "isim (örn. pirinç)",
+  "foodLibrary.saveN": "{n} ÜRÜN KAYDET →",
+  "foodLibrary.edit": "düzenle",
+  "foodLibrary.pickFrom": "KÜTÜPHANEDEN",
+  "foodLibrary.searchPlaceholder": "ara…",
+  "foodLibrary.noMatch": "eşleşme yok",
 
   // ---- Preferences
   "pref.title": "tercihler",
@@ -1236,6 +1278,7 @@ const zh: Record<DictKey, string> = {
   "nav.foodLog": "饮食记录",
   "nav.mealPlan": "餐饮计划",
   "nav.pantry": "食材库",
+  "nav.foodLibrary": "食物库",
   "nav.preferences": "偏好",
   "nav.whoop": "Whoop",
   "nav.analysis": "分析",
@@ -1246,6 +1289,8 @@ const zh: Record<DictKey, string> = {
   "nav.sectionTrain": "训练",
   "nav.sectionEat": "饮食",
   "nav.sectionData": "数据",
+  "nav.settingsTitle": "导航栏",
+  "nav.settingsHint": "隐藏的项目仍可通过 URL 直接访问。",
   // ---- Bottom nav
   "nav.dashShort": "概览",
   "nav.trainShort": "训练",
@@ -1256,6 +1301,7 @@ const zh: Record<DictKey, string> = {
   // ---- Common buttons
   "common.save": "保存",
   "common.cancel": "取消",
+  "common.confirm": "确认",
   "common.delete": "删除",
   "common.edit": "编辑",
   "common.add": "添加",
@@ -1365,6 +1411,9 @@ const zh: Record<DictKey, string> = {
   "food.orPhotoManual": "或 · 手动",
   "food.fromHistorySkipAi": "从历史记录 · 跳过 AI",
   "food.fromHistory": "从历史记录",
+  "food.fromLibrary": "来自食物库",
+  "food.saveToLibrary": "保存到食物库",
+  "food.savedToLibrary": "已保存",
   "food.matchKcalUse": "匹配 · {kcal} 卡路里 · 使用 →",
   "food.editEntry": "编辑记录",
   "food.editTitle": "编辑餐食",
@@ -1488,6 +1537,20 @@ const zh: Record<DictKey, string> = {
   "pantry.inventory": "库存",
   "pantry.addItem": "添加物品",
   "pantry.onHand": "现有",
+
+  // ---- Food Library
+  "foodLibrary.templates": "模板",
+  "foodLibrary.title": "食物库",
+  "foodLibrary.aiAdd": "AI · 自动添加",
+  "foodLibrary.manualAdd": "添加食物",
+  "foodLibrary.saved": "已保存",
+  "foodLibrary.empty": "空空如也",
+  "foodLibrary.namePlaceholder": "名称（如：白米饭）",
+  "foodLibrary.saveN": "保存 {n} 项 →",
+  "foodLibrary.edit": "编辑",
+  "foodLibrary.pickFrom": "从食物库选择",
+  "foodLibrary.searchPlaceholder": "搜索…",
+  "foodLibrary.noMatch": "无匹配",
 
   // ---- Preferences
   "pref.title": "偏好",

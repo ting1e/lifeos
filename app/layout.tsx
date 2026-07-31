@@ -33,7 +33,7 @@ export async function generateMetadata(): Promise<Metadata> {
         ? "Kişisel yaşam takipçisi — antrenman, beslenme, Whoop, AI."
         : "Self-hosted personal life tracker — workouts, nutrition, Whoop, AI.";
   return {
-    title: "Lifetracker",
+    title: "lifeos",
     description,
     manifest: "/manifest.json",
   };

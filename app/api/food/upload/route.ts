@@ -14,7 +14,10 @@ export async function POST(req: Request) {
   if (file.size > 15 * 1024 * 1024) {
     return NextResponse.json({ error: "too_large" }, { status: 413 });
   }
-  const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const rawExt = (file.name.split(".").pop() ?? "jpg").toLowerCase().replace(/[^a-z0-9]/g, "");
+  // browser-image-compression names output files "*.blob" — the content is a
+  // compressed image (usually jpeg), so normalize it to a renderable extension.
+  const ext = rawExt === "blob" ? "jpg" : rawExt;
   const buf = Buffer.from(await file.arrayBuffer());
   const name = await writeUpload(buf, ext || "jpg");
   return NextResponse.json({ name });

@@ -105,6 +105,7 @@ export const profile = pgTable("profile", {
   aiImageModel: text("ai_image_model"),
   aiAudioModel: text("ai_audio_model"),
   healthSyncToken: text("health_sync_token"),
+  navSettings: jsonb("nav_settings"),
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .defaultNow()
@@ -331,6 +332,30 @@ export const pantryItems = pgTable(
   }),
 );
 
+export const foodLibrary = pgTable(
+  "food_library",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    kcal: numeric("kcal", { precision: 7, scale: 1 }),
+    proteinG: numeric("protein_g", { precision: 6, scale: 1 }),
+    carbsG: numeric("carbs_g", { precision: 6, scale: 1 }),
+    fatG: numeric("fat_g", { precision: 6, scale: 1 }),
+    photoPath: text("photo_path"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => ({
+    userIdx: index("food_library_user_idx").on(t.userId),
+  }),
+);
+
 export const mealPlans = pgTable("meal_plans", {
   id: uuid("id").defaultRandom().primaryKey(),
   userId: uuid("user_id")
@@ -488,6 +513,7 @@ export type WorkoutSet = typeof workoutSets.$inferSelect;
 export type FoodEntry = typeof foodEntries.$inferSelect;
 export type FoodPreference = typeof foodPreferences.$inferSelect;
 export type PantryItem = typeof pantryItems.$inferSelect;
+export type FoodLibraryItem = typeof foodLibrary.$inferSelect;
 export type MealPlan = typeof mealPlans.$inferSelect;
 export type ShoppingList = typeof shoppingLists.$inferSelect;
 export type WhoopRecovery = typeof whoopRecovery.$inferSelect;

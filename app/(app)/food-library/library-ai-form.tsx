@@ -2,18 +2,12 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { BookPlus, Mic, Sparkles, Square, Trash2, X } from "lucide-react";
+import { Mic, Sparkles, Square, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
 import { PhotoDrop } from "@/components/food/photo-drop";
-import { HistoryMatchHint } from "@/components/food/history-match-hint";
 import { useT } from "@/lib/i18n/client";
 import { isAiError } from "@/lib/ai/ai-error";
 import { readAiStream } from "@/lib/ai/sse";
-import { isoForDate, todayKey, mealForNow } from "@/lib/utils/day";
-
-type Meal = "breakfast" | "lunch" | "dinner" | "snack";
 
 type ParsedItem = {
   name: string;
@@ -26,20 +20,15 @@ type ParsedItem = {
 };
 
 type ParseResult = {
-  meal: Meal;
   items: ParsedItem[];
   confidence?: number;
   search_used?: boolean;
 };
 
-const MEAL_OPTIONS: Meal[] = ["breakfast", "lunch", "dinner", "snack"];
-
-export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
+export function LibraryAiForm() {
   const router = useRouter();
   const t = useT();
-  const today = todayKey();
 
-  // Map server error codes to user-friendly i18n messages.
   function friendlyError(msg: string): string {
     switch (msg) {
       case "parse_failed":
@@ -53,19 +42,14 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
     }
   }
 
-  // Set a friendly error message and flag whether it is an AI analysis
-  // error (so the "check AI configuration" hint can be shown).
   function fail(rawMsg: string) {
     setError(friendlyError(rawMsg));
     setAiHint(isAiError(rawMsg));
   }
-  const [date, setDate] = useState<string>(initialDate ?? today);
-  const [defaultMeal, setDefaultMeal] = useState<Meal>(mealForNow());
+
   const [text, setText] = useState("");
   const [parsing, setParsing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [libBusy, setLibBusy] = useState(false);
-  const [libSaved, setLibSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [aiHint, setAiHint] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
@@ -78,7 +62,6 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
   const [photoUploading, setPhotoUploading] = useState(false);
   const [photoDropKey, setPhotoDropKey] = useState(0);
 
-  // ---- photo ----
   async function uploadPhoto(file: File) {
     setPhotoUploading(true);
     setError(null);
@@ -211,7 +194,6 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
         body: JSON.stringify({
           text: text.trim() || undefined,
           photoPath: photoPath ?? undefined,
-          defaultMeal,
         }),
       });
       if (!r.ok) {
@@ -220,7 +202,7 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
       }
       const data = (await readAiStream(r, {
         onChunk: (text) => setStreaming((p) => p + text),
-      })) as { parsed: ParseResult };
+      })) as { parsed: { meal?: string; items: ParsedItem[]; confidence?: number; search_used?: boolean } };
       setResult(data.parsed);
       setStreaming("");
       setStatus(
@@ -237,7 +219,7 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
     }
   }
 
-  // ---- inline edits on the parsed preview ----
+  // ---- inline edits ----
   function updateItem(i: number, patch: Partial<ParsedItem>) {
     setResult((prev) =>
       prev
@@ -258,21 +240,17 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
     setError(null);
     setStatus(t("common.saving"));
     try {
-      const consumedAt = isoForDate(date);
       for (const it of result.items) {
-        const name = it.quantity ? `${it.name} — ${it.quantity}` : it.name;
-        const r = await fetch("/api/food", {
+        const r = await fetch("/api/food-library", {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({
-            meal: result.meal,
-            name,
+            name: it.quantity ? `${it.name} — ${it.quantity}` : it.name,
             kcal: Math.round(it.kcal),
             protein_g: Number(it.protein_g.toFixed(1)),
             carbs_g: Number(it.carbs_g.toFixed(1)),
             fat_g: Number(it.fat_g.toFixed(1)),
             photoPath: photoPath ?? undefined,
-            consumedAt,
           }),
         });
         if (!r.ok) {
@@ -280,39 +258,18 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
           throw new Error(j?.error ?? `http_${r.status}`);
         }
       }
-      router.push(date === today ? "/food" : `/food?day=${date}`);
       router.refresh();
+      setResult(null);
+      setStatus(null);
+      if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
+      setPhotoPath(null);
+      setPhotoPreviewUrl(null);
+      setPhotoDropKey((k) => k + 1);
     } catch (e) {
       fail(e instanceof Error ? e.message : String(e));
       setStatus(null);
     } finally {
       setSaving(false);
-    }
-  }
-
-  async function saveAllToLibrary() {
-    if (!result || result.items.length === 0) return;
-    setLibBusy(true);
-    setLibSaved(false);
-    try {
-      for (const it of result.items) {
-        const name = it.quantity ? `${it.name} — ${it.quantity}` : it.name;
-        await fetch("/api/food-library", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            name,
-            kcal: Math.round(it.kcal),
-            protein_g: Number(it.protein_g.toFixed(1)),
-            carbs_g: Number(it.carbs_g.toFixed(1)),
-            fat_g: Number(it.fat_g.toFixed(1)),
-            photoPath: photoPath ?? undefined,
-          }),
-        });
-      }
-      setLibSaved(true);
-    } finally {
-      setLibBusy(false);
     }
   }
 
@@ -334,7 +291,7 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
           strokeWidth={1.5}
           className="text-[color:var(--accent)]"
         />
-        <div className="mono-label">{t("food.aiAutolog")}</div>
+        <div className="mono-label">{t("foodLibrary.aiAdd")}</div>
       </div>
 
       {photoPath && photoPreviewUrl ? (
@@ -358,34 +315,7 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
         <PhotoDrop key={photoDropKey} onUpload={uploadPhoto} onError={(msg) => fail(msg)} disabled={parsing || saving || photoUploading} />
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-[200px_200px_1fr] gap-4">
-        <div>
-          <div className="mono-label mb-1">{t("food.defaultMeal")}</div>
-          <Select
-            value={defaultMeal}
-            onChange={(e) => setDefaultMeal(e.target.value as Meal)}
-          >
-            {MEAL_OPTIONS.map((m) => (
-              <option key={m} value={m}>
-                {t(`meal.${m}Lower` as const)}
-              </option>
-            ))}
-          </Select>
-        </div>
-        <div>
-          <div className="mono-label mb-1">
-            {t("common.date")}
-            {date !== today && (
-              <span className="ml-2 text-[color:var(--accent)]">· {t("dash.viewing")}</span>
-            )}
-          </div>
-          <Input
-            type="date"
-            value={date}
-            max={today}
-            onChange={(e) => setDate(e.target.value || today)}
-          />
-        </div>
+      <div className="grid grid-cols-1 gap-4">
         <div>
           <div className="mono-label mb-1">{t("food.describe")}</div>
           <textarea
@@ -395,7 +325,6 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
             placeholder={t("food.aiPlaceholder")}
             className="w-full bg-transparent border-b border-[color:var(--border-visible)] py-2 font-body text-lg text-[color:var(--text-display)] focus:outline-none focus:border-[color:var(--accent)] resize-none placeholder:text-[color:var(--text-disabled)]"
           />
-          {!result && <HistoryMatchHint text={text} mealHint={defaultMeal} />}
         </div>
       </div>
 
@@ -453,28 +382,12 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
       {result && (
         <div className="space-y-3 pt-2 border-t border-[color:var(--border)]">
           <div className="flex items-baseline justify-between">
-            <div className="mono-label">{t("food.preview")} · {t(`meal.${result.meal}` as const)}</div>
+            <div className="mono-label">{t("food.preview")}</div>
             <div className="font-mono text-[13px] text-[color:var(--text-disabled)] uppercase tracking-[0.08em]">
               {result.confidence != null
                 ? t("food.confidence", { n: (result.confidence * 100).toFixed(0) })
                 : ""}
             </div>
-          </div>
-
-          <div>
-            <div className="mono-label mb-1">{t("food.saveAs")}</div>
-            <Select
-              value={result.meal}
-              onChange={(e) =>
-                setResult((prev) => (prev ? { ...prev, meal: e.target.value as Meal } : prev))
-              }
-            >
-              {MEAL_OPTIONS.map((m) => (
-                <option key={m} value={m}>
-                  {t(`meal.${m}Lower` as const)}
-                </option>
-              ))}
-            </Select>
           </div>
 
           <ul className="space-y-2">
@@ -549,30 +462,14 @@ export function AiMealForm({ initialDate }: { initialDate?: string } = {}) {
             </div>
           )}
 
-          <div className="flex items-center justify-between pt-1">
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={saveAllToLibrary}
-                disabled={libBusy || saving || result.items.length === 0}
-                className="btn btn--outline btn--sm"
-              >
-                <BookPlus size={14} strokeWidth={1.5} className="mr-2" />
-                {libBusy ? t("common.busy") : t("food.saveToLibrary")}
-              </button>
-              {libSaved && (
-                <span className="font-mono text-[12px] uppercase tracking-[0.08em] text-[color:var(--accent)]">
-                  ✓ {t("food.savedToLibrary")}
-                </span>
-              )}
-            </div>
+          <div className="flex justify-end pt-1">
             <Button
               type="button"
               variant="accent"
               onClick={saveAll}
               disabled={saving || result.items.length === 0}
             >
-              {saving ? t("common.saving") : t("food.saveItems", { n: result.items.length })}
+              {saving ? t("common.saving") : t("foodLibrary.saveN", { n: result.items.length })}
             </Button>
           </div>
         </div>

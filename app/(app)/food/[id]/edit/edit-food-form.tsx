@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Sparkles, Trash2 } from "lucide-react";
+import { BookPlus, Sparkles, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -20,6 +20,7 @@ type Initial = {
   carbs_g: number | null;
   fat_g: number | null;
   consumedAt: string; // ISO
+  photoPath: string | null;
 };
 
 export function EditFoodForm({ id, initial }: { id: string; initial: Initial }) {
@@ -49,6 +50,8 @@ export function EditFoodForm({ id, initial }: { id: string; initial: Initial }) 
   const [aiStatus, setAiStatus] = useState<string | null>(null);
 
   const [saving, setSaving] = useState(false);
+  const [libBusy, setLibBusy] = useState(false);
+  const [libSaved, setLibSaved] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -144,8 +147,30 @@ export function EditFoodForm({ id, initial }: { id: string; initial: Initial }) 
     }
   }
 
+  async function saveToLibrary() {
+    if (!name.trim()) return;
+    setLibBusy(true);
+    setLibSaved(false);
+    try {
+      const r = await fetch("/api/food-library", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          name,
+          kcal: kcal ? Number(kcal) : null,
+          protein_g: p ? Number(p) : null,
+          carbs_g: c ? Number(c) : null,
+          fat_g: f ? Number(f) : null,
+          photoPath: initial.photoPath ?? undefined,
+        }),
+      });
+      if (r.ok) setLibSaved(true);
+    } finally {
+      setLibBusy(false);
+    }
+  }
+
   async function del() {
-    if (!confirm(t("food.confirmDelete"))) return;
     setDeleting(true);
     setError(null);
     try {
@@ -164,6 +189,16 @@ export function EditFoodForm({ id, initial }: { id: string; initial: Initial }) 
 
   return (
     <form onSubmit={save} className="space-y-6">
+      {initial.photoPath && (
+        <div className="pb-5 border-b border-[color:var(--border)]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={`/api/uploads/${initial.photoPath}`}
+            alt=""
+            className="max-h-48 object-contain border border-[color:var(--border)]"
+          />
+        </div>
+      )}
       <div className="space-y-3 pb-5 border-b border-[color:var(--border)]">
         <div className="flex items-center gap-2">
           <Sparkles
@@ -280,15 +315,33 @@ export function EditFoodForm({ id, initial }: { id: string; initial: Initial }) 
       )}
 
       <div className="flex items-center justify-between">
-        <Button
-          type="button"
-          variant="danger"
-          onClick={del}
-          disabled={saving || deleting}
-        >
-          <Trash2 size={14} strokeWidth={1.5} className="mr-2" />
-          {deleting ? t("common.busy") : t("common.delete")}
-        </Button>
+        <div className="flex items-center gap-4">
+          <Button
+            type="button"
+            variant="danger"
+            onClick={del}
+            disabled={saving || deleting}
+          >
+            <Trash2 size={14} strokeWidth={1.5} className="mr-2" />
+            {deleting ? t("common.busy") : t("common.delete")}
+          </Button>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={saveToLibrary}
+              disabled={libBusy || !name.trim() || saving || deleting}
+              className="btn btn--outline btn--sm"
+            >
+              <BookPlus size={14} strokeWidth={1.5} className="mr-2" />
+              {libBusy ? t("common.busy") : t("food.saveToLibrary")}
+            </button>
+            {libSaved && (
+              <span className="font-mono text-[12px] uppercase tracking-[0.08em] text-[color:var(--accent)]">
+                ✓ {t("food.savedToLibrary")}
+              </span>
+            )}
+          </div>
+        </div>
         <Button type="submit" disabled={saving || deleting || !name}>
           {saving ? t("common.saving") : `${t("common.save")} →`}
         </Button>

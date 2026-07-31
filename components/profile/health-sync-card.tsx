@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useT } from "@/lib/i18n/client";
 
 type Status = {
@@ -14,6 +15,7 @@ type Status = {
 
 export function HealthSyncCard() {
   const t = useT();
+  const confirm = useConfirm();
   const router = useRouter();
   const [status, setStatus] = useState<Status | null>(null);
   const [busy, setBusy] = useState(false);
@@ -50,7 +52,7 @@ export function HealthSyncCard() {
   }
 
   async function revoke() {
-    if (!confirm(t("health.confirmRevoke"))) return;
+    if (!(await confirm({ message: t("health.confirmRevoke"), danger: true }))) return;
     setBusy(true);
     try {
       await fetch("/api/profile/health-sync", {

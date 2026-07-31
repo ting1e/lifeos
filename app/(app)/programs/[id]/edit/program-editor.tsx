@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, X } from "lucide-react";
 import { useT } from "@/lib/i18n/client";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ExercisePicker } from "@/components/workout/exercise-picker";
@@ -45,6 +46,7 @@ export function ProgramEditor({
 }) {
   const router = useRouter();
   const t = useT();
+  const confirm = useConfirm();
   const [name, setName] = useState(initialName);
   const [description, setDescription] = useState(initialDescription);
   const [days, setDays] = useState<EditorDay[]>(initialDays);
@@ -314,11 +316,12 @@ export function ProgramEditor({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => {
+                onClick={async () => {
                   if (
-                    confirm(
-                      t("prog.deleteDay", { day: day.name, count: String(day.exercises.length) }),
-                    )
+                    await confirm({
+                      message: t("prog.deleteDay", { day: day.name, count: String(day.exercises.length) }),
+                      danger: true,
+                    })
                   ) {
                     deleteDay(day.id);
                   }

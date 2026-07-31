@@ -10,6 +10,7 @@ import { DataIoCard } from "@/components/profile/data-io-card";
 import { AiConfigForm } from "./ai-config-form";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { LanguageSwitcher } from "@/components/profile/language-switcher";
+import { NavSettingsCard } from "@/components/profile/nav-settings-card";
 import { bmi, bmiCategory, bmr, recommendedKcal, tdee, macroSplit } from "@/lib/nutrition";
 import { getMeasuredTdee } from "@/lib/whoop/tdee";
 import { Card, CardLabel } from "@/components/ui/card";
@@ -126,6 +127,14 @@ export default async function ProfilePage() {
       <Card>
         <CardLabel>{t("prof.whoopIntegration")}</CardLabel>
         <WhoopToggle enabled={whoopEnabled} />
+      </Card>
+
+      <Card>
+        <CardLabel>{t("nav.settingsTitle")}</CardLabel>
+        <NavSettingsCard
+          initialHidden={Array.isArray(p?.navSettings) ? (p!.navSettings as string[]) : []}
+          whoopEnabled={whoopEnabled}
+        />
       </Card>
 
       <Card>

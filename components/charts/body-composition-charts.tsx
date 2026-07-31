@@ -130,20 +130,6 @@ export function BodyCompositionCharts({ samples }: { samples: BodySample[] }) {
       </Card>
 
       <Card>
-        <CardLabel>{t("anal.muscleMass")}</CardLabel>
-        {muscleSeries.length > 0 ? (
-          <LineChart
-            data={muscleSeries}
-            xKey="date"
-            yKey="muscle"
-            color="var(--success)"
-          />
-        ) : (
-          noData
-        )}
-      </Card>
-
-      <Card>
         <CardLabel>{t("anal.leanBodyMass")}</CardLabel>
         {leanSeries.length > 0 ? (
           <LineChart
@@ -151,6 +137,20 @@ export function BodyCompositionCharts({ samples }: { samples: BodySample[] }) {
             xKey="date"
             yKey="lean"
             color="var(--text-display)"
+          />
+        ) : (
+          noData
+        )}
+      </Card>
+
+      <Card>
+        <CardLabel>{t("anal.muscleMass")}</CardLabel>
+        {muscleSeries.length > 0 ? (
+          <LineChart
+            data={muscleSeries}
+            xKey="date"
+            yKey="muscle"
+            color="var(--success)"
           />
         ) : (
           noData

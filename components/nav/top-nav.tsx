@@ -16,6 +16,7 @@ const NAV: Item[] = [
   { href: "/programs", labelKey: "nav.programs" },
   { href: "/food", labelKey: "nav.food" },
   { href: "/food/plan", labelKey: "nav.mealPlan" },
+  { href: "/food-library", labelKey: "nav.foodLibrary" },
   { href: "/pantry", labelKey: "nav.pantry" },
   { href: "/whoop", labelKey: "nav.whoop" },
   { href: "/analysis", labelKey: "nav.analysis" },
@@ -36,9 +37,19 @@ function pickActive(pathname: string, nav: Item[]): string | null {
   return best;
 }
 
-export function TopNav({ whoopEnabled = true }: { whoopEnabled?: boolean }) {
+export function TopNav({
+  whoopEnabled = true,
+  hiddenRoutes,
+}: {
+  whoopEnabled?: boolean;
+  hiddenRoutes?: Set<string>;
+}) {
   const pathname = usePathname();
-  const nav = whoopEnabled ? NAV : NAV.filter((it) => it.href !== "/whoop");
+  const nav = NAV.filter(
+    (it) =>
+      !hiddenRoutes?.has(it.href) &&
+      (it.href !== "/whoop" || whoopEnabled),
+  );
   const active = pickActive(pathname, nav);
   const t = useT();
 

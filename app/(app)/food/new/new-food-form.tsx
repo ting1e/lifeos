@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { BookPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { FoodNameAutocomplete } from "@/components/food/name-autocomplete";
+import { LibraryPicker } from "@/components/food/library-picker";
 import type { FoodSuggestion } from "@/app/api/food/suggest/route";
 import { useT } from "@/lib/i18n/client";
 import { isoForDate, todayKey, mealForNow } from "@/lib/utils/day";
@@ -21,7 +23,33 @@ export function NewFoodForm({ initialDate }: { initialDate?: string } = {}) {
   const [p, setP] = useState("");
   const [c, setC] = useState("");
   const [f, setF] = useState("");
+  const [photoPath, setPhotoPath] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [libSaved, setLibSaved] = useState(false);
+  const [libBusy, setLibBusy] = useState(false);
+
+  async function saveToLibrary() {
+    if (!name.trim()) return;
+    setLibBusy(true);
+    setLibSaved(false);
+    try {
+      const r = await fetch("/api/food-library", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          name,
+          kcal: kcal ? Number(kcal) : null,
+          protein_g: p ? Number(p) : null,
+          carbs_g: c ? Number(c) : null,
+          fat_g: f ? Number(f) : null,
+          photoPath: photoPath ?? undefined,
+        }),
+      });
+      if (r.ok) setLibSaved(true);
+    } finally {
+      setLibBusy(false);
+    }
+  }
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -37,6 +65,7 @@ export function NewFoodForm({ initialDate }: { initialDate?: string } = {}) {
           protein_g: p ? Number(p) : null,
           carbs_g: c ? Number(c) : null,
           fat_g: f ? Number(f) : null,
+          photoPath: photoPath ?? undefined,
           consumedAt: isoForDate(date),
         }),
       });
@@ -84,6 +113,7 @@ export function NewFoodForm({ initialDate }: { initialDate?: string } = {}) {
               if (s.carbsG != null) setC(String(Math.round(s.carbsG)));
               if (s.fatG != null) setF(String(Math.round(s.fatG)));
               if (s.meal) setMeal(s.meal);
+              setPhotoPath(s.photoPath ?? null);
             }}
             disabled={busy}
           />
@@ -126,7 +156,34 @@ export function NewFoodForm({ initialDate }: { initialDate?: string } = {}) {
         </div>
       </div>
 
-      <div className="flex justify-end">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={saveToLibrary}
+            disabled={libBusy || !name.trim()}
+            className="btn btn--outline btn--sm"
+          >
+            <BookPlus size={14} strokeWidth={1.5} className="mr-2" />
+            {libBusy ? t("common.busy") : t("food.saveToLibrary")}
+          </button>
+          <LibraryPicker
+            onPick={(item) => {
+              setName(item.name);
+              if (item.kcal != null) setKcal(String(Math.round(item.kcal)));
+              if (item.proteinG != null) setP(String(Math.round(item.proteinG)));
+              if (item.carbsG != null) setC(String(Math.round(item.carbsG)));
+              if (item.fatG != null) setF(String(Math.round(item.fatG)));
+              setPhotoPath(item.photoPath);
+            }}
+            disabled={busy}
+          />
+          {libSaved && (
+            <span className="font-mono text-[12px] uppercase tracking-[0.08em] text-[color:var(--accent)]">
+              ✓ {t("food.savedToLibrary")}
+            </span>
+          )}
+        </div>
         <Button type="submit" disabled={busy || !name}>
           {busy ? t("common.busy") : `${t("common.save")} →`}
         </Button>

@@ -1,0 +1,1 @@
+ALTER TABLE "body_metrics" ALTER COLUMN "lean_body_mass_kg" SET DATA TYPE numeric(5, 1);

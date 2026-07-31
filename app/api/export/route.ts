@@ -4,6 +4,7 @@ import { db } from "@/lib/db/client";
 import {
   bodyMetrics,
   foodEntries,
+  foodLibrary,
   foodPreferences,
   mealPlans,
   pantryItems,
@@ -55,6 +56,7 @@ export async function GET() {
   const foodEntriesRows = await db.select().from(foodEntries).where(eq(foodEntries.userId, userId));
   const foodPreferencesRows = await db.select().from(foodPreferences).where(eq(foodPreferences.userId, userId));
   const pantryItemsRows = await db.select().from(pantryItems).where(eq(pantryItems.userId, userId));
+  const foodLibraryRows = await db.select().from(foodLibrary).where(eq(foodLibrary.userId, userId));
   const mealPlansRows = await db.select().from(mealPlans).where(eq(mealPlans.userId, userId));
   const mealPlanIds = mealPlansRows.map((r) => r.id);
   const shoppingListsRows =
@@ -73,6 +75,16 @@ export async function GET() {
       try {
         const buf = await fs.readFile(uploadPath(entry.photoPath));
         photos[entry.photoPath] = buf.toString("base64");
+      } catch {
+        // file missing — skip
+      }
+    }
+  }
+  for (const item of foodLibraryRows) {
+    if (item.photoPath && !photos[item.photoPath]) {
+      try {
+        const buf = await fs.readFile(uploadPath(item.photoPath));
+        photos[item.photoPath] = buf.toString("base64");
       } catch {
         // file missing — skip
       }
@@ -102,6 +114,7 @@ export async function GET() {
       foodEntries: foodEntriesRows.map(stripUserId),
       foodPreferences: foodPreferencesRows.map(stripUserId),
       pantryItems: pantryItemsRows.map(stripUserId),
+      foodLibrary: foodLibraryRows.map(stripUserId),
       mealPlans: mealPlansRows.map(stripUserId),
       shoppingLists: shoppingListsRows,
       whoopRecovery: whoopRecoveryRows.map(stripUserId),

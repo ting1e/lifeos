@@ -6,6 +6,7 @@ import { db } from "@/lib/db/client";
 import {
   bodyMetrics,
   foodEntries,
+  foodLibrary,
   foodPreferences,
   mealPlans,
   pantryItems,
@@ -78,7 +79,8 @@ export async function POST(req: NextRequest) {
     for (const [oldName, b64] of Object.entries(body.photos)) {
       if (typeof b64 !== "string") continue;
       try {
-        const ext = path.extname(oldName).slice(1) || "jpg";
+        const rawExt = path.extname(oldName).slice(1) || "jpg";
+        const ext = rawExt === "blob" ? "jpg" : rawExt;
         const newName = await writeUpload(Buffer.from(b64, "base64"), ext);
         photoMapping[oldName] = newName;
         photosImported++;
@@ -98,6 +100,7 @@ export async function POST(req: NextRequest) {
         await tx.delete(bodyMetrics).where(eq(bodyMetrics.userId, userId));
         await tx.delete(foodEntries).where(eq(foodEntries.userId, userId));
         await tx.delete(foodPreferences).where(eq(foodPreferences.userId, userId));
+        await tx.delete(foodLibrary).where(eq(foodLibrary.userId, userId));
         await tx.delete(pantryItems).where(eq(pantryItems.userId, userId));
         await tx.delete(whoopRecovery).where(eq(whoopRecovery.userId, userId));
         await tx.delete(whoopSleep).where(eq(whoopSleep.userId, userId));
@@ -125,6 +128,7 @@ export async function POST(req: NextRequest) {
             aiTextModel: (p.aiTextModel as string | null) ?? null,
             aiImageModel: (p.aiImageModel as string | null) ?? null,
             aiAudioModel: (p.aiAudioModel as string | null) ?? null,
+            navSettings: (p.navSettings as unknown | null) ?? null,
           })
           .onConflictDoUpdate({
             target: profile.userId,
@@ -143,6 +147,7 @@ export async function POST(req: NextRequest) {
               aiTextModel: sql`COALESCE(excluded."ai_text_model", "profile"."ai_text_model")`,
               aiImageModel: sql`COALESCE(excluded."ai_image_model", "profile"."ai_image_model")`,
               aiAudioModel: sql`COALESCE(excluded."ai_audio_model", "profile"."ai_audio_model")`,
+              navSettings: sql`COALESCE(excluded."nav_settings", "profile"."nav_settings")`,
             },
           });
         stats.profile = true;
@@ -221,6 +226,36 @@ export async function POST(req: NextRequest) {
           await tx.insert(pantryItems).values(batch);
         }
         stats.pantryItems = rows.length;
+      }
+
+      if (Array.isArray(data.foodLibrary)) {
+        let existingLib = new Set<string>();
+        if (mode === "merge") {
+          const existing = await tx
+            .select({ name: foodLibrary.name })
+            .from(foodLibrary)
+            .where(eq(foodLibrary.userId, userId));
+          existingLib = new Set(existing.map((r) => r.name));
+        }
+        const libRows = data.foodLibrary
+          .filter(isObj)
+          .map((r) => {
+            const oldPhoto = r.photoPath as string | undefined;
+            return {
+              userId,
+              name: (r.name as string) ?? "unknown",
+              kcal: (r.kcal as string | null) ?? null,
+              proteinG: (r.proteinG as string | null) ?? null,
+              carbsG: (r.carbsG as string | null) ?? null,
+              fatG: (r.fatG as string | null) ?? null,
+              photoPath: oldPhoto ? (photoMapping[oldPhoto] ?? null) : null,
+            };
+          })
+          .filter((r) => !existingLib.has(r.name));
+        for (const batch of chunks(libRows, 500)) {
+          await tx.insert(foodLibrary).values(batch);
+        }
+        stats.foodLibrary = libRows.length;
       }
 
       const programIdMap: Record<string, string> = {};

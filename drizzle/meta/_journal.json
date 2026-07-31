@@ -85,6 +85,34 @@
       "when": 1785466400005,
       "tag": "0011_add_lean_body_mass",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1785521368759,
+      "tag": "0012_add_food_library",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1785521368760,
+      "tag": "0013_add_photo_path",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1785521368761,
+      "tag": "0014_add_nav_settings",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1785521972702,
+      "tag": "0015_jittery_cable",
+      "breakpoints": true
     }
   ]
 }

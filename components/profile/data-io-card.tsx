@@ -3,10 +3,12 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useT } from "@/lib/i18n/client";
 
 export function DataIoCard() {
   const t = useT();
+  const confirm = useConfirm();
   const router = useRouter();
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -39,7 +41,7 @@ export function DataIoCard() {
 
   async function handleImport() {
     if (!file) return;
-    if (mode === "replace" && !confirm(t("data.confirmReplace"))) return;
+    if (mode === "replace" && !(await confirm({ message: t("data.confirmReplace"), danger: true }))) return;
 
     setImporting(true);
     setError(null);

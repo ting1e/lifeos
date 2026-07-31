@@ -44,6 +44,7 @@ export default async function EditFoodPage({
             carbs_g: entry.carbsG != null ? Number(entry.carbsG) : null,
             fat_g: entry.fatG != null ? Number(entry.fatG) : null,
             consumedAt: entry.consumedAt.toISOString(),
+            photoPath: entry.photoPath,
           }}
         />
       </Card>

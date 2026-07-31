@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { History, Sparkles } from "lucide-react";
+import { BookOpen, History, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import type { FoodSuggestion } from "@/app/api/food/suggest/route";
 import { useT } from "@/lib/i18n/client";
+import type { DictKey } from "@/lib/i18n/dict";
 
 type Props = {
   value: string;
@@ -13,7 +14,8 @@ type Props = {
   disabled?: boolean;
 };
 
-function ago(iso: string): string {
+function ago(iso: string | null): string {
+  if (!iso) return "";
   const d = new Date(iso).getTime();
   const diff = Math.max(0, Date.now() - d);
   const days = Math.floor(diff / 86_400_000);
@@ -107,33 +109,75 @@ export function FoodNameAutocomplete({ value, onChange, onPick, disabled }: Prop
 
       {open && items.length > 0 && (
         <div className="absolute z-20 left-0 right-0 mt-1 bg-[color:var(--surface)] border border-[color:var(--border-visible)] shadow-lg max-h-80 overflow-y-auto">
-          <div className="font-mono text-[12px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)] px-3 py-2 border-b border-[color:var(--border)] flex items-center gap-1.5">
-            <History size={10} strokeWidth={1.75} />
-            {t("food.fromHistory")} · {items.length}
-          </div>
-          {items.map((s) => (
-            <button
-              key={s.name + s.lastUsed}
-              type="button"
-              onClick={() => pick(s)}
-              className="w-full text-left px-3 py-2 border-b border-[color:var(--border)] last:border-b-0 hover:bg-[color:var(--border)] focus:bg-[color:var(--border)] focus:outline-none"
-            >
-              <div className="font-body text-base text-[color:var(--text-display)] line-clamp-1">
-                {s.name}
+          {items.filter((s) => s.source === "library").length > 0 && (
+            <>
+              <div className="font-mono text-[12px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)] px-3 py-2 border-b border-[color:var(--border)] flex items-center gap-1.5">
+                <BookOpen size={10} strokeWidth={1.75} />
+                {t("food.fromLibrary")}
               </div>
-              <div className="font-mono text-[12px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)] mt-0.5 flex flex-wrap gap-x-3">
-                <span>{s.kcal ?? "?"} {t("food.kcal")}</span>
-                <span>{s.proteinG ?? "?"}P</span>
-                <span>{s.carbsG ?? "?"}C</span>
-                <span>{s.fatG ?? "?"}F</span>
-                <span className="text-[color:var(--accent)]">
-                  {s.uses}× · {ago(s.lastUsed)}
-                </span>
+              {items.filter((s) => s.source === "library").map((s) => (
+                <SuggestionButton key={"lib-" + s.name} s={s} onPick={pick} t={t} />
+              ))}
+            </>
+          )}
+          {items.filter((s) => s.source === "history").length > 0 && (
+            <>
+              <div className="font-mono text-[12px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)] px-3 py-2 border-b border-[color:var(--border)] flex items-center gap-1.5">
+                <History size={10} strokeWidth={1.75} />
+                {t("food.fromHistory")} · {items.filter((s) => s.source === "history").length}
               </div>
-            </button>
-          ))}
+              {items.filter((s) => s.source === "history").map((s) => (
+                <SuggestionButton key={"his-" + s.name + s.lastUsed} s={s} onPick={pick} t={t} />
+              ))}
+            </>
+          )}
         </div>
       )}
     </div>
+  );
+}
+
+function SuggestionButton({
+  s,
+  onPick,
+  t,
+}: {
+  s: FoodSuggestion;
+  onPick: (s: FoodSuggestion) => void;
+  t: (key: DictKey, vars?: Record<string, string | number>) => string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onPick(s)}
+      className="w-full flex items-center gap-3 text-left px-3 py-2 border-b border-[color:var(--border)] last:border-b-0 hover:bg-[color:var(--border)] focus:bg-[color:var(--border)] focus:outline-none"
+    >
+      {s.photoPath ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={`/api/uploads/${s.photoPath}`}
+          alt=""
+          className="w-9 h-9 object-cover border border-[color:var(--border)] shrink-0"
+        />
+      ) : (
+        <div className="w-9 h-9 dot-grid-subtle border border-[color:var(--border)] shrink-0" />
+      )}
+      <div className="flex-1 min-w-0">
+        <div className="font-body text-base text-[color:var(--text-display)] line-clamp-1">
+          {s.name}
+        </div>
+        <div className="font-mono text-[12px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)] mt-0.5 flex flex-wrap gap-x-3">
+          <span>{s.kcal ?? "?"} {t("food.kcal")}</span>
+          <span>{s.proteinG ?? "?"}P</span>
+          <span>{s.carbsG ?? "?"}C</span>
+          <span>{s.fatG ?? "?"}F</span>
+          {s.source === "history" && s.lastUsed && (
+            <span className="text-[color:var(--accent)]">
+              {s.uses}× · {ago(s.lastUsed)}
+            </span>
+          )}
+        </div>
+      </div>
+    </button>
   );
 }

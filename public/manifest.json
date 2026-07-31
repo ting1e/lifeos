@@ -1,11 +1,18 @@
 {
-  "name": "Lifetracker",
-  "short_name": "Lifetracker",
+  "name": "lifeos",
+  "short_name": "lifeos",
   "description": "Self-hosted personal life tracker",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
   "orientation": "portrait",
-  "icons": []
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
 }

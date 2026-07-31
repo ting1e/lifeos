@@ -6,6 +6,7 @@ import {
   Activity,
   Apple,
   BarChart3,
+  BookOpen,
   Calendar,
   Heart,
   LayoutDashboard,
@@ -42,6 +43,7 @@ const SECTIONS: Section[] = [
     items: [
       { href: "/food", labelKey: "nav.foodLog", icon: Apple },
       { href: "/food/plan", labelKey: "nav.mealPlan", icon: Sparkles },
+      { href: "/food-library", labelKey: "nav.foodLibrary", icon: BookOpen },
       { href: "/pantry", labelKey: "nav.pantry", icon: ShoppingCart },
       { href: "/preferences", labelKey: "nav.preferences", icon: Apple },
     ],
@@ -55,15 +57,23 @@ const SECTIONS: Section[] = [
   },
 ];
 
-export function Sidebar({ whoopEnabled = true }: { whoopEnabled?: boolean }) {
+export function Sidebar({
+  whoopEnabled = true,
+  hiddenRoutes,
+}: {
+  whoopEnabled?: boolean;
+  hiddenRoutes?: Set<string>;
+}) {
   const pathname = usePathname();
   const t = useT();
-  const sections = whoopEnabled
-    ? SECTIONS
-    : SECTIONS.map((sec) => ({
-        ...sec,
-        items: sec.items.filter((it) => it.href !== "/whoop"),
-      }));
+  const sections = SECTIONS.map((sec) => ({
+    ...sec,
+    items: sec.items.filter(
+      (it) =>
+        !hiddenRoutes?.has(it.href) &&
+        (it.href !== "/whoop" || whoopEnabled),
+    ),
+  })).filter((sec) => sec.items.length > 0);
   return (
     <aside className="hidden md:flex md:flex-col w-64 border-r border-[color:var(--border)] bg-[color:var(--black)] sticky top-0 h-dvh">
       <div className="p-6 border-b border-[color:var(--border)]">
