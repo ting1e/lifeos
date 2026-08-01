@@ -17,12 +17,9 @@ import { BodyCompositionCharts } from "@/components/charts/body-composition-char
 import { WeeklyInsights } from "./weekly-insights";
 import { bmr, recommendedKcal, tdee } from "@/lib/nutrition";
 import { getMeasuredTdee } from "@/lib/whoop/tdee";
+import { ymdLocal } from "@/lib/utils/day";
 
 export const dynamic = "force-dynamic";
-
-function dayKey(d: Date) {
-  return d.toISOString().slice(0, 10);
-}
 
 export default async function AnalysisPage() {
   const { user } = await requireSession();
@@ -69,7 +66,7 @@ export default async function AnalysisPage() {
     .where(eq(bodyMetrics.userId, user.id))
     .orderBy(bodyMetrics.recordedAt);
   const bmSamples = bm.map((b) => ({
-    recordedAt: new Date(b.recordedAt).toISOString(),
+    recordedAt: ymdLocal(new Date(b.recordedAt)),
     weightKg: b.weightKg,
     bodyFatPct: b.bodyFatPct,
     muscleMassKg: b.muscleMassKg,
@@ -83,7 +80,7 @@ export default async function AnalysisPage() {
     .where(and(eq(foodEntries.userId, user.id), gte(foodEntries.consumedAt, since14)));
   const kcalByDay = new Map<string, number>();
   for (const e of fe) {
-    const k = dayKey(new Date(e.consumedAt));
+    const k = ymdLocal(new Date(e.consumedAt));
     kcalByDay.set(k, (kcalByDay.get(k) ?? 0) + Number(e.kcal ?? 0));
   }
   const kcalSeries = Array.from(kcalByDay.entries())
@@ -114,7 +111,7 @@ export default async function AnalysisPage() {
     ? await db
         .select()
         .from(whoopRecovery)
-        .where(and(eq(whoopRecovery.userId, user.id), gte(whoopRecovery.date, dayKey(since30))))
+        .where(and(eq(whoopRecovery.userId, user.id), gte(whoopRecovery.date, ymdLocal(since30))))
         .orderBy(whoopRecovery.date)
     : [];
   const recSeries = recs.map((r) => ({ date: r.date, score: r.score ?? 0 }));

@@ -14,6 +14,7 @@ import { chatJsonStream } from "@/lib/ai/client";
 import { programGeneratorPrompt } from "@/lib/ai/prompts";
 import { AiProgramSchema } from "@/lib/ai/schemas";
 import { createChunkSender, createSSEStream } from "@/lib/ai/sse";
+import { ymdLocal } from "@/lib/utils/day";
 
 const Body = z.object({
   goal: z.enum(["strength", "hypertrophy", "fat_loss", "general", "endurance"]),
@@ -109,7 +110,7 @@ export async function POST(req: Request) {
         .where(
           and(
             eq(whoopRecovery.userId, user.id),
-            gte(whoopRecovery.date, fourteenDaysAgo.toISOString().slice(0, 10)),
+            gte(whoopRecovery.date, ymdLocal(fourteenDaysAgo)),
           ),
         )
         .orderBy(desc(whoopRecovery.date))

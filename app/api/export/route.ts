@@ -22,6 +22,7 @@ import {
 } from "@/lib/db/schema";
 import { requireSession } from "@/lib/auth/session";
 import { uploadPath } from "@/lib/uploads";
+import { todayKey } from "@/lib/utils/day";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -126,7 +127,7 @@ export async function GET() {
   };
 
   const json = JSON.stringify(exportData, null, 2);
-  const date = new Date().toISOString().slice(0, 10);
+  const date = todayKey();
   return new Response(json, {
     headers: {
       "content-type": "application/json",

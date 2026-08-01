@@ -9,6 +9,7 @@ import { PlanWeek } from "@/components/food/plan-week";
 import { ShoppingChecklist, type ShoppingItem } from "@/components/food/shopping-checklist";
 import { getLocale, tFor } from "@/lib/i18n/server";
 import { bcp47For } from "@/lib/utils";
+import { ymdLocal } from "@/lib/utils/day";
 
 export const dynamic = "force-dynamic";
 
@@ -33,13 +34,6 @@ type PlanShape = {
   ends_on: string;
   days: DayPlan[];
 };
-
-function ymdLocal(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${dd}`;
-}
 
 function rangeLabel(starts: string, ends: string, bcp47: string): string {
   const fmt = (s: string) => {

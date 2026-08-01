@@ -25,6 +25,8 @@ services:
       NEXT_PUBLIC_APP_URL: http://localhost:3000
       ENABLE_CRON: "0"
       TZ: Asia/Shanghai
+      # 应用语言（en | tr | zh）。未设 → zh。驱动模板 seed 与 admin 初始 locale。
+      LANGUAGE: zh
       # 动作数据集地址（首次启动 seed-exercises 拉取用）；默认直连 GitHub raw，
       # 国内若被墙可换镜像：
       #   https://cdn.jsdelivr.net/gh/hasaneyldrm/exercises-dataset@main

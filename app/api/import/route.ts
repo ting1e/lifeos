@@ -24,6 +24,7 @@ import {
 } from "@/lib/db/schema";
 import { requireSession } from "@/lib/auth/session";
 import { writeUpload } from "@/lib/uploads";
+import { todayKey, ymdLocal } from "@/lib/utils/day";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -42,8 +43,8 @@ function tsOrNull(v: unknown): Date | null {
 }
 function dateOnly(v: unknown): string | null {
   if (!v) return null;
-  if (typeof v === "string") return v.includes("T") ? v.slice(0, 10) : v;
-  if (v instanceof Date) return v.toISOString().slice(0, 10);
+  if (typeof v === "string") return v.includes("T") ? ymdLocal(new Date(v)) : v;
+  if (v instanceof Date) return ymdLocal(v);
   return null;
 }
 function chunks<T>(arr: T[], size: number): T[][] {
@@ -403,7 +404,7 @@ export async function POST(req: NextRequest) {
           existingMealPlanStarts = new Set(existing.map((r) => r.startsOn));
         }
         const rows = data.mealPlans.filter(isObj).flatMap((r) => {
-          const startsOn = dateOnly(r.startsOn) ?? new Date().toISOString().slice(0, 10);
+          const startsOn = dateOnly(r.startsOn) ?? todayKey();
           if (mode === "merge" && existingMealPlanStarts.has(startsOn)) return [];
           const oldId = (r.id as string) ?? randomUUID();
           const newId = randomUUID();
@@ -412,7 +413,7 @@ export async function POST(req: NextRequest) {
             id: newId,
             userId,
             startsOn,
-            endsOn: dateOnly(r.endsOn) ?? new Date().toISOString().slice(0, 10),
+            endsOn: dateOnly(r.endsOn) ?? todayKey(),
             goalSnapshot: r.goalSnapshot ?? null,
             plan: r.plan ?? null,
             createdAt: ts(r.createdAt),

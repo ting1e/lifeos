@@ -89,7 +89,6 @@ export async function POST(req: Request) {
       const { system, prompt } = mealParserPrompt({
         locale: user.locale,
         text: text!.trim(),
-        nowIso: new Date().toISOString(),
         defaultMeal,
         existing: parsed.data.existing
           ? {

@@ -19,10 +19,6 @@ export function formatInt(v: number | string | null | undefined): string {
   return Math.round(n).toString();
 }
 
-export function dayKey(d: Date): string {
-  return d.toISOString().slice(0, 10);
-}
-
 export function diffDays(a: Date, b: Date): number {
   return Math.round((+a - +b) / 86_400_000);
 }

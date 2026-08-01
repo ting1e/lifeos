@@ -3,13 +3,7 @@ import { Card, CardLabel } from "@/components/ui/card";
 import { AiMealForm } from "./ai-meal-form";
 import { NewFoodForm } from "./new-food-form";
 import { getLocale, tFor } from "@/lib/i18n/server";
-
-function ymdLocal(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${dd}`;
-}
+import { ymdLocal } from "@/lib/utils/day";
 
 export default async function NewFoodPage({
   searchParams,

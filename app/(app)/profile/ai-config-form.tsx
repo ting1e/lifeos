@@ -31,16 +31,17 @@ export function AiConfigForm({ initial }: { initial: AiConfigInitial }) {
     e.preventDefault();
     setBusy(true);
     try {
+      const body: Record<string, string> = {
+        baseUrl: form.baseUrl,
+        textModel: form.textModel,
+        imageModel: form.imageModel,
+        audioModel: form.audioModel,
+      };
+      if (form.apiKey.trim()) body.apiKey = form.apiKey.trim();
       await fetch("/api/profile/ai-config", {
         method: "PATCH",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          baseUrl: form.baseUrl,
-          apiKey: form.apiKey,
-          textModel: form.textModel,
-          imageModel: form.imageModel,
-          audioModel: form.audioModel,
-        }),
+        body: JSON.stringify(body),
       });
       router.refresh();
     } finally {

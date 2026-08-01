@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { eq, isNull, or } from "drizzle-orm";
+import { desc, eq, isNull, or } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { programs } from "@/lib/db/schema";
 import { requireSession } from "@/lib/auth/session";
@@ -15,7 +15,8 @@ export default async function ProgramsPage() {
   const rows = await db
     .select()
     .from(programs)
-    .where(or(eq(programs.userId, user.id), isNull(programs.userId)));
+    .where(or(eq(programs.userId, user.id), isNull(programs.userId)))
+    .orderBy(desc(programs.isTemplate), desc(programs.createdAt));
 
   return (
     <div className="space-y-6">

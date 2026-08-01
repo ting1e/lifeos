@@ -4,6 +4,7 @@ import { Pool } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { eq } from "drizzle-orm";
 import { users } from "../lib/db/schema";
+import { resolveLanguage } from "./language";
 
 async function main() {
   const username = process.env.ADMIN_USERNAME ?? process.env.ADMIN_EMAIL;
@@ -32,7 +33,7 @@ async function main() {
     username,
     passwordHash,
     role: "admin",
-    locale: "zh",
+    locale: resolveLanguage(),
   });
 
   console.log(`✓ bootstrapped admin user: ${username}`);

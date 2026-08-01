@@ -490,7 +490,6 @@ ${outro}`;
 export type MealParserInput = {
   locale: "tr" | "en" | "zh";
   text: string;
-  nowIso: string;
   defaultMeal?: "breakfast" | "lunch" | "dinner" | "snack";
   /** When editing an existing entry, pass its current values so the AI can merge or correct instead of replacing. */
   existing?: {
@@ -533,7 +532,7 @@ export function mealParserPrompt(p: MealParserInput): Prompt {
 
 当份量、品牌热量或不熟悉的食物不确定时，搜索网络。始终输出中文菜名和说明。仅返回有效的 JSON——不要任何解释性文字或 markdown。`;
 
-    const today = p.nowIso.slice(0, 10);
+    const today = ymdLocal(new Date());
     const hint = p.defaultMeal ? `若未指定餐别，默认为：${p.defaultMeal}。` : "";
 
     const prompt = `今天：${today}
@@ -590,7 +589,7 @@ For composed dishes ("wrap with egg, avocado, sauce" / "lavaş içinde yumurta, 
 
 When unsure about portion sizes, brand calories, or unfamiliar foods, search the web. Always output English item names and notes regardless of the input language. Return ONLY valid JSON — no prose, no markdown.`;
 
-  const today = p.nowIso.slice(0, 10);
+  const today = ymdLocal(new Date());
   const hint = p.defaultMeal ? `Default meal slot if not specified: ${p.defaultMeal}.` : "";
 
   const prompt = `Today: ${today}

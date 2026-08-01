@@ -10,18 +10,15 @@ import { Card, CardLabel } from "@/components/ui/card";
 import { MonoStat } from "@/components/nothing/mono-stat";
 import { DayBars, type DayPoint } from "@/components/nothing/day-bars";
 import { getLocale, tFor } from "@/lib/i18n/server";
-
-function dayKey(d: Date): string {
-  return d.toISOString().slice(0, 10);
-}
+import { ymdLocal } from "@/lib/utils/day";
 
 function buildDayRange(days: number): string[] {
   const out: string[] = [];
   const today = new Date();
-  today.setUTCHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
   for (let i = days - 1; i >= 0; i--) {
     const d = new Date(today.getTime() - i * 86_400_000);
-    out.push(dayKey(d));
+    out.push(ymdLocal(d));
   }
   return out;
 }
@@ -110,14 +107,14 @@ export async function WhoopHistory({
     const hours =
       (new Date(s.end).getTime() - new Date(s.start).getTime()) / 3_600_000;
     // Multiple sleeps in a day: keep the longest.
-    const dk = dayKey(new Date(s.start));
+    const dk = ymdLocal(new Date(s.start));
     const existing = sleepByDate.get(dk);
     if (existing == null || hours > existing) sleepByDate.set(dk, hours);
   }
 
   const workoutsByDate = new Map<string, number>();
   for (const w of wkRows) {
-    const dk = dayKey(new Date(w.start));
+    const dk = ymdLocal(new Date(w.start));
     workoutsByDate.set(dk, (workoutsByDate.get(dk) ?? 0) + 1);
   }
 

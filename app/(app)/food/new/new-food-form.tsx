@@ -156,8 +156,8 @@ export function NewFoodForm({ initialDate }: { initialDate?: string } = {}) {
         </div>
       </div>
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <button
             type="button"
             onClick={saveToLibrary}
@@ -184,7 +184,7 @@ export function NewFoodForm({ initialDate }: { initialDate?: string } = {}) {
             </span>
           )}
         </div>
-        <Button type="submit" disabled={busy || !name}>
+        <Button type="submit" className="w-full sm:w-auto" disabled={busy || !name}>
           {busy ? t("common.busy") : `${t("common.save")} →`}
         </Button>
       </div>
