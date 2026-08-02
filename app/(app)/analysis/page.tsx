@@ -1,4 +1,4 @@
-import { and, desc, eq, gte } from "drizzle-orm";
+import { and, eq, gte } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
   bodyMetrics,
@@ -15,8 +15,7 @@ import { LineChart } from "@/components/charts/line-chart";
 import { BarChart } from "@/components/charts/bar-chart";
 import { BodyCompositionCharts } from "@/components/charts/body-composition-charts";
 import { WeeklyInsights } from "./weekly-insights";
-import { bmr, recommendedKcal, tdee } from "@/lib/nutrition";
-import { getMeasuredTdee } from "@/lib/whoop/tdee";
+import { getKcalTargetsForUser } from "@/lib/nutrition/targets";
 import { ymdLocal } from "@/lib/utils/day";
 
 export const dynamic = "force-dynamic";
@@ -25,15 +24,7 @@ export default async function AnalysisPage() {
   const { user } = await requireSession();
   const t = tFor(await getLocale());
   const [prof] = await db
-    .select({
-      whoopEnabled: profile.whoopEnabled,
-      weightKg: profile.weightKg,
-      heightCm: profile.heightCm,
-      age: profile.age,
-      sex: profile.sex,
-      activityLevel: profile.activityLevel,
-      goal: profile.goal,
-    })
+    .select({ whoopEnabled: profile.whoopEnabled })
     .from(profile)
     .where(eq(profile.userId, user.id))
     .limit(1);
@@ -42,23 +33,7 @@ export default async function AnalysisPage() {
   const since30 = new Date(Date.now() - 30 * 86_400_000);
 
   // kcal target (same logic as dashboard)
-  const [recentWeight] = await db
-    .select()
-    .from(bodyMetrics)
-    .where(eq(bodyMetrics.userId, user.id))
-    .orderBy(desc(bodyMetrics.recordedAt))
-    .limit(1);
-  const wKg = Number(prof?.weightKg ?? recentWeight?.weightKg ?? 0);
-  const hCm = Number(prof?.heightCm ?? 0);
-  const age = prof?.age ?? 0;
-  const sex = prof?.sex ?? "m";
-  const activity = prof?.activityLevel ?? "moderate";
-  const goal = prof?.goal ?? "maintain";
-  const computedBmr = wKg && hCm && age ? bmr({ sex, weightKg: wKg, heightCm: hCm, age }) : 0;
-  const formulaTdee = computedBmr ? tdee(computedBmr, activity) : 0;
-  const measured = whoopEnabled ? await getMeasuredTdee(user.id) : null;
-  const computedTdee = measured?.kcal ?? formulaTdee;
-  const kcalTarget = computedTdee ? Math.round(recommendedKcal(computedTdee, goal)) : 0;
+  const { kcalTarget } = await getKcalTargetsForUser(user.id);
 
   const bm = await db
     .select()

@@ -13,7 +13,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { db } from "@/lib/db/client";
-import { foodEntries, profile as profileTable } from "@/lib/db/schema";
+import { foodEntries } from "@/lib/db/schema";
 import { requireSession } from "@/lib/auth/session";
 import { getLocale, tFor } from "@/lib/i18n/server";
 import { Card, CardLabel } from "@/components/ui/card";
@@ -24,8 +24,7 @@ import { DayNav } from "@/components/dashboard/day-nav";
 import { RecentHistory } from "@/components/food/recent-history";
 import { todayKey, ymdLocal } from "@/lib/utils/day";
 import { bcp47For } from "@/lib/utils";
-import { bmr, recommendedKcal, tdee } from "@/lib/nutrition";
-import { getMeasuredTdee } from "@/lib/whoop/tdee";
+import { getKcalTargetsForUser } from "@/lib/nutrition/targets";
 
 export const dynamic = "force-dynamic";
 
@@ -140,26 +139,7 @@ export default async function FoodPage({
     });
 
   // Compute kcal target (same logic as dashboard)
-  const [prof] = await db
-    .select()
-    .from(profileTable)
-    .where(eq(profileTable.userId, user.id))
-    .limit(1);
-  const heightCm = Number(prof?.heightCm ?? 0);
-  const weightKg = Number(prof?.weightKg ?? 0);
-  const age = prof?.age ?? 0;
-  const sex = prof?.sex ?? "m";
-  const activity = prof?.activityLevel ?? "moderate";
-  const goal = prof?.goal ?? "maintain";
-  const whoopEnabled = prof?.whoopEnabled ?? true;
-  const computedBmr =
-    weightKg && heightCm && age ? bmr({ sex, weightKg, heightCm, age }) : 0;
-  const formulaTdee = computedBmr ? tdee(computedBmr, activity) : 0;
-  const measured = whoopEnabled ? await getMeasuredTdee(user.id) : null;
-  const computedTdee = measured?.kcal ?? formulaTdee;
-  const kcalTarget = computedTdee
-    ? Math.round(recommendedKcal(computedTdee, goal))
-    : 0;
+  const { kcalTarget } = await getKcalTargetsForUser(user.id);
 
   const dayTitle = isToday
     ? t("food.title")

@@ -10,7 +10,6 @@ import {
 import { and, desc, eq, gte, lt } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
-  bodyMetrics,
   foodEntries,
   profile,
   whoopRecovery,
@@ -28,8 +27,7 @@ import { Card, CardLabel } from "@/components/ui/card";
 import { MacroBlock } from "@/components/food/macro-block";
 import { WeightProjection } from "@/components/dashboard/weight-projection";
 import { DayNav } from "@/components/dashboard/day-nav";
-import { bmi, bmr, macroSplit, recommendedKcal, tdee } from "@/lib/nutrition";
-import { getMeasuredTdee } from "@/lib/whoop/tdee";
+import { getKcalTargetsForUser } from "@/lib/nutrition/targets";
 import { bcp47For, formatKg, greetingFor, resolveDisplayName } from "@/lib/utils";
 import { todayKey } from "@/lib/utils/day";
 import { getLocale, tFor } from "@/lib/i18n/server";
@@ -89,30 +87,20 @@ export default async function Dashboard({
   const totalC = todayFood.reduce((a, e) => a + Number(e.carbsG ?? 0), 0);
   const totalF = todayFood.reduce((a, e) => a + Number(e.fatG ?? 0), 0);
 
-  const [recentWeight] = await db
-    .select()
-    .from(bodyMetrics)
-    .where(eq(bodyMetrics.userId, user.id))
-    .orderBy(desc(bodyMetrics.recordedAt))
-    .limit(1);
-
-  const weightKg = Number(prof?.weightKg ?? recentWeight?.weightKg ?? 0);
-  const heightCm = Number(prof?.heightCm ?? 0);
-  const age = prof?.age ?? 0;
-  const sex = prof?.sex ?? "m";
-  const activity = prof?.activityLevel ?? "moderate";
-  const goal = prof?.goal ?? "maintain";
-
-  const computedBmi = weightKg && heightCm ? bmi(weightKg, heightCm) : 0;
-  const computedBmr =
-    weightKg && heightCm && age ? bmr({ sex, weightKg, heightCm, age }) : 0;
-  const formulaTdee = computedBmr ? tdee(computedBmr, activity) : 0;
-  const measured = whoopEnabled ? await getMeasuredTdee(user.id) : null;
-  const computedTdee = measured?.kcal ?? formulaTdee;
-  const tdeeSource: "whoop" | "formula" = measured ? "whoop" : "formula";
-  const kcalTarget = computedTdee ? Math.round(recommendedKcal(computedTdee, goal)) : 0;
-  const macroTargets =
-    kcalTarget > 0 && weightKg > 0 ? macroSplit(kcalTarget, weightKg, goal) : null;
+  const kcal = await getKcalTargetsForUser(user.id);
+  const {
+    weightKg,
+    heightCm,
+    age,
+    sex,
+    activity,
+    goal,
+    bmi: computedBmi,
+    computedTdee,
+    tdeeSource,
+    kcalTarget,
+    macroTargets,
+  } = kcal;
 
   const [recovery] = whoopConnected
     ? await db

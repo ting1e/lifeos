@@ -14,8 +14,7 @@ import { chatJsonStream } from "@/lib/ai/client";
 import { weeklyInsightsPrompt } from "@/lib/ai/prompts";
 import { InsightsSchema } from "@/lib/ai/schemas";
 import { createChunkSender, createSSEStream } from "@/lib/ai/sse";
-import { bmr, recommendedKcal, tdee } from "@/lib/nutrition";
-import { getMeasuredTdee } from "@/lib/whoop/tdee";
+import { getKcalTargetsForUser } from "@/lib/nutrition/targets";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -107,18 +106,8 @@ export async function POST() {
 
   let target = 0;
   if (p?.weightKg && p?.heightCm && p?.age) {
-    const formulaTdee = tdee(
-      bmr({
-        sex: p.sex ?? "m",
-        weightKg: Number(p.weightKg),
-        heightCm: Number(p.heightCm),
-        age: p.age,
-      }),
-      p.activityLevel ?? "moderate",
-    );
-    const measured = whoopEnabled ? await getMeasuredTdee(user.id) : null;
-    const td = measured?.kcal ?? formulaTdee;
-    target = Math.round(recommendedKcal(td, p.goal ?? "maintain"));
+    const kcalTargets = await getKcalTargetsForUser(user.id);
+    target = kcalTargets.kcalTarget;
   }
 
   const { system, prompt } = weeklyInsightsPrompt({

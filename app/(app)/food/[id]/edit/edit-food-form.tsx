@@ -6,8 +6,10 @@ import { BookPlus, Sparkles, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { useSaveToLibrary } from "@/components/food/use-save-to-library";
 import { useT } from "@/lib/i18n/client";
 import { isAiError } from "@/lib/ai/ai-error";
+import { readAiStream } from "@/lib/ai/sse";
 import { isoForDate, todayKey, ymdLocal } from "@/lib/utils/day";
 
 type Meal = "breakfast" | "lunch" | "dinner" | "snack";
@@ -50,8 +52,7 @@ export function EditFoodForm({ id, initial }: { id: string; initial: Initial }) 
   const [aiStatus, setAiStatus] = useState<string | null>(null);
 
   const [saving, setSaving] = useState(false);
-  const [libBusy, setLibBusy] = useState(false);
-  const [libSaved, setLibSaved] = useState(false);
+  const { busy: libBusy, saved: libSaved, save: saveToLibraryHook } = useSaveToLibrary();
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -76,20 +77,30 @@ export function EditFoodForm({ id, initial }: { id: string; initial: Initial }) 
           },
         }),
       });
-      const data = await r.json();
-      if (!r.ok) throw new Error(data?.error ?? `http_${r.status}`);
+      if (!r.ok) {
+        const j = await r.json().catch(() => ({}));
+        throw new Error(j?.error ?? `http_${r.status}`);
+      }
+      const data = (await readAiStream(r)) as {
+        parsed: {
+          meal?: Meal;
+          items: Array<{
+            name: string;
+            kcal: number;
+            protein_g: number;
+            carbs_g: number;
+            fat_g: number;
+            quantity?: string;
+          }>;
+          confidence?: number;
+          search_used?: boolean;
+        };
+      };
       const parsed = data.parsed;
       if (!parsed?.items?.length) throw new Error("no_items");
 
       // Aggregate all parsed items into one entry — user is editing a single line.
-      const items = parsed.items as Array<{
-        name: string;
-        kcal: number;
-        protein_g: number;
-        carbs_g: number;
-        fat_g: number;
-        quantity?: string;
-      }>;
+      const items = parsed.items;
       const totalKcal = items.reduce((a, it) => a + (it.kcal || 0), 0);
       const totalP = items.reduce((a, it) => a + (it.protein_g || 0), 0);
       const totalC = items.reduce((a, it) => a + (it.carbs_g || 0), 0);
@@ -148,26 +159,7 @@ export function EditFoodForm({ id, initial }: { id: string; initial: Initial }) 
   }
 
   async function saveToLibrary() {
-    if (!name.trim()) return;
-    setLibBusy(true);
-    setLibSaved(false);
-    try {
-      const r = await fetch("/api/food-library", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          name,
-          kcal: kcal ? Number(kcal) : null,
-          protein_g: p ? Number(p) : null,
-          carbs_g: c ? Number(c) : null,
-          fat_g: f ? Number(f) : null,
-          photoPath: initial.photoPath ?? undefined,
-        }),
-      });
-      if (r.ok) setLibSaved(true);
-    } finally {
-      setLibBusy(false);
-    }
+    await saveToLibraryHook({ name, kcal, p, c, f, photoPath: initial.photoPath });
   }
 
   async function del() {

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { FoodNameAutocomplete } from "@/components/food/name-autocomplete";
 import { LibraryPicker } from "@/components/food/library-picker";
+import { useSaveToLibrary } from "@/components/food/use-save-to-library";
 import type { FoodSuggestion } from "@/app/api/food/suggest/route";
 import { useT } from "@/lib/i18n/client";
 import { isoForDate, todayKey, mealForNow } from "@/lib/utils/day";
@@ -25,31 +26,7 @@ export function NewFoodForm({ initialDate }: { initialDate?: string } = {}) {
   const [f, setF] = useState("");
   const [photoPath, setPhotoPath] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [libSaved, setLibSaved] = useState(false);
-  const [libBusy, setLibBusy] = useState(false);
-
-  async function saveToLibrary() {
-    if (!name.trim()) return;
-    setLibBusy(true);
-    setLibSaved(false);
-    try {
-      const r = await fetch("/api/food-library", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          name,
-          kcal: kcal ? Number(kcal) : null,
-          protein_g: p ? Number(p) : null,
-          carbs_g: c ? Number(c) : null,
-          fat_g: f ? Number(f) : null,
-          photoPath: photoPath ?? undefined,
-        }),
-      });
-      if (r.ok) setLibSaved(true);
-    } finally {
-      setLibBusy(false);
-    }
-  }
+  const { busy: libBusy, saved: libSaved, save: saveToLibrary } = useSaveToLibrary();
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -160,7 +137,7 @@ export function NewFoodForm({ initialDate }: { initialDate?: string } = {}) {
         <div className="flex flex-wrap items-center gap-3">
           <button
             type="button"
-            onClick={saveToLibrary}
+            onClick={() => saveToLibrary({ name, kcal, p, c, f, photoPath })}
             disabled={libBusy || !name.trim()}
             className="btn btn--outline btn--sm"
           >

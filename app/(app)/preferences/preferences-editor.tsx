@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { useT } from "@/lib/i18n/client";
@@ -19,6 +19,10 @@ export function PreferencesEditor({
   const [items, setItems] = useState(initial);
   const [draft, setDraft] = useState("");
 
+  useEffect(() => {
+    setItems(initial);
+  }, [initial]);
+
   async function add(e: React.FormEvent) {
     e.preventDefault();
     if (!draft.trim()) return;
@@ -30,12 +34,12 @@ export function PreferencesEditor({
       body: JSON.stringify({ kind, label }),
     });
     const data = await r.json();
-    if (data?.id) setItems([...items, { id: data.id, label }]);
+    if (data?.id) setItems((prev) => [...prev, { id: data.id, label }]);
     router.refresh();
   }
 
   async function remove(id: string) {
-    setItems(items.filter((i) => i.id !== id));
+    setItems((prev) => prev.filter((i) => i.id !== id));
     await fetch(`/api/preferences?id=${id}`, { method: "DELETE" });
     router.refresh();
   }

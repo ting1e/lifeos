@@ -14,8 +14,7 @@ import { chatJsonStream } from "@/lib/ai/client";
 import { weeklyPlanPrompt } from "@/lib/ai/prompts";
 import { MealPlanSchema } from "@/lib/ai/schemas";
 import { createChunkSender, createSSEStream } from "@/lib/ai/sse";
-import { bmr, macroSplit, recommendedKcal, tdee } from "@/lib/nutrition";
-import { getMeasuredTdee } from "@/lib/whoop/tdee";
+import { getKcalTargetsForUser } from "@/lib/nutrition/targets";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -31,18 +30,13 @@ export async function POST(req: Request) {
   if (!p?.weightKg || !p?.heightCm || !p?.age) {
     return Response.json({ error: "profile_incomplete" }, { status: 400 });
   }
-  const whoopEnabled = p?.whoopEnabled ?? true;
-  const w = Number(p.weightKg);
-  const h = Number(p.heightCm);
-  const formulaTdee = tdee(
-    bmr({ sex: p.sex ?? "m", weightKg: w, heightCm: h, age: p.age }),
-    p.activityLevel ?? "moderate",
-  );
-  const measured = whoopEnabled ? await getMeasuredTdee(user.id) : null;
-  const td = measured?.kcal ?? formulaTdee;
   const goal = p.goal ?? "maintain";
-  const target = Math.round(recommendedKcal(td, goal));
-  const { proteinG, carbsG, fatG } = macroSplit(target, w, goal);
+  const kcalTargets = await getKcalTargetsForUser(user.id);
+  const target = kcalTargets.kcalTarget;
+  const macros = kcalTargets.macroTargets;
+  const proteinG = macros?.proteinG ?? 0;
+  const carbsG = macros?.carbsG ?? 0;
+  const fatG = macros?.fatG ?? 0;
 
   const prefs = await db
     .select()

@@ -53,6 +53,10 @@ export function ProgramEditor({
   const [status, setStatus] = useState<Status>("idle");
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
   const [pickerDayId, setPickerDayId] = useState<string | null>(null);
+  // Track the last value persisted to the server so onBlur only PATCHes
+  // when the field actually changed since the last successful save.
+  const [lastSavedName, setLastSavedName] = useState(initialName);
+  const [lastSavedDesc, setLastSavedDesc] = useState(initialDescription);
 
   async function fire(
     fn: () => Promise<void>,
@@ -88,11 +92,14 @@ export function ProgramEditor({
   // ----- program-level edits -----
   async function saveProgramField(field: "name" | "description", value: string) {
     await fire(
-      () =>
-        api(`/api/programs/${programId}`, {
+      async () => {
+        await api(`/api/programs/${programId}`, {
           method: "PATCH",
           body: JSON.stringify({ [field]: value || (field === "description" ? null : value) }),
-        }) as Promise<void>,
+        });
+        if (field === "name") setLastSavedName(value);
+        else setLastSavedDesc(value);
+      },
       `${field} saved`,
     );
   }
@@ -274,7 +281,7 @@ export function ProgramEditor({
             value={name}
             onChange={(e) => setName(e.target.value)}
             onBlur={() => {
-              if (name.trim() && name !== initialName) saveProgramField("name", name.trim());
+              if (name.trim() && name !== lastSavedName) saveProgramField("name", name.trim());
             }}
             className="w-full bg-transparent border-b border-[color:var(--border-visible)] py-2 font-display text-3xl text-[color:var(--text-display)] focus:outline-none focus:border-[color:var(--accent)]"
           />
@@ -285,7 +292,7 @@ export function ProgramEditor({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             onBlur={() => {
-              if (description !== initialDescription) {
+              if (description !== lastSavedDesc) {
                 saveProgramField("description", description);
               }
             }}

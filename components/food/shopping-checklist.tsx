@@ -89,6 +89,14 @@ export function ShoppingChecklist({ shoppingListId, initialItems }: Props) {
     };
   }, []);
 
+  // Sync from server when a new plan is generated (router.refresh passes
+  // new initialItems). Update lastSaved so we don't immediately re-persist.
+  useEffect(() => {
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    setItems(initialItems);
+    lastSaved.current = JSON.stringify(initialItems);
+  }, [initialItems]);
+
   function toggle(target: ShoppingItem) {
     setItems((prev) => {
       const next = prev.map((it) =>

@@ -11,8 +11,8 @@ import { AiConfigForm } from "./ai-config-form";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { LanguageSwitcher } from "@/components/profile/language-switcher";
 import { NavSettingsCard } from "@/components/profile/nav-settings-card";
-import { bmi, bmiCategory, bmr, recommendedKcal, tdee, macroSplit } from "@/lib/nutrition";
-import { getMeasuredTdee } from "@/lib/whoop/tdee";
+import { bmiCategory } from "@/lib/nutrition";
+import { getKcalTargetsForUser } from "@/lib/nutrition/targets";
 import { Card, CardLabel } from "@/components/ui/card";
 import { MonoStat } from "@/components/nothing/mono-stat";
 import { resolveDisplayName } from "@/lib/utils";
@@ -27,22 +27,15 @@ export default async function ProfilePage() {
   const currentLocale = await getLocale();
   const t = tFor(currentLocale);
 
-  const w = Number(p?.weightKg ?? 0);
-  const h = Number(p?.heightCm ?? 0);
-  const age = p?.age ?? 0;
-  const sex = p?.sex ?? "m";
-  const activity = p?.activityLevel ?? "moderate";
-  const goal = p?.goal ?? "maintain";
-
-  const b = w && h ? bmi(w, h) : 0;
-  const bm = w && h && age ? bmr({ sex, weightKg: w, heightCm: h, age }) : 0;
-  const formulaTd = bm ? tdee(bm, activity) : 0;
   const whoopEnabled = p?.whoopEnabled ?? true;
-  const measured = whoopEnabled ? await getMeasuredTdee(user.id) : null;
-  const td = measured?.kcal ?? formulaTd;
-  const tdeeSource: "whoop" | "formula" = measured ? "whoop" : "formula";
-  const target = td ? Math.round(recommendedKcal(td, goal)) : 0;
-  const macros = w && target ? macroSplit(target, w, goal) : null;
+  const kcal = await getKcalTargetsForUser(user.id);
+  const b = kcal.bmi;
+  const bm = kcal.bmr;
+  const td = kcal.computedTdee;
+  const tdeeSource = kcal.tdeeSource;
+  const measuredSamples = kcal.measuredSamples;
+  const target = kcal.kcalTarget;
+  const macros = kcal.macroTargets;
 
   return (
     <div className="space-y-8">
@@ -65,7 +58,7 @@ export default async function ProfilePage() {
           <MonoStat
             label={
               tdeeSource === "whoop"
-                ? t("dash.tdeeWhoopN", { n: measured!.samples })
+                ? t("dash.tdeeWhoopN", { n: measuredSamples ?? 0 })
                 : t("dash.tdeeEst")
             }
             value={td ? Math.round(td) : "—"}
