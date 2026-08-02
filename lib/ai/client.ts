@@ -396,7 +396,6 @@ export async function transcribeAudio(args: TranscribeArgs): Promise<{ text: str
   const base64 = Buffer.from(args.audioBuffer).toString("base64");
   const content: ContentPart[] = [
     { type: "input_audio", input_audio: { data: base64, format } },
-    { type: "text", text: "Transcribe the spoken content of this audio. Return only the transcript text, nothing else." },
   ];
   const { text, raw } = await chatCompletions({
     userId: args.userId,

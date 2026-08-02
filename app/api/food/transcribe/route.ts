@@ -5,7 +5,8 @@ import { transcribeAudio } from "@/lib/ai/client";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-const MAX_BYTES = 15 * 1024 * 1024; // 15 MB hard limit
+const MAX_BYTES = 15 * 1024 * 1024; // 15 MB upload limit
+const MAX_BASE64 = 10 * 1024 * 1024; // 10 MB base64 model limit
 const ALLOWED = new Set([
   "audio/webm",
   "audio/ogg",
@@ -46,6 +47,9 @@ export async function POST(req: Request) {
 
   try {
     const buf = Buffer.from(await file.arrayBuffer());
+    if (4 * Math.ceil(buf.length / 3) > MAX_BASE64) {
+      return NextResponse.json({ error: "base64_too_large" }, { status: 413 });
+    }
     const { text } = await transcribeAudio({
       userId: user.id,
       audioBuffer: buf,

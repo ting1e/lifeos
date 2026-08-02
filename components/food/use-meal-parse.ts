@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { useT } from "@/lib/i18n/client";
 import { isAiError } from "@/lib/ai/ai-error";
 import { readAiStream } from "@/lib/ai/sse";
+import { audioBlobToWav } from "@/lib/audio/wav";
 
 export type ParsedItem = {
   name: string;
@@ -134,7 +135,7 @@ export function useMealParse(defaultMeal?: string) {
         setTranscribing(true);
         setStatus(t("food.transcribingStatus"));
         try {
-          const fd = new FormData();
+          const wav = await audioBlobToWav(blob).catch(() => null);
           const ext = type.includes("mp4")
             ? "m4a"
             : type.includes("ogg")
@@ -142,7 +143,11 @@ export function useMealParse(defaultMeal?: string) {
               : type.includes("wav")
                 ? "wav"
                 : "webm";
-          fd.append("audio", blob, `voice.${ext}`);
+          const upload = wav && wav.size > 0
+            ? { blob: wav, name: "voice.wav" }
+            : { blob, name: `voice.${ext}` };
+          const fd = new FormData();
+          fd.append("audio", upload.blob, upload.name);
           const r = await fetch("/api/food/transcribe", { method: "POST", body: fd });
           const data = await r.json();
           if (!r.ok) throw new Error(data?.error ?? `http_${r.status}`);
