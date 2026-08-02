@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Pencil, Trash2, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,10 @@ export function LibraryList({ initial }: { initial: Item[] }) {
   const [items, setItems] = useState(initial);
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState<Item | null>(null);
+
+  useEffect(() => {
+    setItems(initial);
+  }, [initial]);
 
   async function remove(id: string) {
     setItems(items.filter((i) => i.id !== id));

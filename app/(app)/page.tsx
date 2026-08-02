@@ -397,7 +397,7 @@ export default async function Dashboard({
         {[
           { href: "/workouts/new", label: t("dash.startWorkout") },
           { href: "/food/new", label: t("dash.logMeal") },
-          { href: "/food/plan", label: t("dash.generatePlan") },
+          { href: "/food-library", label: t("foodLibrary.manualAdd") },
           { href: "/analysis", label: t("nav.analysis").toUpperCase() },
         ].map((a) => (
           <Link

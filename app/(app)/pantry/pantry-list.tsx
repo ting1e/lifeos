@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useT } from "@/lib/i18n/client";
 
 type Item = { id: string; name: string; qty: number | null; unit: string | null };
@@ -10,6 +10,10 @@ export function PantryList({ initial }: { initial: Item[] }) {
   const t = useT();
   const router = useRouter();
   const [items, setItems] = useState(initial);
+
+  useEffect(() => {
+    setItems(initial);
+  }, [initial]);
 
   async function remove(id: string) {
     setItems(items.filter((i) => i.id !== id));
