@@ -16,6 +16,8 @@ import { bcp47For } from "@/lib/utils";
 import { notFound } from "next/navigation";
 import { WorkoutSession, type WorkoutExercise } from "./workout-session";
 import { DeleteWorkoutButton } from "./delete-workout-button";
+import { EditProvider } from "./workout-edit-context";
+import { WorkoutEditButton } from "./workout-edit-button";
 import { WhoopStrainCard } from "@/components/workout/whoop-strain-card";
 
 export const dynamic = "force-dynamic";
@@ -154,62 +156,65 @@ export default async function WorkoutDetail({
   const initialExercises = [...planned, ...adhoc];
 
   return (
-    <div className="space-y-6">
-      <header className="flex items-baseline justify-between gap-3">
-        <div>
-          <Link
-            href="/workouts"
-            className="mono-label hover:text-[color:var(--text-display)]"
-          >
-            {t("work.back")}
-          </Link>
-          <h1 className="font-display text-3xl md:text-4xl mt-2">
-            {new Date(w.startedAt).toLocaleString(bcp47For(locale), {
-              weekday: "short",
-              day: "2-digit",
-              month: "short",
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </h1>
-          {(progName || dayInfo) && (
-            <div className="mono-label mt-1 flex items-center gap-1.5">
-              {progName && (
-                <span className="text-[color:var(--text-secondary)]">{progName}</span>
-              )}
-              {dayInfo && (
-                <span>
-                  <span className="text-[color:var(--text-disabled)]">·</span>{" "}
-                  {t("prog.day")} {dayInfo.dayIndex + 1} {dayInfo.name}
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-        <div className="text-right space-y-2">
-          <div className="mono-label">
-            {w.endedAt ? t("work.completed") : t("work.inProgress")}
+    <EditProvider>
+      <div className="space-y-6">
+        <header className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div className="min-w-0">
+            <Link
+              href="/workouts"
+              className="mono-label hover:text-[color:var(--text-display)]"
+            >
+              {t("work.back")}
+            </Link>
+            <h1 className="font-display text-3xl md:text-4xl mt-2">
+              {new Date(w.startedAt).toLocaleString(bcp47For(locale), {
+                weekday: "short",
+                day: "2-digit",
+                month: "short",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </h1>
+            {(progName || dayInfo) && (
+              <div className="mono-label mt-1 flex items-center gap-1.5">
+                {progName && (
+                  <span className="text-[color:var(--text-secondary)]">{progName}</span>
+                )}
+                {dayInfo && (
+                  <span>
+                    <span className="text-[color:var(--text-disabled)]">·</span>{" "}
+                    {t("prog.day")} {dayInfo.dayIndex + 1} {dayInfo.name}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
-          <DeleteWorkoutButton workoutId={w.id} />
-        </div>
-      </header>
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="mono-label">
+              {w.endedAt ? t("work.completed") : t("work.inProgress")}
+            </div>
+            {w.endedAt && <WorkoutEditButton />}
+            <DeleteWorkoutButton workoutId={w.id} />
+          </div>
+        </header>
 
-      <WorkoutSession
-        workoutId={w.id}
-        locale={locale}
-        initialExercises={initialExercises}
-        existingSets={sets.map((s) => ({
-          id: s.id,
-          exerciseId: s.exerciseId,
-          setIndex: s.setIndex,
-          reps: s.reps,
-          weightKg: s.weightKg ? Number(s.weightKg) : null,
-          rpe: s.rpe,
-        }))}
-        ended={Boolean(w.endedAt)}
-      />
+        <WorkoutSession
+          workoutId={w.id}
+          locale={locale}
+          initialExercises={initialExercises}
+          existingSets={sets.map((s) => ({
+            id: s.id,
+            exerciseId: s.exerciseId,
+            setIndex: s.setIndex,
+            reps: s.reps,
+            weightKg: s.weightKg ? Number(s.weightKg) : null,
+            rpe: s.rpe,
+          }))}
+          ended={Boolean(w.endedAt)}
+        />
 
-      {whoopEnabled && <WhoopStrainCard workoutId={w.id} />}
-    </div>
+        {whoopEnabled && <WhoopStrainCard workoutId={w.id} />}
+      </div>
+    </EditProvider>
   );
 }

@@ -15,6 +15,7 @@ import {
   type ExerciseDetail,
 } from "@/components/workout/exercise-detail";
 import { ExercisePicker } from "@/components/workout/exercise-picker";
+import { useEdit } from "./workout-edit-context";
 
 export type WorkoutExercise = {
   exerciseId: string;
@@ -68,6 +69,11 @@ export function WorkoutSession({
   const [restOpen, setRestOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [detail, setDetail] = useState<ExerciseDetail | null>(null);
+  const { editing } = useEdit();
+
+  // In-progress workouts are always editable. Completed workouts require
+  // explicitly entering edit mode via the EDIT button in the page header.
+  const canEdit = !ended || editing;
 
   async function saveSet(
     exId: string,
@@ -294,7 +300,7 @@ export function WorkoutSession({
                           : undefined
                     }
                     setId={existing?.id}
-                    disabled={ended}
+                    disabled={!canEdit}
                     onSave={(v, sid) => saveSet(ex.exerciseId, i, v, sid)}
                     onDelete={deleteSet}
                   />
@@ -305,7 +311,7 @@ export function WorkoutSession({
         );
       })}
 
-      {!ended && (
+      {canEdit && (
         <button
           type="button"
           onClick={() => setPickerOpen(true)}
