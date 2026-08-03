@@ -153,7 +153,7 @@ export function ProgramEditor({
   }
 
   // ----- exercises -----
-  async function addExerciseToDay(dayId: string, exerciseId: string, name: string) {
+  async function addExerciseToDay(dayId: string, exerciseId: string, name: string, gifUrl: string | null) {
     await fire(async () => {
       const res = (await api(`/api/program-days/${dayId}/exercises`, {
         method: "POST",
@@ -180,7 +180,7 @@ export function ProgramEditor({
                     exerciseId,
                     name,
                     subtitle: "",
-                    gifUrl: null,
+                    gifUrl,
                   },
                 ],
               }
@@ -454,9 +454,9 @@ export function ProgramEditor({
       <ExercisePicker
         open={pickerDayId !== null}
         onClose={() => setPickerDayId(null)}
-        onPick={async (exerciseId, name) => {
+        onPick={async (exerciseId, name, gifUrl) => {
           if (!pickerDayId) return;
-          await addExerciseToDay(pickerDayId, exerciseId, name);
+          await addExerciseToDay(pickerDayId, exerciseId, name, gifUrl);
           setPickerDayId(null);
           router.refresh();
         }}

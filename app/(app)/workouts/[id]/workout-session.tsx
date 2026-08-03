@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Info } from "lucide-react";
 import { useT } from "@/lib/i18n/client";
+import { trCatalog } from "@/lib/i18n/exercise-zh";
 import { Button } from "@/components/ui/button";
 import { SetRow, type SetRowValue } from "@/components/workout/set-row";
 import { RestTimer } from "@/components/workout/rest-timer";
@@ -39,6 +40,7 @@ export type WorkoutExercise = {
 };
 
 type ExistingSet = {
+  id: string;
   exerciseId: string;
   setIndex: number;
   reps: number | null;
@@ -67,8 +69,34 @@ export function WorkoutSession({
   const [pickerOpen, setPickerOpen] = useState(false);
   const [detail, setDetail] = useState<ExerciseDetail | null>(null);
 
-  async function addSet(exId: string, idx: number, v: SetRowValue) {
-    await fetch(`/api/workouts/${workoutId}/sets`, {
+  async function saveSet(
+    exId: string,
+    idx: number,
+    v: SetRowValue,
+    setId: string | undefined,
+  ): Promise<string | undefined> {
+    if (setId) {
+      // Update existing set row.
+      await fetch(`/api/workout-sets/${setId}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          reps: v.reps,
+          weightKg: v.weightKg,
+          rpe: v.rpe,
+        }),
+      });
+      setLocalSets((s) =>
+        s.map((row) =>
+          row.id === setId
+            ? { ...row, reps: v.reps, weightKg: v.weightKg, rpe: v.rpe }
+            : row,
+        ),
+      );
+      return setId;
+    }
+    // Create new set row.
+    const res = await fetch(`/api/workouts/${workoutId}/sets`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
@@ -79,11 +107,27 @@ export function WorkoutSession({
         rpe: v.rpe,
       }),
     });
-    setLocalSets((s) => [
-      ...s,
-      { exerciseId: exId, setIndex: idx, reps: v.reps, weightKg: v.weightKg, rpe: v.rpe },
-    ]);
-    setRestOpen(true);
+    const data = await res.json();
+    const newId = data?.id as string | undefined;
+    if (newId) {
+      setLocalSets((s) => [
+        ...s,
+        {
+          id: newId,
+          exerciseId: exId,
+          setIndex: idx,
+          reps: v.reps,
+          weightKg: v.weightKg,
+          rpe: v.rpe,
+        },
+      ]);
+    }
+    return newId;
+  }
+
+  async function deleteSet(setId: string) {
+    await fetch(`/api/workout-sets/${setId}`, { method: "DELETE" });
+    setLocalSets((s) => s.filter((row) => row.id !== setId));
   }
 
   async function endWorkout() {
@@ -91,7 +135,7 @@ export function WorkoutSession({
     router.refresh();
   }
 
-  async function pickExercise(exerciseId: string, _name: string) {
+  async function pickExercise(exerciseId: string, _name: string, _gifUrl: string | null) {
     setPickerOpen(false);
     // Fetch full detail to add to list
     const r = await fetch(`/api/exercises?q=${encodeURIComponent(_name)}&limit=5`);
@@ -213,7 +257,7 @@ export function WorkoutSession({
                     {displayName}
                   </button>
                   <div className="mono-label mt-1">
-                    {[ex.target, ex.bodyPart, ex.equipment]
+                    {[trCatalog("target", ex.target, locale), trCatalog("bodyPart", ex.bodyPart, locale), trCatalog("equipment", ex.equipment, locale)]
                       .filter(Boolean)
                       .join(" · ")}
                   </div>
@@ -241,17 +285,18 @@ export function WorkoutSession({
                             weightKg: existing.weightKg,
                             rpe: existing.rpe,
                           }
-                        : ex.targetReps != null || ex.targetWeightKg != null
+                        : ex.targetWeightKg != null
                           ? {
-                              reps: ex.targetReps,
+                              reps: null,
                               weightKg: ex.targetWeightKg,
                               rpe: null,
                             }
                           : undefined
                     }
-                    lastTime={null}
-                    disabled={ended || Boolean(existing)}
-                    onComplete={(v) => addSet(ex.exerciseId, i, v)}
+                    setId={existing?.id}
+                    disabled={ended}
+                    onSave={(v, sid) => saveSet(ex.exerciseId, i, v, sid)}
+                    onDelete={deleteSet}
                   />
                 );
               })}

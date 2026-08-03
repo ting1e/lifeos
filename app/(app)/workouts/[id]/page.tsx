@@ -199,6 +199,7 @@ export default async function WorkoutDetail({
         locale={locale}
         initialExercises={initialExercises}
         existingSets={sets.map((s) => ({
+          id: s.id,
           exerciseId: s.exerciseId,
           setIndex: s.setIndex,
           reps: s.reps,

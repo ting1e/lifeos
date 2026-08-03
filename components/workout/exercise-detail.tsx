@@ -157,7 +157,7 @@ export function ExerciseDetailDrawer({
                     key={m}
                     className="font-mono text-[12px] uppercase tracking-[0.1em] text-[color:var(--text-secondary)] border border-[color:var(--border-visible)] px-2 py-1"
                   >
-                    {m}
+                    {trCatalog("muscleGroup", m, locale)}
                   </span>
                 ))}
               </div>

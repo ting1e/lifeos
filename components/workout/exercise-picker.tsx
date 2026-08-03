@@ -24,7 +24,7 @@ export function ExercisePicker({
 }: {
   open: boolean;
   onClose: () => void;
-  onPick: (exerciseId: string, name: string) => void | Promise<void>;
+  onPick: (exerciseId: string, name: string, gifUrl: string | null) => void | Promise<void>;
 }) {
   const [q, setQ] = useState("");
   const [rows, setRows] = useState<PickerExercise[]>([]);
@@ -104,7 +104,7 @@ export function ExercisePicker({
                 <li key={ex.id}>
                   <button
                     type="button"
-                    onClick={() => onPick(ex.id, displayName(ex))}
+                    onClick={() => onPick(ex.id, displayName(ex), ex.gifUrl)}
                     className="w-full grid grid-cols-[64px_1fr] gap-3 text-left p-2 border border-[color:var(--border)] hover:border-[color:var(--text-display)] transition"
                   >
                     {ex.gifUrl ? (
