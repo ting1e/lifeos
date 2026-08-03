@@ -1,10 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, X } from "lucide-react";
+import { GripVertical, Plus, Trash2, X } from "lucide-react";
+import {
+  DndContext,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { useT } from "@/lib/i18n/client";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Card } from "@/components/ui/card";
@@ -57,17 +72,20 @@ export function ProgramEditor({
   // when the field actually changed since the last successful save.
   const [lastSavedName, setLastSavedName] = useState(initialName);
   const [lastSavedDesc, setLastSavedDesc] = useState(initialDescription);
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+  );
 
   async function fire(
     fn: () => Promise<void>,
     label?: string,
   ): Promise<void> {
     setStatus("saving");
-    setStatusMsg(label ?? "saving…");
+    setStatusMsg(label ?? t("common.saving"));
     try {
       await fn();
       setStatus("saved");
-      setStatusMsg("saved");
+      setStatusMsg(t("common.saved"));
       setTimeout(() => {
         setStatus((s) => (s === "saved" ? "idle" : s));
       }, 1200);
@@ -91,17 +109,14 @@ export function ProgramEditor({
 
   // ----- program-level edits -----
   async function saveProgramField(field: "name" | "description", value: string) {
-    await fire(
-      async () => {
-        await api(`/api/programs/${programId}`, {
-          method: "PATCH",
-          body: JSON.stringify({ [field]: value || (field === "description" ? null : value) }),
-        });
-        if (field === "name") setLastSavedName(value);
-        else setLastSavedDesc(value);
-      },
-      `${field} saved`,
-    );
+    await fire(async () => {
+      await api(`/api/programs/${programId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ [field]: value || (field === "description" ? null : value) }),
+      });
+      if (field === "name") setLastSavedName(value);
+      else setLastSavedDesc(value);
+    });
   }
 
   // ----- days -----
@@ -213,13 +228,11 @@ export function ProgramEditor({
             },
       ),
     );
-    await fire(
-      () =>
-        api(`/api/program-exercises/${exId}`, {
-          method: "PATCH",
-          body: JSON.stringify({ [field]: parsed }),
-        }) as Promise<void>,
-      `${field} saved`,
+    await fire(() =>
+      api(`/api/program-exercises/${exId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ [field]: parsed }),
+      }) as Promise<void>,
     );
   }
 
@@ -234,6 +247,47 @@ export function ProgramEditor({
         ),
       );
     }, t("prog.exerciseRemoved"));
+  }
+
+  function handleDragEnd(dayId: string, event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const day = days.find((d) => d.id === dayId);
+    if (!day) return;
+    const oldIndex = day.exercises.findIndex((e) => e.id === active.id);
+    const newIndex = day.exercises.findIndex((e) => e.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    // Repack orderIndex = 0..n-1 after the move so the sequence stays compact
+    // (also closes gaps left by earlier deletions).
+    const reordered = arrayMove(day.exercises, oldIndex, newIndex).map(
+      (e, i) => ({ ...e, orderIndex: i }),
+    );
+    setDays((prev) =>
+      prev.map((d) => (d.id === dayId ? { ...d, exercises: reordered } : d)),
+    );
+    // Compare each element's NEW orderIndex against its OWN old one (not the
+    // old orderIndex of whatever element used to occupy this position — that
+    // would false-negative on adjacent swaps when the sequence is compact).
+    const oldOrderById = new Map(
+      day.exercises.map((e) => [e.id, e.orderIndex]),
+    );
+    const changes = reordered
+      .filter((e) => e.orderIndex !== oldOrderById.get(e.id))
+      .map((e) => ({ id: e.id, orderIndex: e.orderIndex }));
+    if (changes.length === 0) return;
+    fire(
+      async () => {
+        await Promise.all(
+          changes.map((c) =>
+            api(`/api/program-exercises/${c.id}`, {
+              method: "PATCH",
+              body: JSON.stringify({ orderIndex: c.orderIndex }),
+            }),
+          ),
+        );
+      },
+      t("prog.exerciseReordered"),
+    );
   }
 
   function StatusBadge() {
@@ -339,80 +393,42 @@ export function ProgramEditor({
               </Button>
             </div>
 
-            <ul className="space-y-2">
-              {day.exercises.map((ex) => (
-                <li
-                  key={ex.id}
-                  className="grid grid-cols-[56px_1fr_auto] gap-3 items-center p-2 border border-[color:var(--border)]"
-                >
-                  {ex.gifUrl ? (
-                    <Image
-                      src={ex.gifUrl}
-                      alt={ex.name}
-                      width={112}
-                      height={112}
-                      unoptimized
-                      className="w-14 h-14 object-cover border border-[color:var(--border)]"
-                    />
-                  ) : (
-                    <div className="w-14 h-14 dot-grid-subtle border border-[color:var(--border)]" />
-                  )}
-                  <div className="min-w-0 space-y-1">
-                    <div className="font-body text-base text-[color:var(--text-display)] truncate">
-                      {ex.name}
-                    </div>
-                    {ex.subtitle && (
-                      <div className="mono-label truncate">{ex.subtitle}</div>
-                    )}
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pt-1">
-                      <NumField
-                        label={t("prog.sets")}
-                        value={ex.targetSets}
-                        onCommit={(v) =>
-                          updateExercise(day.id, ex.id, "targetSets", v)
-                        }
-                      />
-                      <NumField
-                        label={t("prog.reps")}
-                        value={ex.targetReps}
-                        onCommit={(v) =>
-                          updateExercise(day.id, ex.id, "targetReps", v)
-                        }
-                      />
-                      <NumField
-                        label={t("prog.kg")}
-                        value={ex.targetWeightKg}
-                        step="0.5"
-                        onCommit={(v) =>
-                          updateExercise(day.id, ex.id, "targetWeightKg", v)
-                        }
-                      />
-                    </div>
-                    <input
-                      defaultValue={ex.notes ?? ""}
-                      placeholder={t("prog.notesPlaceholder")}
-                      onBlur={(e) =>
-                        updateExercise(day.id, ex.id, "notes", e.target.value)
-                      }
-                      className="w-full bg-transparent border-b border-[color:var(--border)] focus:border-[color:var(--accent)] py-1 font-mono text-[13px] text-[color:var(--text-secondary)] focus:outline-none placeholder:text-[color:var(--text-disabled)]"
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => deleteExercise(day.id, ex.id)}
-                    aria-label="remove exercise"
-                    className="self-start text-[color:var(--text-disabled)] hover:text-[color:var(--accent)] p-2"
-                  >
-                    <X size={16} strokeWidth={1.5} />
-                  </button>
-                </li>
-              ))}
-              {day.exercises.length === 0 && (
+            {day.exercises.length === 0 ? (
+              <ul className="space-y-2">
                 <li className="font-mono text-[13px] text-[color:var(--text-disabled)] uppercase tracking-[0.08em] py-2">
                   {t("prog.noExercisesYet")}
                 </li>
-              )}
-            </ul>
+              </ul>
+            ) : (
+              <DndContext
+                id={`dnd-day-${day.id}`}
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={(e) => handleDragEnd(day.id, e)}
+              >
+                <SortableContext
+                  items={day.exercises.map((e) => e.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <ul className="space-y-2">
+                    {day.exercises.map((ex) => (
+                      <SortableExerciseRow
+                        key={ex.id}
+                        dayId={day.id}
+                        ex={ex}
+                        onUpdate={updateExercise}
+                        onDelete={deleteExercise}
+                        removeLabel={t("prog.exerciseRemoved")}
+                        notesLabel={t("prog.notesPlaceholder")}
+                        setsLabel={t("prog.sets")}
+                        repsLabel={t("prog.reps")}
+                        kgLabel={t("prog.kg")}
+                      />
+                    ))}
+                  </ul>
+                </SortableContext>
+              </DndContext>
+            )}
 
             <button
               type="button"
@@ -460,6 +476,42 @@ function NumField({
   step?: string;
   onCommit: (raw: string) => void;
 }) {
+  // Local input value mirrors the persisted prop but allows free typing of
+  // intermediate states (e.g. "1.", "") without snapping back. We commit to
+  // the server via a debounce so each keystroke doesn't fire a PATCH.
+  const [draft, setDraft] = useState(value != null ? String(value) : "");
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastCommitted = useRef(value != null ? String(value) : "");
+
+  useEffect(() => {
+    const persisted = value != null ? String(value) : "";
+    if (persisted !== lastCommitted.current) {
+      lastCommitted.current = persisted;
+      setDraft(persisted);
+    }
+  }, [value]);
+
+  function scheduleCommit(raw: string) {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => {
+      timer.current = null;
+      if (raw !== lastCommitted.current) {
+        lastCommitted.current = raw;
+        onCommit(raw);
+      }
+    }, 500);
+  }
+
+  useEffect(() => {
+    return () => {
+      if (timer.current) {
+        clearTimeout(timer.current);
+        if (draft !== lastCommitted.current) onCommit(draft);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <label className="inline-flex items-baseline gap-1">
       <span className="mono-label">{label}</span>
@@ -467,14 +519,200 @@ function NumField({
         type="number"
         step={step}
         min={0}
-        defaultValue={value ?? ""}
-        onBlur={(e) => {
+        value={draft}
+        onPointerDown={(e) => e.stopPropagation()}
+        onChange={(e) => {
           const next = e.target.value;
-          const current = value ?? "";
-          if (next !== String(current)) onCommit(next);
+          setDraft(next);
+          scheduleCommit(next);
+        }}
+        onBlur={() => {
+          if (timer.current) {
+            clearTimeout(timer.current);
+            timer.current = null;
+          }
+          if (draft !== lastCommitted.current) {
+            lastCommitted.current = draft;
+            onCommit(draft);
+          }
         }}
         className="w-14 bg-transparent border-b border-[color:var(--border)] focus:border-[color:var(--accent)] py-1 font-mono text-[14px] text-[color:var(--text-display)] tabular-nums focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
       />
     </label>
+  );
+}
+
+function NotesField({
+  value,
+  placeholder,
+  onCommit,
+}: {
+  value: string | null;
+  placeholder: string;
+  onCommit: (raw: string) => void;
+}) {
+  const [draft, setDraft] = useState(value ?? "");
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastCommitted = useRef(value ?? "");
+
+  useEffect(() => {
+    const persisted = value ?? "";
+    if (persisted !== lastCommitted.current) {
+      lastCommitted.current = persisted;
+      setDraft(persisted);
+    }
+  }, [value]);
+
+  function scheduleCommit(raw: string) {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => {
+      timer.current = null;
+      if (raw !== lastCommitted.current) {
+        lastCommitted.current = raw;
+        onCommit(raw);
+      }
+    }, 500);
+  }
+
+  useEffect(() => {
+    return () => {
+      if (timer.current) {
+        clearTimeout(timer.current);
+        if (draft !== lastCommitted.current) onCommit(draft);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <input
+      value={draft}
+      placeholder={placeholder}
+      onPointerDown={(e) => e.stopPropagation()}
+      onChange={(e) => {
+        setDraft(e.target.value);
+        scheduleCommit(e.target.value);
+      }}
+      onBlur={() => {
+        if (timer.current) {
+          clearTimeout(timer.current);
+          timer.current = null;
+        }
+        if (draft !== lastCommitted.current) {
+          lastCommitted.current = draft;
+          onCommit(draft);
+        }
+      }}
+      className="w-full bg-transparent border-b border-[color:var(--border)] focus:border-[color:var(--accent)] py-1 font-mono text-[13px] text-[color:var(--text-secondary)] focus:outline-none placeholder:text-[color:var(--text-disabled)]"
+    />
+  );
+}
+
+function SortableExerciseRow({
+  dayId,
+  ex,
+  onUpdate,
+  onDelete,
+  removeLabel,
+  notesLabel,
+  setsLabel,
+  repsLabel,
+  kgLabel,
+}: {
+  dayId: string;
+  ex: EditorExercise;
+  onUpdate: (
+    dayId: string,
+    exId: string,
+    field: "targetSets" | "targetReps" | "targetWeightKg" | "notes",
+    raw: string,
+  ) => void;
+  onDelete: (dayId: string, exId: string) => void;
+  removeLabel: string;
+  notesLabel: string;
+  setsLabel: string;
+  repsLabel: string;
+  kgLabel: string;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: ex.id });
+  return (
+    <li
+      ref={setNodeRef}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.4 : 1,
+        zIndex: isDragging ? 10 : undefined,
+      }}
+      {...attributes}
+      {...listeners}
+      className="grid grid-cols-[56px_1fr_auto] gap-3 items-center p-2 border border-[color:var(--border)] touch-none cursor-grab active:cursor-grabbing select-none"
+    >
+      {ex.gifUrl ? (
+        <Image
+          src={ex.gifUrl}
+          alt={ex.name}
+          width={112}
+          height={112}
+          unoptimized
+          className="w-14 h-14 object-cover border border-[color:var(--border)] pointer-events-none"
+        />
+      ) : (
+        <div className="w-14 h-14 dot-grid-subtle border border-[color:var(--border)] pointer-events-none" />
+      )}
+      <div className="min-w-0 space-y-1">
+        <div className="font-body text-base text-[color:var(--text-display)] truncate">
+          {ex.name}
+        </div>
+        {ex.subtitle && <div className="mono-label truncate">{ex.subtitle}</div>}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pt-1">
+          <NumField
+            label={setsLabel}
+            value={ex.targetSets}
+            onCommit={(v) => onUpdate(dayId, ex.id, "targetSets", v)}
+          />
+          <NumField
+            label={repsLabel}
+            value={ex.targetReps}
+            onCommit={(v) => onUpdate(dayId, ex.id, "targetReps", v)}
+          />
+          <NumField
+            label={kgLabel}
+            value={ex.targetWeightKg}
+            step="0.5"
+            onCommit={(v) => onUpdate(dayId, ex.id, "targetWeightKg", v)}
+          />
+        </div>
+        <NotesField
+          value={ex.notes}
+          placeholder={notesLabel}
+          onCommit={(v) => onUpdate(dayId, ex.id, "notes", v)}
+        />
+      </div>
+      <div className="flex flex-col items-center self-start">
+        <span
+          aria-hidden
+          className="text-[color:var(--text-disabled)] p-1.5 pointer-events-none"
+        >
+          <GripVertical size={16} strokeWidth={1.5} />
+        </span>
+        <button
+          type="button"
+          onClick={() => onDelete(dayId, ex.id)}
+          onPointerDown={(e) => e.stopPropagation()}
+          aria-label={removeLabel}
+          className="text-[color:var(--text-disabled)] hover:text-[color:var(--accent)] p-1.5"
+        >
+          <X size={16} strokeWidth={1.5} />
+        </button>
+      </div>
+    </li>
   );
 }

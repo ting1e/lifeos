@@ -62,6 +62,7 @@ const en = {
   "common.connect": "CONNECT",
   "common.loading": "LOADING…",
   "common.saving": "SAVING…",
+  "common.saved": "SAVED",
   "common.busy": "…",
   "common.date": "DATE",
   "common.enable": "ENABLE",
@@ -443,6 +444,7 @@ const en = {
   "prog.dayDeleted": "day deleted",
   "prog.exerciseAdded": "exercise added",
   "prog.exerciseRemoved": "exercise removed",
+  "prog.exerciseReordered": "order updated",
   "prog.fieldSaved": "{field} saved",
 
   // ---- Password
@@ -691,6 +693,7 @@ const tr: Record<DictKey, string> = {
   "common.connect": "BAĞLA",
   "common.loading": "YÜKLENİYOR…",
   "common.saving": "KAYDEDİLİYOR…",
+  "common.saved": "KAYDEDİLDİ",
   "common.busy": "…",
   "common.date": "TARİH",
   "common.enable": "ETKİNLEŞTİR",
@@ -1072,6 +1075,7 @@ const tr: Record<DictKey, string> = {
   "prog.dayDeleted": "gün silindi",
   "prog.exerciseAdded": "egzersiz eklendi",
   "prog.exerciseRemoved": "egzersiz kaldırıldı",
+  "prog.exerciseReordered": "sıra güncellendi",
   "prog.fieldSaved": "{field} kaydedildi",
 
   // ---- Password
@@ -1318,6 +1322,7 @@ const zh: Record<DictKey, string> = {
   "common.connect": "连接",
   "common.loading": "加载中…",
   "common.saving": "保存中…",
+  "common.saved": "已保存",
   "common.busy": "…",
   "common.date": "日期",
   "common.enable": "启用",
@@ -1698,6 +1703,7 @@ const zh: Record<DictKey, string> = {
   "prog.dayDeleted": "训练日已删除",
   "prog.exerciseAdded": "动作已添加",
   "prog.exerciseRemoved": "动作已移除",
+  "prog.exerciseReordered": "顺序已更新",
   "prog.fieldSaved": "{field} 已保存",
 
   // ---- Password
