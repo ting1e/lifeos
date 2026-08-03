@@ -1,10 +1,12 @@
 import Link from "next/link";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
   exercises,
   profile,
   programExercises,
+  programs,
+  programDays,
   workouts,
   workoutSets,
 } from "@/lib/db/schema";
@@ -30,6 +32,26 @@ export default async function WorkoutDetail({
 
   const [w] = await db.select().from(workouts).where(eq(workouts.id, id)).limit(1);
   if (!w || w.userId !== user.id) return notFound();
+
+  // Resolve program + day names (FKs use ON DELETE SET NULL, so ids may dangle).
+  let progName: string | null = null;
+  let dayInfo: { name: string; dayIndex: number } | null = null;
+  if (w.programId) {
+    const [p] = await db
+      .select({ name: programs.name })
+      .from(programs)
+      .where(eq(programs.id, w.programId))
+      .limit(1);
+    progName = p?.name ?? null;
+  }
+  if (w.programDayId) {
+    const [d] = await db
+      .select({ name: programDays.name, dayIndex: programDays.dayIndex })
+      .from(programDays)
+      .where(eq(programDays.id, w.programDayId))
+      .limit(1);
+    dayInfo = d ? { name: d.name, dayIndex: d.dayIndex } : null;
+  }
 
   const [prof] = await db.select({ whoopEnabled: profile.whoopEnabled }).from(profile).where(eq(profile.userId, user.id)).limit(1);
   const whoopEnabled = prof?.whoopEnabled ?? true;
@@ -101,16 +123,10 @@ export default async function WorkoutDetail({
   );
   let adhoc: WorkoutExercise[] = [];
   if (adhocIds.length > 0) {
-    const rows = await db
+    const all = await db
       .select()
       .from(exercises)
-      .where(eq(exercises.id, adhocIds[0]));
-    // Multi-id select: loop because drizzle's `inArray` may not be imported here; keep it simple.
-    const all: typeof rows = [];
-    for (const id of adhocIds) {
-      const r = await db.select().from(exercises).where(eq(exercises.id, id)).limit(1);
-      if (r[0]) all.push(r[0]);
-    }
+      .where(inArray(exercises.id, adhocIds));
     adhoc = all.map((r) => ({
       exerciseId: r.id,
       nameEn: r.nameEn,
@@ -156,6 +172,19 @@ export default async function WorkoutDetail({
               minute: "2-digit",
             })}
           </h1>
+          {(progName || dayInfo) && (
+            <div className="mono-label mt-1 flex items-center gap-1.5">
+              {progName && (
+                <span className="text-[color:var(--text-secondary)]">{progName}</span>
+              )}
+              {dayInfo && (
+                <span>
+                  <span className="text-[color:var(--text-disabled)]">·</span>{" "}
+                  {t("prog.day")} {dayInfo.dayIndex + 1} {dayInfo.name}
+                </span>
+              )}
+            </div>
+          )}
         </div>
         <div className="text-right space-y-2">
           <div className="mono-label">

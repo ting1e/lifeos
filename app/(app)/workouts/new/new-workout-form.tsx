@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,12 +9,15 @@ import { useT } from "@/lib/i18n/client";
 import { isoForDate, todayKey } from "@/lib/utils/day";
 
 type ProgramOpt = { id: string; name: string };
+type DayOpt = { id: string; programId: string; dayIndex: number; name: string };
 
 export function NewWorkoutForm({
   programs,
+  days,
   initialDate,
 }: {
   programs: ProgramOpt[];
+  days: DayOpt[];
   initialDate?: string;
 }) {
   const router = useRouter();
@@ -22,7 +25,18 @@ export function NewWorkoutForm({
   const today = todayKey();
   const [date, setDate] = useState<string>(initialDate ?? today);
   const [programId, setProgramId] = useState<string>(programs[0]?.id ?? "");
+  const [dayId, setDayId] = useState<string>("");
   const [busy, setBusy] = useState(false);
+
+  // Days belonging to the currently selected program.
+  const programDays = useMemo(
+    () => days.filter((d) => d.programId === programId),
+    [days, programId],
+  );
+
+  // Auto-select the first day whenever the program changes.
+  // (Only when a real program is selected; "free / no program" hides days.)
+  const effectiveDayId = programId ? dayId || programDays[0]?.id || "" : "";
 
   async function start() {
     setBusy(true);
@@ -32,6 +46,7 @@ export function NewWorkoutForm({
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           programId: programId || null,
+          programDayId: effectiveDayId || null,
           startedAt: isoForDate(date),
         }),
       });
@@ -44,7 +59,13 @@ export function NewWorkoutForm({
 
   return (
     <div className="space-y-4 mt-2">
-      <Select value={programId} onChange={(e) => setProgramId(e.target.value)}>
+      <Select
+        value={programId}
+        onChange={(e) => {
+          setProgramId(e.target.value);
+          setDayId("");
+        }}
+      >
         <option value="">{t("common.freeNoProgram")}</option>
         {programs.map((p) => (
           <option key={p.id} value={p.id}>
@@ -52,6 +73,23 @@ export function NewWorkoutForm({
           </option>
         ))}
       </Select>
+
+      {programId && programDays.length > 0 && (
+        <div>
+          <div className="mono-label mb-1">{t("prog.dayLabel")}</div>
+          <Select
+            value={effectiveDayId}
+            onChange={(e) => setDayId(e.target.value)}
+          >
+            {programDays.map((d) => (
+              <option key={d.id} value={d.id}>
+                {t("prog.day")} {d.dayIndex + 1} · {d.name}
+              </option>
+            ))}
+          </Select>
+        </div>
+      )}
+
       <div>
         <div className="mono-label mb-1">
           {t("common.date")}

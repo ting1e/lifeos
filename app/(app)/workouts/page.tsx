@@ -1,7 +1,12 @@
 import Link from "next/link";
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { workouts, workoutSets } from "@/lib/db/schema";
+import {
+  workouts,
+  workoutSets,
+  programs,
+  programDays,
+} from "@/lib/db/schema";
 import { requireSession } from "@/lib/auth/session";
 import { getLocale, tFor } from "@/lib/i18n/server";
 import { bcp47For } from "@/lib/utils";
@@ -22,10 +27,48 @@ export default async function WorkoutsPage() {
     .orderBy(desc(workouts.startedAt))
     .limit(50);
 
-  // Per-workout set count
+  // Resolve program + day names for the recent workouts (left-join-ish via
+  // inArray lookups; FKs use ON DELETE SET NULL so ids may dangle).
+  const programIds = Array.from(
+    new Set(recent.map((w) => w.programId).filter(Boolean),
+    )) as string[];
+  const dayIds = Array.from(
+    new Set(recent.map((w) => w.programDayId).filter(Boolean),
+    )) as string[];
+
+  const programMap = new Map<string, string>();
+  if (programIds.length > 0) {
+    const rows = await db
+      .select({ id: programs.id, name: programs.name })
+      .from(programs)
+      .where(inArray(programs.id, programIds));
+    for (const r of rows) programMap.set(r.id, r.name);
+  }
+  const dayMap = new Map<string, { name: string; dayIndex: number }>();
+  if (dayIds.length > 0) {
+    const rows = await db
+      .select({
+        id: programDays.id,
+        name: programDays.name,
+        dayIndex: programDays.dayIndex,
+      })
+      .from(programDays)
+      .where(inArray(programDays.id, dayIds));
+    for (const r of rows) dayMap.set(r.id, { name: r.name, dayIndex: r.dayIndex });
+  }
+
+  // Per-workout set count (scoped to the recent workouts).
   const counts = new Map<string, number>();
   if (recent.length > 0) {
-    const setsRows = await db.select().from(workoutSets);
+    const setsRows = await db
+      .select()
+      .from(workoutSets)
+      .where(
+        inArray(
+          workoutSets.workoutId,
+          recent.map((w) => w.id),
+        ),
+      );
     for (const s of setsRows) {
       counts.set(s.workoutId, (counts.get(s.workoutId) ?? 0) + 1);
     }
@@ -65,6 +108,8 @@ export default async function WorkoutsPage() {
         ) : (
           recent.map((w) => {
             const setCount = counts.get(w.id) ?? 0;
+            const progName = w.programId ? programMap.get(w.programId) : null;
+            const dayInfo = w.programDayId ? dayMap.get(w.programDayId) : null;
             return (
               <Link
                 key={w.id}
@@ -83,6 +128,21 @@ export default async function WorkoutsPage() {
                   <div className="mono-label mt-0.5">
                     {w.endedAt ? t("work.completed") : t("work.inProgress")}
                   </div>
+                  {(progName || dayInfo) && (
+                    <div className="mono-label mt-0.5 flex items-center gap-1.5">
+                      {progName && (
+                        <span className="text-[color:var(--text-secondary)]">
+                          {progName}
+                        </span>
+                      )}
+                      {dayInfo && (
+                        <span>
+                          <span className="text-[color:var(--text-disabled)]">·</span>{" "}
+                          {t("prog.day")} {dayInfo.dayIndex + 1} {dayInfo.name}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <div className="font-mono text-base text-[color:var(--text-secondary)]">
                   {setCount} {t("work.sets")}

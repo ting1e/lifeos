@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useT } from "@/lib/i18n/client";
 import { Button } from "@/components/ui/button";
 
 export function StartDayForm({
@@ -10,6 +11,7 @@ export function StartDayForm({
   programId: string;
   programDayId: string;
 }) {
+  const t = useT();
   const router = useRouter();
   async function start() {
     const res = await fetch("/api/workouts", {
@@ -22,7 +24,7 @@ export function StartDayForm({
   }
   return (
     <Button onClick={start} variant="accent">
-      START DAY →
+      {t("work.startDay")}
     </Button>
   );
 }

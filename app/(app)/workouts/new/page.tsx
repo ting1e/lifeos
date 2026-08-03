@@ -1,6 +1,6 @@
-import { eq, or, isNull } from "drizzle-orm";
+import { eq, or, isNull, inArray } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { programs } from "@/lib/db/schema";
+import { programs, programDays } from "@/lib/db/schema";
 import { requireSession } from "@/lib/auth/session";
 import { Card, CardLabel } from "@/components/ui/card";
 import { NewWorkoutForm } from "./new-workout-form";
@@ -21,6 +21,19 @@ export default async function NewWorkoutPage({
     .select()
     .from(programs)
     .where(or(eq(programs.userId, user.id), isNull(programs.userId)));
+  const days =
+    progs.length > 0
+      ? await db
+          .select()
+          .from(programDays)
+          .where(
+            inArray(
+              programDays.programId,
+              progs.map((p) => p.id),
+            ),
+          )
+          .orderBy(programDays.dayIndex)
+      : [];
   const initialDate =
     sp.day && /^\d{4}-\d{2}-\d{2}$/.test(sp.day) ? sp.day : todayKey();
 
@@ -32,7 +45,7 @@ export default async function NewWorkoutPage({
       </header>
       <Card>
         <CardLabel>{t("work.programLabel")}</CardLabel>
-        <NewWorkoutForm programs={progs} initialDate={initialDate} />
+        <NewWorkoutForm programs={progs} days={days} initialDate={initialDate} />
       </Card>
     </div>
   );

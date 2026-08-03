@@ -241,13 +241,15 @@ export function WorkoutSession({
                             weightKg: existing.weightKg,
                             rpe: existing.rpe,
                           }
-                        : undefined
+                        : ex.targetReps != null || ex.targetWeightKg != null
+                          ? {
+                              reps: ex.targetReps,
+                              weightKg: ex.targetWeightKg,
+                              rpe: null,
+                            }
+                          : undefined
                     }
-                    lastTime={
-                      ex.targetReps && ex.targetWeightKg
-                        ? { reps: ex.targetReps, weightKg: ex.targetWeightKg }
-                        : null
-                    }
+                    lastTime={null}
                     disabled={ended || Boolean(existing)}
                     onComplete={(v) => addSet(ex.exerciseId, i, v)}
                   />
