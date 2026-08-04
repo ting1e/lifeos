@@ -15,17 +15,23 @@ export function NewWorkoutForm({
   programs,
   days,
   initialDate,
+  defaultProgramId,
+  defaultDayId,
 }: {
   programs: ProgramOpt[];
   days: DayOpt[];
   initialDate?: string;
+  defaultProgramId?: string;
+  defaultDayId?: string;
 }) {
   const router = useRouter();
   const t = useT();
   const today = todayKey();
   const [date, setDate] = useState<string>(initialDate ?? today);
-  const [programId, setProgramId] = useState<string>(programs[0]?.id ?? "");
-  const [dayId, setDayId] = useState<string>("");
+  const [programId, setProgramId] = useState<string>(
+    defaultProgramId || programs[0]?.id || "",
+  );
+  const [dayId, setDayId] = useState<string>(defaultDayId || "");
   const [busy, setBusy] = useState(false);
 
   // Days belonging to the currently selected program.
