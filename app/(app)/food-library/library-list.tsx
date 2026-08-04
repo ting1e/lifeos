@@ -73,14 +73,14 @@ export function LibraryList({ initial }: { initial: Item[] }) {
         return (
           <li
             key={i.id}
-            className="grid grid-cols-[1fr_auto_auto_auto_auto_auto_auto] items-center gap-3 py-2 border-b border-[color:var(--border)]"
+            className="py-2 border-b border-[color:var(--border)]"
           >
             {isEditing && draft ? (
-              <>
+              <div className="flex flex-wrap items-center gap-3">
                 <Input
                   value={draft.name}
                   onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-                  className="font-body"
+                  className="font-body min-w-[120px] flex-1"
                 />
                 <Input
                   type="number"
@@ -126,33 +126,32 @@ export function LibraryList({ initial }: { initial: Item[] }) {
                     <X size={14} strokeWidth={2} />
                   </button>
                 </div>
-              </>
+              </div>
             ) : (
-              <>
+              <div className="flex items-center gap-3">
                 {i.photoPath ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={`/api/uploads/${i.photoPath}`}
                     alt=""
-                    className="w-10 h-10 object-cover border border-[color:var(--border)] shrink-0"
+                    className="w-12 h-12 object-cover border border-[color:var(--border)] shrink-0"
                   />
                 ) : (
-                  <div className="w-10 h-10 dot-grid-subtle border border-[color:var(--border)] shrink-0" />
+                  <div className="w-12 h-12 dot-grid-subtle border border-[color:var(--border)] shrink-0" />
                 )}
-                <span className="font-body text-[color:var(--text-display)] truncate">{i.name}</span>
-                <span className="font-mono text-[13px] text-[color:var(--text-secondary)] text-right">
-                  {i.kcal ?? "?"} {t("food.kcal")}
-                </span>
-                <span className="font-mono text-[13px] text-[color:var(--text-secondary)] text-right">
-                  {i.proteinG ?? "?"}P
-                </span>
-                <span className="font-mono text-[13px] text-[color:var(--text-secondary)] text-right">
-                  {i.carbsG ?? "?"}C
-                </span>
-                <span className="font-mono text-[13px] text-[color:var(--text-secondary)] text-right">
-                  {i.fatG ?? "?"}F
-                </span>
-                <div className="flex items-center gap-1">
+                <div className="min-w-0 flex-1">
+                  <div className="font-body text-[color:var(--text-display)] truncate">{i.name}</div>
+                  <div className="font-mono text-[13px] text-[color:var(--text-secondary)] mt-0.5">
+                    {i.kcal ?? "?"} {t("food.kcal")}
+                    <span className="text-[color:var(--text-disabled)] mx-1.5">·</span>
+                    {i.proteinG ?? "?"}P
+                    <span className="text-[color:var(--text-disabled)] mx-1">·</span>
+                    {i.carbsG ?? "?"}C
+                    <span className="text-[color:var(--text-disabled)] mx-1">·</span>
+                    {i.fatG ?? "?"}F
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
                   <button
                     onClick={() => startEdit(i)}
                     className="text-[color:var(--text-secondary)] hover:text-[color:var(--accent)] p-1"
@@ -168,7 +167,7 @@ export function LibraryList({ initial }: { initial: Item[] }) {
                     <Trash2 size={12} strokeWidth={1.5} />
                   </button>
                 </div>
-              </>
+              </div>
             )}
           </li>
         );
