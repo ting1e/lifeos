@@ -115,13 +115,11 @@ export async function POST(req: NextRequest) {
 
   await db.execute(sql`
     UPDATE profile SET weight_kg = (
-      SELECT MIN(weight_kg::numeric) FROM body_metrics
+      SELECT weight_kg::numeric FROM body_metrics
       WHERE user_id = ${userId}
         AND weight_kg IS NOT NULL
-        AND recorded_at::date = (
-          SELECT MAX(recorded_at)::date FROM body_metrics
-          WHERE user_id = ${userId} AND weight_kg IS NOT NULL
-        )
+      ORDER BY recorded_at DESC
+      LIMIT 1
     )
     WHERE user_id = ${userId}
   `);
