@@ -1,4 +1,4 @@
-import { and, eq, gte } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
   bodyMetrics,
@@ -10,10 +10,7 @@ import {
 } from "@/lib/db/schema";
 import { requireSession } from "@/lib/auth/session";
 import { getLocale, tFor } from "@/lib/i18n/server";
-import { Card, CardLabel } from "@/components/ui/card";
-import { LineChart } from "@/components/charts/line-chart";
-import { BarChart } from "@/components/charts/bar-chart";
-import { BodyCompositionCharts } from "@/components/charts/body-composition-charts";
+import { AnalysisCharts } from "@/components/charts/analysis-charts";
 import { WeeklyInsights } from "./weekly-insights";
 import { getKcalTargetsForUser } from "@/lib/nutrition/targets";
 import { ymdLocal } from "@/lib/utils/day";
@@ -29,12 +26,11 @@ export default async function AnalysisPage() {
     .where(eq(profile.userId, user.id))
     .limit(1);
   const whoopEnabled = prof?.whoopEnabled ?? true;
-  const since14 = new Date(Date.now() - 14 * 86_400_000);
-  const since30 = new Date(Date.now() - 30 * 86_400_000);
 
   // kcal target (same logic as dashboard)
   const { kcalTarget } = await getKcalTargetsForUser(user.id);
 
+  // Body metrics (all time)
   const bm = await db
     .select()
     .from(bodyMetrics)
@@ -48,48 +44,48 @@ export default async function AnalysisPage() {
     leanBodyMassKg: b.leanBodyMassKg,
   }));
 
-  // Kcal per day, last 14
+  // Kcal per day (all time)
   const fe = await db
     .select()
     .from(foodEntries)
-    .where(and(eq(foodEntries.userId, user.id), gte(foodEntries.consumedAt, since14)));
-  const kcalByDay = new Map<string, number>();
+    .where(eq(foodEntries.userId, user.id));
+  const kcalMap = new Map<string, number>();
   for (const e of fe) {
     const k = ymdLocal(new Date(e.consumedAt));
-    kcalByDay.set(k, (kcalByDay.get(k) ?? 0) + Number(e.kcal ?? 0));
+    kcalMap.set(k, (kcalMap.get(k) ?? 0) + Number(e.kcal ?? 0));
   }
-  const kcalSeries = Array.from(kcalByDay.entries())
+  const kcalByDay = Array.from(kcalMap.entries())
     .sort()
     .map(([date, kcal]) => ({ date, kcal: Math.round(kcal) }));
 
-  // Workout volume per body part last 30
+  // Workout volume per day (all time)
   const ws = await db
     .select()
     .from(workouts)
-    .where(and(eq(workouts.userId, user.id), gte(workouts.startedAt, since30)));
-  const wsIds = ws.map((w) => w.id);
-  let volumeByMuscle: Array<{ muscle: string; volume: number }> = [];
-  if (wsIds.length > 0) {
-    // simple aggregate via JS (workout count is small)
-    const sets = await db.select().from(workoutSets);
-    const filtered = sets.filter((s) => wsIds.includes(s.workoutId));
-    const map = new Map<string, number>();
-    for (const s of filtered) {
-      const vol = (s.reps ?? 0) * Number(s.weightKg ?? 0);
-      map.set("total", (map.get("total") ?? 0) + vol);
-    }
-    volumeByMuscle = Array.from(map.entries()).map(([muscle, volume]) => ({ muscle, volume }));
+    .where(eq(workouts.userId, user.id));
+  const wsById = new Map(ws.map((w) => [w.id, w]));
+  const sets = ws.length > 0 ? await db.select().from(workoutSets) : [];
+  const volMap = new Map<string, number>();
+  for (const s of sets) {
+    const w = wsById.get(s.workoutId);
+    if (!w) continue;
+    const k = ymdLocal(new Date(w.startedAt));
+    const vol = (s.reps ?? 0) * Number(s.weightKg ?? 0);
+    volMap.set(k, (volMap.get(k) ?? 0) + vol);
   }
+  const volumeByDay = Array.from(volMap.entries())
+    .sort()
+    .map(([date, volume]) => ({ date, volume }));
 
-  // Recovery last 30
+  // Recovery (all time)
   const recs = whoopEnabled
     ? await db
         .select()
         .from(whoopRecovery)
-        .where(and(eq(whoopRecovery.userId, user.id), gte(whoopRecovery.date, ymdLocal(since30))))
+        .where(eq(whoopRecovery.userId, user.id))
         .orderBy(whoopRecovery.date)
     : [];
-  const recSeries = recs.map((r) => ({ date: r.date, score: r.score ?? 0 }));
+  const recSamples = recs.map((r) => ({ date: r.date, score: r.score ?? 0 }));
 
   return (
     <div className="space-y-6">
@@ -100,38 +96,14 @@ export default async function AnalysisPage() {
 
       <WeeklyInsights />
 
-      <BodyCompositionCharts samples={bmSamples} />
-
-      <Card>
-        <CardLabel>{t("anal.kcal14d")}</CardLabel>
-        {kcalSeries.length > 0 ? (
-          <BarChart data={kcalSeries} xKey="date" yKey="kcal" referenceLine={kcalTarget} />
-        ) : (
-          <div className="font-mono text-base text-[color:var(--text-secondary)] py-6">{t("anal.noData")}</div>
-        )}
-      </Card>
-
-      {whoopEnabled && (
-        <Card>
-          <CardLabel>{t("anal.recovery30d")}</CardLabel>
-          {recSeries.length > 0 ? (
-            <LineChart data={recSeries} xKey="date" yKey="score" color="var(--success)" />
-          ) : (
-            <div className="font-mono text-base text-[color:var(--text-secondary)] py-6">
-              {t("anal.noWhoopRecoveryData")}
-            </div>
-          )}
-        </Card>
-      )}
-
-      <Card>
-        <CardLabel>{t("anal.workoutVolume30d")}</CardLabel>
-        {volumeByMuscle.length > 0 ? (
-          <BarChart data={volumeByMuscle} xKey="muscle" yKey="volume" />
-        ) : (
-          <div className="font-mono text-base text-[color:var(--text-secondary)] py-6">{t("anal.noWorkouts")}</div>
-        )}
-      </Card>
+      <AnalysisCharts
+        bmSamples={bmSamples}
+        kcalByDay={kcalByDay}
+        volumeByDay={volumeByDay}
+        recSamples={recSamples}
+        whoopEnabled={whoopEnabled}
+        kcalTarget={kcalTarget}
+      />
     </div>
   );
 }
