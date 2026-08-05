@@ -12,6 +12,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useT, useLocale } from "@/lib/i18n/client";
+import { ZoomableImage } from "@/components/ui/zoomable-image";
 import { bcp47For } from "@/lib/utils";
 
 type Meal = "breakfast" | "lunch" | "dinner" | "snack";
@@ -166,10 +167,8 @@ export function RecentHistory({ days, todayKey, kcalTarget }: Props) {
                               aria-label={t("food.edit")}
                             >
                               {e.photoPath ? (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img
+                                <ZoomableImage
                                   src={`/api/uploads/${e.photoPath}`}
-                                  alt=""
                                   className="w-10 h-10 object-cover border border-[color:var(--border)] shrink-0"
                                 />
                               ) : (

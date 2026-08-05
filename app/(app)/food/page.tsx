@@ -22,6 +22,7 @@ import { MacroBar } from "@/components/food/macro-bar";
 import { MonoStat } from "@/components/nothing/mono-stat";
 import { DayNav } from "@/components/dashboard/day-nav";
 import { RecentHistory } from "@/components/food/recent-history";
+import { ZoomableImage } from "@/components/ui/zoomable-image";
 import { todayKey, ymdLocal } from "@/lib/utils/day";
 import { bcp47For } from "@/lib/utils";
 import { getKcalTargetsForUser } from "@/lib/nutrition/targets";
@@ -244,10 +245,8 @@ export default async function FoodPage({
                         aria-label={t("food.edit")}
                       >
                         {e.photoPath ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
+                          <ZoomableImage
                             src={`/api/uploads/${e.photoPath}`}
-                            alt=""
                             className="w-10 h-10 object-cover border border-[color:var(--border)] shrink-0"
                           />
                         ) : (

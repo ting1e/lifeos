@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Pencil, Trash2, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { ZoomableImage } from "@/components/ui/zoomable-image";
 import { useT } from "@/lib/i18n/client";
 
 type Item = {
@@ -130,10 +131,8 @@ export function LibraryList({ initial }: { initial: Item[] }) {
             ) : (
               <div className="flex items-center gap-3">
                 {i.photoPath ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <ZoomableImage
                     src={`/api/uploads/${i.photoPath}`}
-                    alt=""
                     className="w-12 h-12 object-cover border border-[color:var(--border)] shrink-0"
                   />
                 ) : (
