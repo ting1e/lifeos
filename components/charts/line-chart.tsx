@@ -3,8 +3,10 @@
 import { useId } from "react";
 import {
   Area,
-  AreaChart as RAreaChart,
+  ComposedChart,
   CartesianGrid,
+  Line,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -17,26 +19,34 @@ export function LineChart({
   yKey,
   height = 200,
   color,
+  secondaryKey,
+  referenceLine,
 }: {
   data: Array<Record<string, string | number>>;
   xKey: string;
   yKey: string;
   height?: number;
   color?: string;
+  secondaryKey?: string;
+  referenceLine?: number;
 }) {
   const rawId = useId();
   const gradId = `grad-${rawId.replace(/:/g, "")}`;
   const stroke = color ?? "var(--text-display)";
 
   const values = data.map((d) => Number(d[yKey])).filter((v) => !Number.isNaN(v));
-  const min = values.length ? Math.min(...values) : 0;
-  const max = values.length ? Math.max(...values) : 1;
+  const secondaryValues = secondaryKey
+    ? data.map((d) => Number(d[secondaryKey])).filter((v) => !Number.isNaN(v))
+    : [];
+  const allValues = [...values, ...secondaryValues];
+  const min = allValues.length ? Math.min(...allValues) : 0;
+  const max = allValues.length ? Math.max(...allValues) : 1;
   const range = max - min;
   const pad = range > 0 ? range * 0.15 : 1;
 
   return (
     <ResponsiveContainer width="100%" height={height}>
-      <RAreaChart data={data} margin={{ top: 8, right: 8, bottom: 8, left: 0 }}>
+      <ComposedChart data={data} margin={{ top: 8, right: 8, bottom: 8, left: 0 }}>
         <defs>
           <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={stroke} stopOpacity={0.25} />
@@ -73,7 +83,25 @@ export function LineChart({
           fill={`url(#${gradId})`}
           dot={false}
         />
-      </RAreaChart>
+        {secondaryKey && (
+          <Line
+            type="monotone"
+            dataKey={secondaryKey}
+            stroke={stroke}
+            strokeWidth={1.5}
+            strokeDasharray="6 4"
+            dot={false}
+          />
+        )}
+        {referenceLine != null && referenceLine > 0 && (
+          <ReferenceLine
+            y={referenceLine}
+            stroke="var(--accent)"
+            strokeDasharray="4 4"
+            strokeWidth={1.5}
+          />
+        )}
+      </ComposedChart>
     </ResponsiveContainer>
   );
 }

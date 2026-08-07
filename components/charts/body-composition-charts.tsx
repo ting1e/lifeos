@@ -19,16 +19,22 @@ function dayKey(iso: string) {
 export function BodyCompositionCharts({ samples }: { samples: BodySample[] }) {
   const t = useT();
 
-  const weightByDay = new Map<string, number>();
+  const weightMinByDay = new Map<string, number>();
+  const weightMaxByDay = new Map<string, number>();
   for (const b of samples) {
     if (b.weightKg == null) continue;
     const k = dayKey(b.recordedAt);
     const w = Number(b.weightKg);
-    weightByDay.set(k, Math.min(weightByDay.get(k) ?? Infinity, w));
+    weightMinByDay.set(k, Math.min(weightMinByDay.get(k) ?? Infinity, w));
+    weightMaxByDay.set(k, Math.max(weightMaxByDay.get(k) ?? -Infinity, w));
   }
-  const weightSeries = Array.from(weightByDay.entries())
+  const weightSeries = Array.from(weightMinByDay.keys())
     .sort()
-    .map(([date, weight]) => ({ date, weight }));
+    .map((date) => ({
+      date,
+      weight: weightMinByDay.get(date)!,
+      maxWeight: weightMaxByDay.get(date)!,
+    }));
 
   const bodyFatByDay = new Map<string, number>();
   for (const b of samples) {
@@ -74,7 +80,7 @@ export function BodyCompositionCharts({ samples }: { samples: BodySample[] }) {
       <Card>
         <CardLabel>{t("anal.weight")}</CardLabel>
         {weightSeries.length > 0 ? (
-          <LineChart data={weightSeries} xKey="date" yKey="weight" />
+          <LineChart data={weightSeries} xKey="date" yKey="weight" secondaryKey="maxWeight" />
         ) : (
           noData
         )}
