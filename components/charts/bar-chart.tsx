@@ -26,6 +26,13 @@ export function BarChart({
   color?: string;
   referenceLine?: number;
 }) {
+  const dataMax =
+    data.length > 0 ? Math.max(...data.map((d) => Number(d[yKey]))) : 0;
+  const yMax =
+    referenceLine != null && referenceLine > 0
+      ? Math.max(dataMax, referenceLine)
+      : dataMax;
+
   return (
     <ResponsiveContainer width="100%" height={height}>
       <RBarChart data={data} margin={{ top: 8, right: 8, bottom: 8, left: 0 }}>
@@ -36,6 +43,7 @@ export function BarChart({
           stroke="var(--border-visible)"
         />
         <YAxis
+          domain={[0, yMax > 0 ? Math.ceil(yMax * 1.1) : "auto"]}
           tick={{ fill: "var(--text-secondary)", fontSize: 10, fontFamily: "var(--font-mono)" }}
           stroke="var(--border-visible)"
           width={48}
