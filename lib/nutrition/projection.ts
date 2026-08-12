@@ -73,6 +73,27 @@ export function projectWeight(input: ProjectionInput): ProjectionPoint[] {
   return points;
 }
 
+// Linear projection from an observed weekly rate. Returns the same shape as
+// projectWeight so weeksToTarget can be reused.
+export function projectWeightByTrend(
+  startWeightKg: number,
+  weeklyRateKg: number,
+  weeks: number,
+): ProjectionPoint[] {
+  const points: ProjectionPoint[] = [];
+  const start = todayYMD();
+  for (let w = 0; w <= weeks; w++) {
+    points.push({
+      week: w,
+      date: fmt(addDays(start, w * 7)),
+      weightKg: Math.round((startWeightKg + weeklyRateKg * w) * 100) / 100,
+      maintenanceKcal: 0,
+      dailyDeficitKcal: Math.round((weeklyRateKg * 7700) / 7),
+    });
+  }
+  return points;
+}
+
 // First week where projected weight crosses the target (downward or upward).
 // Returns null if it never crosses within the projection window.
 export function weeksToTarget(

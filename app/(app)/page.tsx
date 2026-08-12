@@ -10,6 +10,7 @@ import {
 import { and, desc, eq, gte, lt } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
+  bodyMetrics,
   foodEntries,
   profile,
   whoopRecovery,
@@ -29,7 +30,7 @@ import { WeightProjection } from "@/components/dashboard/weight-projection";
 import { DayNav } from "@/components/dashboard/day-nav";
 import { getKcalTargetsForUser } from "@/lib/nutrition/targets";
 import { bcp47For, formatKg, greetingFor, resolveDisplayName } from "@/lib/utils";
-import { todayKey } from "@/lib/utils/day";
+import { todayKey, ymdLocal } from "@/lib/utils/day";
 import { getLocale, tFor } from "@/lib/i18n/server";
 
 function formatDayShort(dateStr: string, locale: "tr" | "en" | "zh" = "en"): string {
@@ -143,6 +144,16 @@ export default async function Dashboard({
     .where(eq(workouts.userId, user.id))
     .orderBy(desc(workouts.startedAt))
     .limit(1);
+
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const recentBm = await db
+    .select({ weightKg: bodyMetrics.weightKg, recordedAt: bodyMetrics.recordedAt })
+    .from(bodyMetrics)
+    .where(and(eq(bodyMetrics.userId, user.id), gte(bodyMetrics.recordedAt, thirtyDaysAgo)));
+  const weightSamples = recentBm
+    .filter((b) => b.weightKg != null)
+    .map((b) => ({ date: ymdLocal(new Date(b.recordedAt)), weightKg: Number(b.weightKg) }));
 
   const headerDate = dayStart.toLocaleDateString(
     bcp47For(locale),
@@ -346,6 +357,7 @@ export default async function Dashboard({
           startWeightKg={weightKg}
           dailyKcalIntake={kcalTarget}
           goalWeightKg={prof?.targetWeightKg ? Number(prof.targetWeightKg) : null}
+          weightSamples={weightSamples}
         />
       </section>
 
@@ -386,7 +398,7 @@ export default async function Dashboard({
           { href: "/workouts/new", label: t("dash.startWorkout") },
           { href: "/food/new", label: t("dash.logMeal") },
           { href: "/food-library", label: t("foodLibrary.manualAdd") },
-          { href: "/analysis", label: t("nav.analysis").toUpperCase() },
+          { href: "/programs", label: t("dash.programs") },
         ].map((a) => (
           <Link
             key={a.href}

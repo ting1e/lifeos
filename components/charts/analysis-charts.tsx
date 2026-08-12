@@ -9,6 +9,7 @@ import {
 } from "@/components/charts/body-composition-charts";
 import { Card, CardLabel } from "@/components/ui/card";
 import { useT } from "@/lib/i18n/client";
+import { ymdLocal, todayKey } from "@/lib/utils/day";
 
 type Range = "7" | "15" | "30" | "90" | "all";
 
@@ -32,7 +33,7 @@ export function AnalysisCharts({
   kcalTarget: number;
 }) {
   const t = useT();
-  const [range, setRange] = useState<Range>("90");
+  const [range, setRange] = useState<Range>("30");
 
   const cutoff = range === "all" ? 0 : Date.now() - Number(range) * 86_400_000;
   const inRange = (dateStr: string) => new Date(dateStr).getTime() >= cutoff;
@@ -40,11 +41,23 @@ export function AnalysisCharts({
   const filteredBm = bmSamples.filter((s) => inRange(s.recordedAt));
   const kcalSeries = kcalByDay.filter((d) => inRange(d.date));
 
-  const totalVolume = volumeByDay
-    .filter((d) => inRange(d.date))
-    .reduce((sum, d) => sum + d.volume, 0);
-  const volumeByMuscle =
-    totalVolume > 0 ? [{ muscle: "total", volume: totalVolume }] : [];
+  const volumeSeries = volumeByDay.filter((d) => inRange(d.date));
+
+  const volMap = new Map(volumeSeries.map((d) => [d.date, d.volume]));
+  const today = todayKey();
+  const fillStart = range === "all"
+    ? (volumeByDay[0]?.date ?? today)
+    : ymdLocal(new Date(cutoff));
+  const filledVolumeSeries: DayVolume[] = [];
+  {
+    const iter = new Date(fillStart + "T00:00:00");
+    const end = new Date(today + "T00:00:00");
+    while (iter.getTime() <= end.getTime()) {
+      const ds = ymdLocal(iter);
+      filledVolumeSeries.push({ date: ds, volume: volMap.get(ds) ?? 0 });
+      iter.setDate(iter.getDate() + 1);
+    }
+  }
 
   const recSeries = recSamples.filter((d) => inRange(d.date));
 
@@ -119,8 +132,8 @@ export function AnalysisCharts({
 
       <Card>
         <CardLabel>{t("anal.workoutVolume")}</CardLabel>
-        {volumeByMuscle.length > 0 ? (
-          <BarChart data={volumeByMuscle} xKey="muscle" yKey="volume" />
+        {volumeByDay.length > 0 ? (
+          <BarChart data={filledVolumeSeries} xKey="date" yKey="volume" />
         ) : (
           <div className="font-mono text-base text-[color:var(--text-secondary)] py-6">
             {t("anal.noWorkouts")}

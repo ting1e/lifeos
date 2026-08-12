@@ -40,6 +40,7 @@ const en = {
   "nav.trainShort": "TRAIN",
   "nav.foodShort": "FOOD",
   "nav.whoopShort": "WHOOP",
+  "nav.analShort": "ANAL",
   "nav.meShort": "ME",
 
   // ---- Common buttons
@@ -121,6 +122,7 @@ const en = {
   "dash.inProgress": "IN PROGRESS",
   "dash.viewing": "· VIEWING",
   "dash.startWorkout": "START WORKOUT",
+  "dash.programs": "PROGRAMS",
   "dash.logMeal": "LOG MEAL",
   "dash.generatePlan": "GENERATE PLAN",
   "dash.connectWhoop":
@@ -137,6 +139,11 @@ const en = {
   "proj.targetNotReached": "target {kg} kg not reached within {weeks} weeks",
   "proj.needProfile":
     "Set profile (sex, height, age, weight) + a daily kcal target to see the projection.",
+  "proj.standardIntake": "INTAKE",
+  "proj.weeklyTrend": "TREND",
+  "proj.perWeek": "kg/wk",
+  "proj.recent7Avg": "RECENT 7D",
+  "proj.needMoreData": "Need 14+ days of weight data for trend.",
 
   // ---- Food entry
   "food.logEntry": "LOG ENTRY",
@@ -674,6 +681,7 @@ const tr: Record<DictKey, string> = {
   "nav.trainShort": "TREN",
   "nav.foodShort": "BESL",
   "nav.whoopShort": "WHOOP",
+  "nav.analShort": "ANAL",
   "nav.meShort": "BEN",
 
   // ---- Common buttons
@@ -755,6 +763,7 @@ const tr: Record<DictKey, string> = {
   "dash.inProgress": "DEVAM EDİYOR",
   "dash.viewing": "· GÖRÜNTÜLEME",
   "dash.startWorkout": "ANTRENMANA BAŞLA",
+  "dash.programs": "PROGRAMLAR",
   "dash.logMeal": "ÖĞÜN EKLE",
   "dash.generatePlan": "PLAN OLUŞTUR",
   "dash.connectWhoop":
@@ -771,6 +780,11 @@ const tr: Record<DictKey, string> = {
   "proj.targetNotReached": "{weeks} hafta içinde {kg} kg hedefine ulaşılmıyor",
   "proj.needProfile":
     "Projeksiyon için profilini doldur (cinsiyet, boy, yaş, kilo) + günlük kcal hedefi.",
+  "proj.standardIntake": "ALIM",
+  "proj.weeklyTrend": "TREND",
+  "proj.perWeek": "kg/hafta",
+  "proj.recent7Avg": "SON 7G",
+  "proj.needMoreData": "Trend için 14+ gün kilo verisi gerekli.",
 
   // ---- Food entry
   "food.logEntry": "GİRİŞ",
@@ -1306,6 +1320,7 @@ const zh: Record<DictKey, string> = {
   "nav.trainShort": "训练",
   "nav.foodShort": "饮食",
   "nav.whoopShort": "WHOOP",
+  "nav.analShort": "分析",
   "nav.meShort": "我的",
 
   // ---- Common buttons
@@ -1386,6 +1401,7 @@ const zh: Record<DictKey, string> = {
   "dash.inProgress": "进行中",
   "dash.viewing": "· 查看中",
   "dash.startWorkout": "开始训练",
+  "dash.programs": "训练计划",
   "dash.logMeal": "记录饮食",
   "dash.generatePlan": "生成计划",
   "dash.connectWhoop":
@@ -1402,6 +1418,11 @@ const zh: Record<DictKey, string> = {
   "proj.targetNotReached": "{weeks} 周内未达到 {kg} kg 目标",
   "proj.needProfile":
     "完善个人资料（性别、身高、年龄、体重）+ 每日卡路里目标以查看预测。",
+  "proj.standardIntake": "标准摄入",
+  "proj.weeklyTrend": "两周趋势",
+  "proj.perWeek": "kg/周",
+  "proj.recent7Avg": "近7日均",
+  "proj.needMoreData": "需要至少14天体重数据才能查看趋势。",
 
   // ---- Food entry
   "food.logEntry": "记录",

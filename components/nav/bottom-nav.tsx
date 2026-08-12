@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, Apple, Heart, LayoutDashboard, User2 } from "lucide-react";
+import { Activity, Apple, BarChart3, Heart, LayoutDashboard, User2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n/client";
 import type { DictKey } from "@/lib/i18n/dict";
@@ -14,6 +14,7 @@ const ITEMS: Item[] = [
   { href: "/workouts", labelKey: "nav.trainShort", icon: Activity },
   { href: "/food", labelKey: "nav.foodShort", icon: Apple },
   { href: "/whoop", labelKey: "nav.whoopShort", icon: Heart },
+  { href: "/analysis", labelKey: "nav.analShort", icon: BarChart3 },
   { href: "/profile", labelKey: "nav.meShort", icon: User2 },
 ];
 
