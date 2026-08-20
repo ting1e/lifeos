@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, ne } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
   exercises,
@@ -117,6 +117,64 @@ export default async function WorkoutDetail({
   // Sets already logged
   const sets = await db.select().from(workoutSets).where(eq(workoutSets.workoutId, w.id));
 
+  // Last performance per planned exercise: from the most recent previous
+  // workout on the same program + day that logged this exercise. Used to
+  // prefill per-set weights (one per weighted set last time) and first-set
+  // reps (average of all sets).
+  const lastPerformance: Record<
+    string,
+    { weights: number[]; avgReps: number | null }
+  > = {};
+  if (w.programId && w.programDayId && planned.length > 0) {
+    const hist = await db
+      .select({
+        workoutId: workoutSets.workoutId,
+        exerciseId: workoutSets.exerciseId,
+        setIndex: workoutSets.setIndex,
+        reps: workoutSets.reps,
+        weightKg: workoutSets.weightKg,
+      })
+      .from(workoutSets)
+      .innerJoin(workouts, eq(workouts.id, workoutSets.workoutId))
+      .where(
+        and(
+          eq(workouts.userId, user.id),
+          eq(workouts.programId, w.programId),
+          eq(workouts.programDayId, w.programDayId),
+          ne(workouts.id, w.id),
+          inArray(workoutSets.exerciseId, planned.map((p) => p.exerciseId)),
+        ),
+      )
+      .orderBy(desc(workouts.startedAt), workoutSets.setIndex);
+
+    const grouped = new Map<string, typeof hist>();
+    for (const row of hist) {
+      const arr = grouped.get(row.exerciseId) ?? [];
+      arr.push(row);
+      grouped.set(row.exerciseId, arr);
+    }
+    for (const [exId, rows] of grouped) {
+      // Rows are ordered most-recent-workout first, so rows[0] belongs to the
+      // latest previous workout that logged this exercise.
+      const latestWorkoutId = rows[0].workoutId;
+      const sessionSets = rows
+        .filter((r) => r.workoutId === latestWorkoutId)
+        .sort((a, b) => a.setIndex - b.setIndex);
+      const weights = sessionSets
+        .filter((s) => s.weightKg != null)
+        .map((s) => Number(s.weightKg));
+      const repsValues = sessionSets
+        .map((s) => s.reps)
+        .filter((r): r is number => r != null);
+      lastPerformance[exId] = {
+        weights,
+        avgReps: repsValues.length
+          ? Math.round(repsValues.reduce((a, b) => a + b, 0) / repsValues.length)
+          : null,
+      };
+    }
+  }
+
   // For sets logged against exercises that aren't in `planned` (i.e. ad-hoc adds),
   // we still need their meta to display. Fetch any extras.
   const seenIds = new Set(planned.map((p) => p.exerciseId));
@@ -202,6 +260,7 @@ export default async function WorkoutDetail({
           workoutId={w.id}
           locale={locale}
           initialExercises={initialExercises}
+          lastPerformance={lastPerformance}
           existingSets={sets.map((s) => ({
             id: s.id,
             exerciseId: s.exerciseId,

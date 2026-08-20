@@ -14,6 +14,8 @@ export function SetRow({
   setIndex,
   initial,
   setId,
+  ready = true,
+  sync,
   disabled,
   onSave,
   onDelete,
@@ -21,6 +23,8 @@ export function SetRow({
   setIndex: number;
   initial?: SetRowValue;
   setId?: string;
+  ready?: boolean;
+  sync?: { setId: string; value: SetRowValue };
   disabled?: boolean;
   onSave: (v: SetRowValue, setId: string | undefined) => void | Promise<string | undefined>;
   onDelete?: (setId: string) => void | Promise<void>;
@@ -39,40 +43,98 @@ export function SetRow({
   const currentSetId = useRef<string | undefined>(setId);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastFired = useRef<string>("");
+  const autoSaved = useRef(false);
+  const dirty = useRef(false);
   const t = useT();
+
+  async function saveNow() {
+    const r = repsRef.current;
+    const w = weightRef.current;
+    const p = rpeRef.current;
+    const snapshot = JSON.stringify({ reps: r, weight: w, rpe: p });
+    if (snapshot === lastFired.current) return;
+    lastFired.current = snapshot;
+    const v: SetRowValue = {
+      reps: r ? Number(r) : null,
+      weightKg: w ? Number(w) : null,
+      rpe: p ? Number(p) : null,
+    };
+    // If the row has no values at all and a set was previously created,
+    // delete it instead of saving an empty set.
+    if (v.reps === null && v.weightKg === null && v.rpe === null) {
+      if (currentSetId.current && onDelete) {
+        await onDelete(currentSetId.current);
+        currentSetId.current = undefined;
+        lastFired.current = "";
+      }
+      return;
+    }
+    const newId = await onSave(v, currentSetId.current);
+    if (newId) currentSetId.current = newId;
+    setSaved(true);
+    setTimeout(() => setSaved(false), 1200);
+  }
 
   function scheduleSave() {
     setSaved(false);
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(async () => {
       timer.current = null;
-      const r = repsRef.current;
-      const w = weightRef.current;
-      const p = rpeRef.current;
-      const snapshot = JSON.stringify({ reps: r, weight: w, rpe: p });
-      if (snapshot === lastFired.current) return;
-      lastFired.current = snapshot;
-      const v: SetRowValue = {
-        reps: r ? Number(r) : null,
-        weightKg: w ? Number(w) : null,
-        rpe: p ? Number(p) : null,
-      };
-      // If the row has no values at all and a set was previously created,
-      // delete it instead of saving an empty set.
-      if (v.reps === null && v.weightKg === null && v.rpe === null) {
-        if (currentSetId.current && onDelete) {
-          await onDelete(currentSetId.current);
-          currentSetId.current = undefined;
-          lastFired.current = "";
-        }
-        return;
-      }
-      const newId = await onSave(v, currentSetId.current);
-      if (newId) currentSetId.current = newId;
-      setSaved(true);
-      setTimeout(() => setSaved(false), 1200);
+      await saveNow();
     }, 600);
   }
+
+  // Adopt authoritative server data (re-fetched on re-entry / foreground).
+  // The set id is always adopted so saves target the right row; values are
+  // only adopted while the user hasn't edited this row, so in-flight input
+  // is never clobbered.
+  const syncKey = sync ? `${sync.setId}:${JSON.stringify(sync.value)}` : null;
+  useEffect(() => {
+    if (!sync) return;
+    currentSetId.current = sync.setId;
+    if (dirty.current) return;
+    const r = sync.value.reps?.toString() ?? "";
+    const w = sync.value.weightKg?.toString() ?? "";
+    const p = sync.value.rpe?.toString() ?? "";
+    if (
+      repsRef.current === r &&
+      weightRef.current === w &&
+      rpeRef.current === p &&
+      lastFired.current !== ""
+    ) {
+      return;
+    }
+    setReps(r);
+    setWeight(w);
+    setRpe(p);
+    repsRef.current = r;
+    weightRef.current = w;
+    rpeRef.current = p;
+    lastFired.current = JSON.stringify({ reps: r, weight: w, rpe: p });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [syncKey]);
+
+  // Auto-save prefilled values (last-time suggestion / program target) once
+  // after the initial server sync, so they are persisted even if the user
+  // never edits the row. Waiting for `ready` avoids creating duplicates when
+  // this row was mounted from a stale client router cache that didn't know
+  // the set already exists.
+  useEffect(() => {
+    if (
+      !ready ||
+      autoSaved.current ||
+      disabled ||
+      currentSetId.current ||
+      setId ||
+      !initial ||
+      (initial.reps === null && initial.weightKg === null && initial.rpe === null)
+    ) {
+      return;
+    }
+    autoSaved.current = true;
+    void saveNow();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready]);
 
   // Flush pending save on unmount.
   useEffect(() => {
@@ -112,6 +174,7 @@ export function SetRow({
         onChange={(e) => {
           setWeight(e.target.value);
           weightRef.current = e.target.value;
+          dirty.current = true;
           scheduleSave();
         }}
         disabled={disabled}
@@ -124,6 +187,7 @@ export function SetRow({
         onChange={(e) => {
           setReps(e.target.value);
           repsRef.current = e.target.value;
+          dirty.current = true;
           scheduleSave();
         }}
         disabled={disabled}
@@ -136,6 +200,7 @@ export function SetRow({
         onChange={(e) => {
           setRpe(e.target.value);
           rpeRef.current = e.target.value;
+          dirty.current = true;
           scheduleSave();
         }}
         disabled={disabled}

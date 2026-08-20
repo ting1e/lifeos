@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Info } from "lucide-react";
@@ -49,16 +49,23 @@ type ExistingSet = {
   rpe: number | null;
 };
 
+export type LastPerformance = {
+  weights: number[];
+  avgReps: number | null;
+};
+
 export function WorkoutSession({
   workoutId,
   locale,
   initialExercises,
+  lastPerformance,
   existingSets,
   ended,
 }: {
   workoutId: string;
   locale: "tr" | "en" | "zh";
   initialExercises: WorkoutExercise[];
+  lastPerformance?: Record<string, LastPerformance>;
   existingSets: ExistingSet[];
   ended: boolean;
 }) {
@@ -66,10 +73,57 @@ export function WorkoutSession({
   const t = useT();
   const [exList, setExList] = useState<WorkoutExercise[]>(initialExercises);
   const [localSets, setLocalSets] = useState<ExistingSet[]>(existingSets);
+  const [synced, setSynced] = useState(false);
   const [restOpen, setRestOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [detail, setDetail] = useState<ExerciseDetail | null>(null);
   const { editing } = useEdit();
+
+  // Sets deleted in this session: filtered out of re-fetch responses so a
+  // response that raced with the DELETE cannot resurrect them.
+  const deletedIdsRef = useRef<Set<string>>(new Set());
+
+  // The Next.js client Router Cache serves a stale RSC payload when this page
+  // is restored via back/forward navigation (e.g. the PWA back gesture), so
+  // the server can hold newer sets than the props we mounted with. Re-fetch
+  // the authoritative sets on mount and when the app returns to the
+  // foreground, then let SetRow adopt them.
+  const refetchSets = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/workouts/${workoutId}/sets`, {
+        cache: "no-store",
+      });
+      if (!res.ok) throw new Error("fetch failed");
+      const data = await res.json();
+      const serverSets = ((data?.sets ?? []) as ExistingSet[]).filter(
+        (s) => !deletedIdsRef.current.has(s.id),
+      );
+      setLocalSets((prev) => {
+        // Server is the source of truth; keep client-created rows that the
+        // response raced with (created after the request was sent).
+        const extras = prev.filter(
+          (p) => !serverSets.some((s) => s.id === p.id),
+        );
+        return [...serverSets, ...extras];
+      });
+    } catch {
+      // Offline / transient failure: keep the current data.
+    } finally {
+      setSynced(true);
+    }
+  }, [workoutId]);
+
+  useEffect(() => {
+    void refetchSets();
+  }, [refetchSets]);
+
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") void refetchSets();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, [refetchSets]);
 
   // In-progress workouts are always editable. Completed workouts require
   // explicitly entering edit mode via the EDIT button in the page header.
@@ -83,7 +137,7 @@ export function WorkoutSession({
   ): Promise<string | undefined> {
     if (setId) {
       // Update existing set row.
-      await fetch(`/api/workout-sets/${setId}`, {
+      const res = await fetch(`/api/workout-sets/${setId}`, {
         method: "PATCH",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -92,14 +146,24 @@ export function WorkoutSession({
           rpe: v.rpe,
         }),
       });
-      setLocalSets((s) =>
-        s.map((row) =>
-          row.id === setId
-            ? { ...row, reps: v.reps, weightKg: v.weightKg, rpe: v.rpe }
-            : row,
-        ),
-      );
-      return setId;
+      if (res.ok) {
+        setLocalSets((s) =>
+          s.map((row) =>
+            row.id === setId
+              ? { ...row, reps: v.reps, weightKg: v.weightKg, rpe: v.rpe }
+              : row,
+          ),
+        );
+        return setId;
+      }
+      if (res.status !== 404) {
+        // Transient failure: keep the id so the next save retries the update.
+        return setId;
+      }
+      // 404: the referenced set no longer exists (deleted elsewhere or via a
+      // stale reference). Drop the dead row and recreate below.
+      deletedIdsRef.current.add(setId);
+      setLocalSets((s) => s.filter((row) => row.id !== setId));
     }
     // Create new set row.
     const res = await fetch(`/api/workouts/${workoutId}/sets`, {
@@ -132,6 +196,7 @@ export function WorkoutSession({
   }
 
   async function deleteSet(setId: string) {
+    deletedIdsRef.current.add(setId);
     await fetch(`/api/workout-sets/${setId}`, { method: "DELETE" });
     setLocalSets((s) => s.filter((row) => row.id !== setId));
   }
@@ -187,6 +252,7 @@ export function WorkoutSession({
       arr.push(s);
       m.set(s.exerciseId, arr);
     }
+    for (const arr of m.values()) arr.sort((a, b) => a.setIndex - b.setIndex);
     return m;
   }, [localSets]);
 
@@ -224,8 +290,19 @@ export function WorkoutSession({
 
       {exList.map((ex) => {
         const done = setsByExercise.get(ex.exerciseId) ?? [];
+        const lastPerf = lastPerformance?.[ex.exerciseId];
         const targetSets = ex.targetSets ?? 3;
-        const rows = Array.from({ length: Math.max(targetSets, done.length + 1) });
+        // `done` is sorted by setIndex, which can have gaps after deletions,
+        // so cover the highest logged index too.
+        const lastSetIndex = done.length > 0 ? done[done.length - 1].setIndex : -1;
+        const rows = Array.from({
+          length: Math.max(
+            targetSets,
+            done.length + 1,
+            lastPerf?.weights.length ?? 0,
+            lastSetIndex + 1,
+          ),
+        });
         const displayName = locale === "tr" ? ex.nameTr ?? ex.nameEn : locale === "zh" ? ex.nameZh ?? ex.nameEn : ex.nameEn;
         return (
           <Card key={ex.exerciseId} className="space-y-4">
@@ -279,7 +356,11 @@ export function WorkoutSession({
 
             <div className="space-y-0">
               {rows.map((_, i) => {
-                const existing = done[i];
+                // Match rows to sets by setIndex, not position: after a
+                // mid-workout deletion the remaining indexes have gaps, and a
+                // positional lookup would mis-assign rows (and re-create
+                // sets for indexes that are already logged).
+                const existing = done.find((s) => s.setIndex === i);
                 return (
                   <SetRow
                     key={i}
@@ -291,15 +372,34 @@ export function WorkoutSession({
                             weightKg: existing.weightKg,
                             rpe: existing.rpe,
                           }
-                        : ex.targetWeightKg != null
-                          ? {
-                              reps: null,
-                              weightKg: ex.targetWeightKg,
-                              rpe: null,
-                            }
-                          : undefined
+                        : {
+                            reps: i === 0 ? (lastPerf?.avgReps ?? null) : null,
+                            // Target weight only prefill the planned rows;
+                            // beyond the plan (the "+1" growth row) rows stay
+                            // empty, otherwise auto-save would keep creating
+                            // sets forever.
+                            weightKg: lastPerf
+                              ? (lastPerf.weights[i] ?? null)
+                              : i < targetSets
+                                ? (ex.targetWeightKg ?? null)
+                                : null,
+                            rpe: null,
+                          }
                     }
                     setId={existing?.id}
+                    ready={synced}
+                    sync={
+                      existing
+                        ? {
+                            setId: existing.id,
+                            value: {
+                              reps: existing.reps,
+                              weightKg: existing.weightKg,
+                              rpe: existing.rpe,
+                            },
+                          }
+                        : undefined
+                    }
                     disabled={!canEdit}
                     onSave={(v, sid) => saveSet(ex.exerciseId, i, v, sid)}
                     onDelete={deleteSet}
