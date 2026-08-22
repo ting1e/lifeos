@@ -145,12 +145,12 @@ export default async function Dashboard({
     .orderBy(desc(workouts.startedAt))
     .limit(1);
 
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const ninetyDaysAgo = new Date();
+  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
   const recentBm = await db
     .select({ weightKg: bodyMetrics.weightKg, recordedAt: bodyMetrics.recordedAt })
     .from(bodyMetrics)
-    .where(and(eq(bodyMetrics.userId, user.id), gte(bodyMetrics.recordedAt, thirtyDaysAgo)));
+    .where(and(eq(bodyMetrics.userId, user.id), gte(bodyMetrics.recordedAt, ninetyDaysAgo)));
   const weightSamples = recentBm
     .filter((b) => b.weightKg != null)
     .map((b) => ({ date: ymdLocal(new Date(b.recordedAt)), weightKg: Number(b.weightKg) }));

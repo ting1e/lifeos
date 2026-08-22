@@ -9,12 +9,13 @@ export type ProjectionInput = {
   activity: Activity;
   startWeightKg: number;
   dailyKcalIntake: number;
-  weeks: number;
+  days: number;
+  startDate?: Date; // anchor date at local midnight; defaults to today
 };
 
 export type ProjectionPoint = {
-  week: number;
-  date: string; // YYYY-MM-DD, weekly cadence from "today"
+  day: number;
+  date: string; // YYYY-MM-DD, daily cadence from the start date (default today)
   weightKg: number;
   maintenanceKcal: number;
   dailyDeficitKcal: number;
@@ -39,15 +40,15 @@ function fmt(d: Date): string {
   return `${y}-${m}-${dd}`;
 }
 
-// Iteratively step a Losertown-style weight projection. Each week, recompute
+// Iteratively step a Losertown-style weight projection. Each day, recompute
 // BMR from the current weight, derive maintenance, then move weight by the
 // energy gap. Stable for both deficit and surplus.
 export function projectWeight(input: ProjectionInput): ProjectionPoint[] {
   const points: ProjectionPoint[] = [];
   let weight = input.startWeightKg;
-  const start = todayYMD();
+  const start = input.startDate ?? todayYMD();
 
-  for (let w = 0; w <= input.weeks; w++) {
+  for (let d = 0; d <= input.days; d++) {
     const b = bmr({
       sex: input.sex,
       weightKg: weight,
@@ -57,16 +58,15 @@ export function projectWeight(input: ProjectionInput): ProjectionPoint[] {
     const maint = tdee(b, input.activity);
     const dailyDeficit = maint - input.dailyKcalIntake;
     points.push({
-      week: w,
-      date: fmt(addDays(start, w * 7)),
+      day: d,
+      date: fmt(addDays(start, d)),
       weightKg: Math.round(weight * 100) / 100,
       maintenanceKcal: Math.round(maint * 10) / 10,
       dailyDeficitKcal: Math.round(dailyDeficit * 10) / 10,
     });
 
     // step
-    const weeklyDeficit = dailyDeficit * 7;
-    weight = weight - weeklyDeficit / KCAL_PER_KG;
+    weight = weight - dailyDeficit / KCAL_PER_KG;
     if (weight < 30) break; // safety stop
   }
 
@@ -74,19 +74,21 @@ export function projectWeight(input: ProjectionInput): ProjectionPoint[] {
 }
 
 // Linear projection from an observed weekly rate. Returns the same shape as
-// projectWeight so weeksToTarget can be reused.
+// projectWeight so daysToTarget can be reused.
 export function projectWeightByTrend(
   startWeightKg: number,
   weeklyRateKg: number,
-  weeks: number,
+  days: number,
+  startDate?: Date,
 ): ProjectionPoint[] {
   const points: ProjectionPoint[] = [];
-  const start = todayYMD();
-  for (let w = 0; w <= weeks; w++) {
+  const start = startDate ?? todayYMD();
+  const dailyRateKg = weeklyRateKg / 7;
+  for (let d = 0; d <= days; d++) {
     points.push({
-      week: w,
-      date: fmt(addDays(start, w * 7)),
-      weightKg: Math.round((startWeightKg + weeklyRateKg * w) * 100) / 100,
+      day: d,
+      date: fmt(addDays(start, d)),
+      weightKg: Math.round((startWeightKg + dailyRateKg * d) * 100) / 100,
       maintenanceKcal: 0,
       dailyDeficitKcal: Math.round((weeklyRateKg * 7700) / 7),
     });
@@ -94,9 +96,9 @@ export function projectWeightByTrend(
   return points;
 }
 
-// First week where projected weight crosses the target (downward or upward).
+// First day where projected weight crosses the target (downward or upward).
 // Returns null if it never crosses within the projection window.
-export function weeksToTarget(
+export function daysToTarget(
   points: ProjectionPoint[],
   targetKg: number,
 ): number | null {
@@ -106,7 +108,7 @@ export function weeksToTarget(
     const crossed = startsBelow
       ? points[i].weightKg >= targetKg
       : points[i].weightKg <= targetKg;
-    if (crossed) return points[i].week;
+    if (crossed) return points[i].day;
   }
   return null;
 }

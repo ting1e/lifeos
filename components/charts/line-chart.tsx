@@ -20,23 +20,31 @@ export function LineChart({
   height = 200,
   color,
   secondaryKey,
+  secondaryColor,
   referenceLine,
+  connectNulls,
 }: {
-  data: Array<Record<string, string | number>>;
+  data: Array<Record<string, string | number | null>>;
   xKey: string;
   yKey: string;
   height?: number;
   color?: string;
   secondaryKey?: string;
+  secondaryColor?: string;
   referenceLine?: number;
+  connectNulls?: boolean;
 }) {
   const rawId = useId();
   const gradId = `grad-${rawId.replace(/:/g, "")}`;
   const stroke = color ?? "var(--text-display)";
 
-  const values = data.map((d) => Number(d[yKey])).filter((v) => !Number.isNaN(v));
+  const values = data
+    .map((d) => d[yKey])
+    .filter((v): v is number => typeof v === "number" && !Number.isNaN(v));
   const secondaryValues = secondaryKey
-    ? data.map((d) => Number(d[secondaryKey])).filter((v) => !Number.isNaN(v))
+    ? data
+        .map((d) => d[secondaryKey])
+        .filter((v): v is number => typeof v === "number" && !Number.isNaN(v))
     : [];
   const allValues = [...values, ...secondaryValues];
   const min = allValues.length ? Math.min(...allValues) : 0;
@@ -82,15 +90,17 @@ export function LineChart({
           strokeWidth={1.5}
           fill={`url(#${gradId})`}
           dot={false}
+          connectNulls={connectNulls}
         />
         {secondaryKey && (
           <Line
             type="monotone"
             dataKey={secondaryKey}
-            stroke={stroke}
+            stroke={secondaryColor ?? stroke}
             strokeWidth={1.5}
             strokeDasharray="6 4"
             dot={false}
+            connectNulls={connectNulls}
           />
         )}
         {referenceLine != null && referenceLine > 0 && (

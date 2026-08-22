@@ -4,9 +4,15 @@ import { useMemo, useState } from "react";
 import { TrendingDown, TrendingUp, Target } from "lucide-react";
 import { Card, CardLabel } from "@/components/ui/card";
 import { LineChart } from "@/components/charts/line-chart";
-import { projectWeight, projectWeightByTrend, weeksToTarget } from "@/lib/nutrition/projection";
+import {
+  projectWeight,
+  projectWeightByTrend,
+  daysToTarget,
+  type ProjectionPoint,
+} from "@/lib/nutrition/projection";
 import type { Activity, Sex } from "@/lib/nutrition";
 import { useT } from "@/lib/i18n/client";
+import type { DictKey } from "@/lib/i18n/dict";
 import { ymdLocal, todayKey } from "@/lib/utils/day";
 
 type Props = {
@@ -22,31 +28,50 @@ type Props = {
 
 type Mode = "intake" | "trend";
 
-const HORIZONS = [
-  { label: "8W", weeks: 8 },
-  { label: "16W", weeks: 16 },
-  { label: "32W", weeks: 32 },
+// 0 = projection from today only (original behavior); N = history window of
+// the last N days with the projection anchored at its earliest record.
+type RangeKey = 0 | 7 | 15 | 30 | 90;
+
+// Future projection horizon in days (counted from today, not from the anchor).
+const HORIZONS = [30, 60, 120, 240];
+
+const RANGES: Array<{ key: RangeKey; labelKey: DictKey }> = [
+  { key: 0, labelKey: "common.today" },
+  { key: 7, labelKey: "anal.range7" },
+  { key: 15, labelKey: "anal.range15" },
+  { key: 30, labelKey: "anal.range30" },
+  { key: 90, labelKey: "anal.range90" },
 ];
 
-function calcTrend(samples: { date: string; weightKg: number }[] | undefined) {
-  if (!samples || samples.length === 0) return null;
-
+function dailyMinMap(samples: { date: string; weightKg: number }[]) {
   const dailyMin = new Map<string, number>();
   for (const s of samples) {
     dailyMin.set(s.date, Math.min(dailyMin.get(s.date) ?? Infinity, s.weightKg));
   }
+  return dailyMin;
+}
 
+// Linear regression over the last `backDays + 1` calendar days (inclusive),
+// returned as a weekly rate. Same method the original 14-day trend used
+// (backDays = 13 covers the 14-day window ending today).
+function calcTrend(
+  samples: { date: string; weightKg: number }[] | undefined,
+  backDays: number,
+) {
+  if (!samples || samples.length === 0) return null;
+
+  const dailyMin = dailyMinMap(samples);
   const today = todayKey();
   const todayDate = new Date(today + "T00:00:00");
 
   const regPoints: { x: number; y: number }[] = [];
-  for (let i = 13; i >= 0; i--) {
+  for (let i = backDays; i >= 0; i--) {
     const d = new Date(todayDate);
     d.setDate(d.getDate() - i);
     const ds = ymdLocal(d);
     const w = dailyMin.get(ds);
     if (w != null) {
-      regPoints.push({ x: 13 - i, y: w });
+      regPoints.push({ x: backDays - i, y: w });
     }
   }
 
@@ -62,9 +87,21 @@ function calcTrend(samples: { date: string; weightKg: number }[] | undefined) {
   return { weeklyRate: slope * 7 };
 }
 
+function shortDateLabel(dateKey: string): string {
+  const [, m, d] = dateKey.split("-");
+  return `${Number(m)}/${Number(d)}`;
+}
+
+// Weight at a day offset from the projection anchor (points are daily; the
+// safety stop can shorten the array, so clamp the index).
+function weightAtDay(points: ProjectionPoint[], day: number): number {
+  return points[Math.min(day, points.length - 1)].weightKg;
+}
+
 export function WeightProjection(props: Props) {
-  const [weeks, setWeeks] = useState(8);
+  const [days, setDays] = useState(30);
   const [mode, setMode] = useState<Mode>("intake");
+  const [range, setRange] = useState<RangeKey>(0);
   const t = useT();
 
   const ok =
@@ -73,18 +110,78 @@ export function WeightProjection(props: Props) {
     props.startWeightKg > 0 &&
     props.dailyKcalIntake > 0;
 
-  const trend = useMemo(() => calcTrend(props.weightSamples), [props.weightSamples]);
+  // "Today" mode keeps the original 14-day regression window.
+  const trendToday = useMemo(() => calcTrend(props.weightSamples, 13), [props.weightSamples]);
+
+  // Range mode: daily-min history inside [today - range, today]; the earliest
+  // record in the window anchors both history and projection.
+  const history = useMemo(() => {
+    if (range === 0 || !props.weightSamples || props.weightSamples.length === 0) return null;
+    const today = todayKey();
+    const todayDate = new Date(today + "T00:00:00");
+    const startDate = new Date(todayDate);
+    startDate.setDate(startDate.getDate() - range);
+    const startKey = ymdLocal(startDate);
+
+    const dailyMin = new Map<string, number>();
+    for (const s of props.weightSamples) {
+      if (s.date < startKey || s.date > today) continue;
+      dailyMin.set(s.date, Math.min(dailyMin.get(s.date) ?? Infinity, s.weightKg));
+    }
+    if (dailyMin.size === 0) return null;
+
+    const anchorDate = Array.from(dailyMin.keys()).sort()[0];
+    const anchorStart = new Date(anchorDate + "T00:00:00");
+    const anchorToToday = Math.round(
+      (todayDate.getTime() - anchorStart.getTime()) / 86_400_000,
+    );
+    return {
+      dailyMin,
+      anchorDate,
+      anchorWeight: dailyMin.get(anchorDate)!,
+      anchorToToday,
+    };
+  }, [range, props.weightSamples]);
+
+  // No records in the selected window -> fall back to today mode.
+  const activeRange: RangeKey = range !== 0 && history ? range : 0;
+
+  const trendWindow = useMemo(
+    () => (activeRange !== 0 ? calcTrend(props.weightSamples, activeRange) : null),
+    [activeRange, props.weightSamples],
+  );
+
+  const anchorStart = useMemo(
+    () => (history ? new Date(history.anchorDate + "T00:00:00") : null),
+    [history],
+  );
+
+  // Total projection length: history (anchor -> today) + future horizon. The
+  // horizon counts from today, not from the anchor.
+  const projectionDays = (history?.anchorToToday ?? 0) + days;
 
   const intakePoints = useMemo(() => {
     if (!ok) return [];
+    if (activeRange === 0 || !history || !anchorStart) {
+      return projectWeight({
+        sex: props.sex,
+        heightCm: props.heightCm,
+        age: props.age,
+        activity: props.activity,
+        startWeightKg: props.startWeightKg,
+        dailyKcalIntake: props.dailyKcalIntake,
+        days: projectionDays,
+      });
+    }
     return projectWeight({
       sex: props.sex,
       heightCm: props.heightCm,
       age: props.age,
       activity: props.activity,
-      startWeightKg: props.startWeightKg,
+      startWeightKg: history.anchorWeight,
       dailyKcalIntake: props.dailyKcalIntake,
-      weeks,
+      days: projectionDays,
+      startDate: anchorStart,
     });
   }, [
     ok,
@@ -94,13 +191,33 @@ export function WeightProjection(props: Props) {
     props.activity,
     props.startWeightKg,
     props.dailyKcalIntake,
-    weeks,
+    projectionDays,
+    activeRange,
+    history,
+    anchorStart,
   ]);
 
   const trendPoints = useMemo(() => {
-    if (!trend) return [];
-    return projectWeightByTrend(props.startWeightKg, trend.weeklyRate, weeks);
-  }, [trend, props.startWeightKg, weeks]);
+    if (activeRange === 0) {
+      if (!trendToday) return [];
+      return projectWeightByTrend(props.startWeightKg, trendToday.weeklyRate, projectionDays);
+    }
+    if (!trendWindow || !history || !anchorStart) return [];
+    return projectWeightByTrend(
+      history.anchorWeight,
+      trendWindow.weeklyRate,
+      projectionDays,
+      anchorStart,
+    );
+  }, [
+    activeRange,
+    trendToday,
+    trendWindow,
+    history,
+    anchorStart,
+    props.startWeightKg,
+    projectionDays,
+  ]);
 
   if (!ok) {
     return (
@@ -116,18 +233,46 @@ export function WeightProjection(props: Props) {
     );
   }
 
-  const showTrendError = mode === "trend" && !trend;
+  const rate = activeRange === 0 ? trendToday : trendWindow;
+  const showTrendError = mode === "trend" && !rate;
   const points = mode === "intake" ? intakePoints : trendPoints;
   const hasData = points.length > 0;
 
-  const end = hasData ? points[points.length - 1] : null;
+  // One row per day from the anchor (today, or the earliest record of the
+  // selected window) to today + days, so the future horizon always shows the
+  // full 30/60/120 days beyond today. Range mode overlays the actual weight
+  // history (null on days without a record) with the projection; today mode
+  // renders the projection alone.
+  const rows: Array<Record<string, string | number | null>> = [];
+  if (hasData) {
+    const anchor = anchorStart ?? new Date(todayKey() + "T00:00:00");
+    const gridEnd = new Date(todayKey() + "T00:00:00");
+    gridEnd.setDate(gridEnd.getDate() + days);
+    const iter = new Date(anchor);
+    let day = 0;
+    while (iter.getTime() <= gridEnd.getTime()) {
+      const ds = ymdLocal(iter);
+      rows.push({
+        label: shortDateLabel(ds),
+        weight:
+          activeRange !== 0 && history ? (history.dailyMin.get(ds) ?? null) : null,
+        projected: weightAtDay(points, day),
+      });
+      iter.setDate(iter.getDate() + 1);
+      day++;
+    }
+  }
+
+  // End of the future horizon, counted from today.
+  const anchorToToday = history?.anchorToToday ?? 0;
+  const endWeight = hasData ? weightAtDay(points, anchorToToday + days) : null;
   const startWeight = points[0]?.weightKg ?? 0;
-  const delta = end ? end.weightKg - points[0].weightKg : 0;
+  const delta = endWeight != null ? endWeight - startWeight : 0;
   const direction: "down" | "up" | "flat" =
     mode === "trend"
-      ? (trend?.weeklyRate ?? 0) < 0
+      ? (rate?.weeklyRate ?? 0) < 0
         ? "down"
-        : (trend?.weeklyRate ?? 0) > 0
+        : (rate?.weeklyRate ?? 0) > 0
           ? "up"
           : "flat"
       : delta < 0
@@ -139,21 +284,24 @@ export function WeightProjection(props: Props) {
   const infoText =
     mode === "intake"
       ? `${props.dailyKcalIntake} ${t("proj.kcalPerDay")}`
-      : trend
-        ? `${trend.weeklyRate >= 0 ? "+" : ""}${trend.weeklyRate.toFixed(1)} ${t("proj.perWeek")}`
+      : rate
+        ? `${rate.weeklyRate >= 0 ? "+" : ""}${rate.weeklyRate.toFixed(1)} ${t("proj.perWeek")}`
         : "";
 
-  const chartData = hasData
-    ? points.map((p) => ({
-        label: p.week === 0 ? t("proj.now") : `W${p.week}`,
-        weight: p.weightKg,
-      }))
-    : [];
+  const directionColor =
+    direction === "down"
+      ? "var(--success)"
+      : direction === "up"
+        ? "var(--warning)"
+        : "var(--text-display)";
 
-  const targetWeeks =
+  // Target crossing day, expressed relative to today (<= 0 means the
+  // projection crossed it within the historical window).
+  const targetCross =
     props.goalWeightKg && props.goalWeightKg > 0 && hasData
-      ? weeksToTarget(points, props.goalWeightKg)
+      ? daysToTarget(points, props.goalWeightKg)
       : null;
+  const targetDays = targetCross != null ? targetCross - anchorToToday : null;
 
   const modeBtn = (m: Mode, label: string) => (
     <button
@@ -169,10 +317,24 @@ export function WeightProjection(props: Props) {
     </button>
   );
 
+  const rangeBtn = (r: RangeKey, label: string) => (
+    <button
+      type="button"
+      onClick={() => setRange(r)}
+      className={`font-mono text-[12px] uppercase tracking-[0.08em] px-2 py-1 border ${
+        range === r
+          ? "border-[color:var(--text-display)] text-[color:var(--text-display)]"
+          : "border-[color:var(--border-visible)] text-[color:var(--text-secondary)]"
+      }`}
+    >
+      {label}
+    </button>
+  );
+
   return (
     <Card>
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <CardLabel className="flex items-center gap-1.5 mb-0">
             {direction === "down" ? (
               <TrendingDown size={12} strokeWidth={1.75} />
@@ -189,20 +351,33 @@ export function WeightProjection(props: Props) {
             </span>
           )}
         </div>
-        <div className="flex gap-1">
-          {HORIZONS.map((h) => (
-            <button
-              key={h.weeks}
-              onClick={() => setWeeks(h.weeks)}
-              className={`font-mono text-[12px] uppercase tracking-[0.08em] px-2 py-1 border ${
-                weeks === h.weeks
-                  ? "border-[color:var(--text-display)] text-[color:var(--text-display)]"
-                  : "border-[color:var(--border-visible)] text-[color:var(--text-secondary)]"
-              }`}
-            >
-              {h.label}
-            </button>
-          ))}
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-1">
+            <span className="font-mono text-[12px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)] min-w-16">
+              {t("proj.history")}
+            </span>
+            {RANGES.map((r) => (
+              <span key={r.key}>{rangeBtn(r.key, t(r.labelKey))}</span>
+            ))}
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="font-mono text-[12px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)] min-w-16">
+              {t("proj.future")}
+            </span>
+            {HORIZONS.map((h) => (
+              <button
+                key={h}
+                onClick={() => setDays(h)}
+                className={`font-mono text-[12px] uppercase tracking-[0.08em] px-2 py-1 border ${
+                  days === h
+                    ? "border-[color:var(--text-display)] text-[color:var(--text-display)]"
+                    : "border-[color:var(--border-visible)] text-[color:var(--text-secondary)]"
+                }`}
+              >
+                {t("proj.days", { days: h })}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -215,16 +390,18 @@ export function WeightProjection(props: Props) {
           <div className="grid grid-cols-3 gap-3 mb-3">
             <div>
               <div className="font-mono text-[12px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)]">
-                {t("proj.now")}
+                {activeRange !== 0 ? t("proj.start") : t("proj.now")}
               </div>
               <div className="font-display text-3xl">{startWeight.toFixed(1)}</div>
-              <div className="font-mono text-[12px] text-[color:var(--text-secondary)]">kg</div>
+              <div className="font-mono text-[12px] text-[color:var(--text-secondary)]">
+                {activeRange !== 0 && history ? `${shortDateLabel(history.anchorDate)} · ` : ""}kg
+              </div>
             </div>
             <div>
               <div className="font-mono text-[12px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)]">
-                {t("proj.inWeeks", { weeks })}
+                {t("proj.inDays", { days })}
               </div>
-              <div className="font-display text-3xl">{end?.weightKg.toFixed(1) ?? "-"}</div>
+              <div className="font-display text-3xl">{endWeight?.toFixed(1) ?? "-"}</div>
               <div className="font-mono text-[12px] text-[color:var(--text-secondary)]">
                 {delta >= 0 ? "+" : ""}
                 {delta.toFixed(1)} kg
@@ -237,7 +414,7 @@ export function WeightProjection(props: Props) {
               <div className="font-display text-3xl">
                 {mode === "intake"
                   ? Math.round(points[0]?.dailyDeficitKcal ?? 0)
-                  : `${(trend?.weeklyRate ?? 0) >= 0 ? "+" : ""}${(trend?.weeklyRate ?? 0).toFixed(1)}`}
+                  : `${(rate?.weeklyRate ?? 0) >= 0 ? "+" : ""}${(rate?.weeklyRate ?? 0).toFixed(1)}`}
               </div>
               <div className="font-mono text-[12px] text-[color:var(--text-secondary)]">
                 {mode === "intake" ? t("proj.deficitUnit") : t("proj.perWeek")}
@@ -245,32 +422,45 @@ export function WeightProjection(props: Props) {
             </div>
           </div>
 
-          <LineChart
-            data={chartData}
-            xKey="label"
-            yKey="weight"
-            height={180}
-            color={
-              direction === "down"
-                ? "var(--success)"
-                : direction === "up"
-                  ? "var(--warning)"
-                  : "var(--text-display)"
-            }
-          />
+          {activeRange !== 0 && history ? (
+            <LineChart
+              data={rows}
+              xKey="label"
+              yKey="weight"
+              secondaryKey="projected"
+              height={180}
+              color="var(--text-display)"
+              secondaryColor={directionColor}
+              connectNulls
+            />
+          ) : (
+            <LineChart
+              data={rows}
+              xKey="label"
+              yKey="projected"
+              height={180}
+              color={directionColor}
+            />
+          )}
 
-          {targetWeeks != null && props.goalWeightKg && (
+          {targetDays != null && targetDays > 0 && props.goalWeightKg && (
             <div className="mt-3 flex items-center gap-2 font-mono text-[13px] uppercase tracking-[0.08em] text-[color:var(--accent)] border-t border-[color:var(--border)] pt-3">
               <Target size={12} strokeWidth={1.75} />
               {t("proj.targetReached", {
                 kg: props.goalWeightKg.toFixed(1),
-                week: targetWeeks,
+                day: targetDays,
               })}
             </div>
           )}
-          {targetWeeks == null && props.goalWeightKg && props.goalWeightKg > 0 && (
+          {targetDays != null && targetDays <= 0 && props.goalWeightKg && (
+            <div className="mt-3 flex items-center gap-2 font-mono text-[13px] uppercase tracking-[0.08em] text-[color:var(--accent)] border-t border-[color:var(--border)] pt-3">
+              <Target size={12} strokeWidth={1.75} />
+              {t("proj.targetReachedAlready", { kg: props.goalWeightKg.toFixed(1) })}
+            </div>
+          )}
+          {targetDays == null && props.goalWeightKg && props.goalWeightKg > 0 && (
             <div className="mt-3 font-mono text-[13px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)] border-t border-[color:var(--border)] pt-3">
-              {t("proj.targetNotReached", { kg: props.goalWeightKg.toFixed(1), weeks })}
+              {t("proj.targetNotReached", { kg: props.goalWeightKg.toFixed(1), days })}
             </div>
           )}
         </>
