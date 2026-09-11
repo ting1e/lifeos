@@ -90,12 +90,39 @@ export default async function ProfilePage() {
         <CardLabel>{t("prof.aiIntegration")}</CardLabel>
         <AiConfigForm
           initial={{
-            baseUrl: p?.aiBaseUrl ?? "",
-            textModel: p?.aiTextModel ?? "",
-            imageModel: p?.aiImageModel ?? "",
-            audioModel: p?.aiAudioModel ?? "",
-            apiKeyMasked: p?.aiApiKey ? `••••${p.aiApiKey.slice(-4)}` : "",
-            hasKey: !!p?.aiApiKey,
+            text: {
+              baseUrl: p?.aiBaseUrl ?? "",
+              model: p?.aiTextModel ?? "",
+              reasoning: p?.aiTextReasoning ?? "",
+              maxTokens:
+                p?.aiTextMaxTokens != null ? String(p.aiTextMaxTokens) : "",
+              apiKeyMasked: p?.aiApiKey
+                ? `••••${p.aiApiKey.slice(-4)}`
+                : "",
+              hasKey: !!p?.aiApiKey,
+            },
+            image: {
+              baseUrl: p?.aiImageBaseUrl ?? "",
+              model: p?.aiImageModel ?? "",
+              reasoning: p?.aiImageReasoning ?? "",
+              maxTokens:
+                p?.aiImageMaxTokens != null ? String(p.aiImageMaxTokens) : "",
+              apiKeyMasked: p?.aiImageApiKey
+                ? `••••${p.aiImageApiKey.slice(-4)}`
+                : "",
+              hasKey: !!p?.aiImageApiKey,
+            },
+            audio: {
+              baseUrl: p?.aiAudioBaseUrl ?? "",
+              model: p?.aiAudioModel ?? "",
+              reasoning: p?.aiAudioReasoning ?? "",
+              maxTokens:
+                p?.aiAudioMaxTokens != null ? String(p.aiAudioMaxTokens) : "",
+              apiKeyMasked: p?.aiAudioApiKey
+                ? `••••${p.aiAudioApiKey.slice(-4)}`
+                : "",
+              hasKey: !!p?.aiAudioApiKey,
+            },
           }}
         />
       </Card>

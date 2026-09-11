@@ -14,6 +14,9 @@ export function sseResponse(stream: ReadableStream<Uint8Array>): Response {
       "content-type": "text/event-stream",
       "cache-control": "no-cache",
       connection: "keep-alive",
+      // Disable reverse-proxy (nginx etc.) response buffering so events are
+      // delivered immediately instead of queueing up.
+      "x-accel-buffering": "no",
     },
   });
 }
@@ -35,12 +38,24 @@ export function createSSEStream(
           // controller already closed by cancel
         }
       };
+      // SSE comment heartbeat: keeps the connection alive through reverse
+      // proxies / browsers while the model thinks before its first token.
+      // Comment lines are ignored by SSE parsers (incl. readAiStream).
+      const heartbeat = setInterval(() => {
+        if (cancelled) return;
+        try {
+          controller.enqueue(encoder.encode(": ping\n\n"));
+        } catch {
+          // controller already closed by cancel
+        }
+      }, 15_000);
       try {
         await handler(send);
       } catch (e) {
         if (logTag) console.error(`[${logTag}]`, e);
         send({ type: "error", message: e instanceof Error ? e.message : String(e) });
       } finally {
+        clearInterval(heartbeat);
         if (!cancelled) controller.close();
       }
     },

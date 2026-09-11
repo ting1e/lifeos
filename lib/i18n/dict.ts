@@ -249,6 +249,15 @@ const en = {
   "prof.aiAudioModel": "AUDIO MODEL",
   "prof.aiAudioModelHint": "Voice meal logging (speech to text).",
   "prof.aiModelsHint": "Leave blank to use server defaults.",
+  "prof.aiModel": "MODEL",
+  "prof.aiInheritHint": "Leave blank to use the text config above.",
+  "prof.aiReasoning": "REASONING",
+  "prof.aiReasoningHint":
+    "OpenAI reasoning_effort: how deeply a reasoning model thinks before answering, e.g. low / medium / high. Blank = parameter not sent; each feature keeps its built-in behavior.",
+  "prof.aiMaxTokens": "MAX TOKENS",
+  "prof.aiMaxTokensHint":
+    "OpenAI max_tokens: caps the length of the model's reply per call. Blank = per-feature built-in defaults: meal parsing (text/photo) 8192, weekly insights 8192, weekly meal plan 32768, workout program 32768, voice transcription 1024. When set, every call of this model uses this value instead — too low truncates long outputs (e.g. incomplete program JSON).",
+  "prof.aiSaveError": "SAVE FAILED",
 
   // ---- Apple Health sync
   "health.title": "APPLE HEALTH SYNC",
@@ -895,6 +904,15 @@ const tr: Record<DictKey, string> = {
   "prof.aiAudioModel": "SES MODELİ",
   "prof.aiAudioModelHint": "Sesli öğün kaydı (konuşmadan metne).",
   "prof.aiModelsHint": "Sunucu varsayılanlarını kullanmak için boş bırakın.",
+  "prof.aiModel": "MODEL",
+  "prof.aiInheritHint": "Boş bırakınca yukarıdaki metin yapılandırması kullanılır.",
+  "prof.aiReasoning": "AKIL YÜRÜTME",
+  "prof.aiReasoningHint":
+    "OpenAI reasoning_effort: akıl yürüten bir modelin yanıtı vermeden önce ne kadar derin düşüneceği, örn. low / medium / high. Boş = parametre gönderilmez; her özellik yerleşik davranışını korur.",
+  "prof.aiMaxTokens": "MAKS TOKEN",
+  "prof.aiMaxTokensHint":
+    "OpenAI max_tokens: modelin tek bir çağrıda verebileceği yanıtın uzunluk üst sınırı. Boş = özellik bazlı varsayılanlar: öğün ayrıştırma (metin/fotoğraf) 8192, haftalık içgörüler 8192, haftalık yemek planı 32768, antrenman programı 32768, sesli transkripsiyon 1024. Ayarlandığında bu modelin tüm çağrılarında bu değer kullanılır — çok düşük değer uzun çıktıları keser (ör. eksik program JSON'u).",
+  "prof.aiSaveError": "KAYDETME BAŞARISIZ",
 
   // ---- Apple Health sync
   "health.title": "APPLE HEALTH SENK",
@@ -1538,6 +1556,15 @@ const zh: Record<DictKey, string> = {
   "prof.aiAudioModel": "音频模型",
   "prof.aiAudioModelHint": "语音记餐（语音转文字）。",
   "prof.aiModelsHint": "留空则使用服务器默认值。",
+  "prof.aiModel": "模型",
+  "prof.aiInheritHint": "留空使用上方文本配置。",
+  "prof.aiReasoning": "思考强度",
+  "prof.aiReasoningHint":
+    "OpenAI reasoning_effort 参数:控制推理模型回答前的思考深度,如 low / medium / high。留空 = 不发送此参数,各功能保持内置行为。",
+  "prof.aiMaxTokens": "最大token数量",
+  "prof.aiMaxTokensHint":
+    "OpenAI max_tokens 参数:限制模型单次回复的最大长度。留空 = 各功能使用内置默认值:餐食解析(文字/拍照)8192、周洞察 8192、每周饮食计划 32768、训练计划生成 32768、语音转文字 1024。设置后该模态所有调用统一使用此值;过低会截断长输出(如训练计划 JSON 不完整导致生成失败)。",
+  "prof.aiSaveError": "保存失败",
 
   // ---- Apple Health 同步
   "health.title": "APPLE HEALTH 同步",

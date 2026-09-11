@@ -87,7 +87,10 @@ export async function POST(req: Request) {
       prompt,
       schema: MealPlanSchema,
       temperature: 0.5,
-      maxTokens: 8192,
+      // Reasoning models burn a large share of the budget on thinking tokens
+      // before writing the JSON (MiMo exhausted 8192 with zero content), so
+      // keep parity with program generation.
+      maxTokens: 32768,
       thinking: true,
       onChunk,
     });

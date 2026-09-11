@@ -1,6 +1,11 @@
 import { db } from "@/lib/db/client";
 import { aiMessages } from "@/lib/db/schema";
-import { getAiConfig, type AiConfig } from "@/lib/ai/config";
+import {
+  getAiConfig,
+  requireModality,
+  type AiConfig,
+  type ModalityConfig,
+} from "@/lib/ai/config";
 
 export type AiKind = "food_vision" | "plan" | "insights" | "freeform";
 
@@ -49,10 +54,42 @@ type ChatCompletionsResponse = {
   usage?: { total_tokens?: number; cost?: number };
 };
 
-function resolveModel(config: AiConfig, kind: "text" | "image" | "audio", override: string | undefined, webSearch: boolean | undefined): string {
-  const base = override ?? (kind === "image" ? config.imageModel : kind === "audio" ? config.audioModel : config.textModel);
-  if (!webSearch || !config.openrouter) return base;
+function resolveModel(mod: ModalityConfig, override: string | undefined, webSearch: boolean | undefined): string {
+  const base = override ?? mod.model;
+  if (!webSearch || !mod.openrouter) return base;
   return base.endsWith(":online") ? base : `${base}:online`;
+}
+
+/**
+ * Apply the user-configured reasoning setting for a modality. OpenAI-style
+ * only: the value is sent as `reasoning_effort` verbatim (e.g. low/medium/
+ * high). Blank keeps per-feature behavior (`thinking:false` call sites still
+ * disable reasoning).
+ */
+function applyReasoning(
+  body: Record<string, unknown>,
+  reasoning: string,
+  thinking: boolean | undefined,
+) {
+  const r = reasoning.trim();
+  if (r) {
+    body.reasoning_effort = r;
+  } else if (thinking === false) {
+    body.thinking = { type: "disabled" };
+  }
+}
+
+// Upstream (AI provider) fetch guards. Without these a hung provider call
+// blocks the request forever until the browser/proxy kills the connection
+// (surfacing as a raw network error to the user, with no audit row written).
+const UPSTREAM_IDLE_TIMEOUT_MS = 120_000; // no bytes for 2 min -> abort
+const UPSTREAM_TOTAL_TIMEOUT_MS = 600_000; // hard cap: 10 min
+
+/** Map AbortError/TimeoutError to the ai_timeout error code. */
+function normalizeUpstreamError(err: unknown): Error {
+  const name = (err as { name?: string })?.name;
+  if (name === "AbortError" || name === "TimeoutError") return new Error("ai_timeout");
+  return err instanceof Error ? err : new Error(String(err));
 }
 
 async function chatCompletions(args: {
@@ -70,7 +107,8 @@ async function chatCompletions(args: {
   thinking?: boolean;
 }): Promise<ChatResult> {
   const { userId, kind, config, modelKind, system, content, sourcePath, temperature, maxTokens, webSearch, modelOverride, thinking } = args;
-  const model = resolveModel(config, modelKind, modelOverride, webSearch);
+  const mod = requireModality(config, modelKind);
+  const model = resolveModel(mod, modelOverride, webSearch);
 
   const messages: { role: string; content: unknown }[] = [];
   if (system) messages.push({ role: "system", content: system });
@@ -79,10 +117,10 @@ async function chatCompletions(args: {
   const body: Record<string, unknown> = {
     model,
     messages,
-    max_tokens: maxTokens ?? 2048,
+    max_tokens: mod.maxTokens ?? maxTokens ?? 2048,
   };
   if (temperature !== undefined) body.temperature = temperature;
-  if (thinking === false) body.thinking = { type: "disabled" };
+  applyReasoning(body, mod.reasoning, thinking);
 
   // Audit-safe log: strip base64 payloads, keep the source file path instead.
   const logContent = content.map((c) => {
@@ -99,14 +137,15 @@ async function chatCompletions(args: {
   let raw: ChatCompletionsResponse | null = null;
   let errorMsg: string | null = null;
   try {
-    const res = await fetch(`${config.baseUrl}/chat/completions`, {
+    const res = await fetch(`${mod.baseUrl}/chat/completions`, {
       method: "POST",
       headers: {
         "content-type": "application/json",
-        authorization: `Bearer ${config.apiKey}`,
-        "api-key": config.apiKey,
+        authorization: `Bearer ${mod.apiKey}`,
+        "api-key": mod.apiKey,
       },
       body: JSON.stringify(body),
+      signal: AbortSignal.timeout(UPSTREAM_TOTAL_TIMEOUT_MS),
     });
     raw = (await res.json().catch(() => null)) as ChatCompletionsResponse | null;
     if (!res.ok || raw?.error) {
@@ -118,8 +157,9 @@ async function chatCompletions(args: {
       throw new Error(m);
     }
   } catch (err) {
-    errorMsg = err instanceof Error ? err.message : String(err);
-    throw err;
+    const e = normalizeUpstreamError(err);
+    errorMsg = e.message;
+    throw e;
   } finally {
     await db
       .insert(aiMessages)
@@ -195,7 +235,8 @@ async function* chatCompletionsStream(args: {
   thinking?: boolean;
 }): AsyncGenerator<StreamChunk> {
   const { userId, kind, config, modelKind, system, content, sourcePath, temperature, maxTokens, webSearch, modelOverride, thinking } = args;
-  const model = resolveModel(config, modelKind, modelOverride, webSearch);
+  const mod = requireModality(config, modelKind);
+  const model = resolveModel(mod, modelOverride, webSearch);
 
   const messages: { role: string; content: unknown }[] = [];
   if (system) messages.push({ role: "system", content: system });
@@ -204,11 +245,11 @@ async function* chatCompletionsStream(args: {
   const body: Record<string, unknown> = {
     model,
     messages,
-    max_tokens: maxTokens ?? 2048,
+    max_tokens: mod.maxTokens ?? maxTokens ?? 2048,
     stream: true,
   };
   if (temperature !== undefined) body.temperature = temperature;
-  if (thinking === false) body.thinking = { type: "disabled" };
+  applyReasoning(body, mod.reasoning, thinking);
 
   const logContent = content.map((c) => {
     if (c.type === "text") return c;
@@ -222,17 +263,33 @@ async function* chatCompletionsStream(args: {
   });
 
   const ac = new AbortController();
+  let timedOut = false;
+  const onTimeout = () => {
+    timedOut = true;
+    ac.abort();
+  };
+  // Abort when no bytes arrive for 2 min (connect, first token, or between
+  // chunks) or when the 10 min hard cap is hit.
+  let idleTimer: ReturnType<typeof setTimeout> | null = setTimeout(
+    onTimeout,
+    UPSTREAM_IDLE_TIMEOUT_MS,
+  );
+  const totalTimer = setTimeout(onTimeout, UPSTREAM_TOTAL_TIMEOUT_MS);
+  const resetIdle = () => {
+    if (idleTimer) clearTimeout(idleTimer);
+    idleTimer = setTimeout(onTimeout, UPSTREAM_IDLE_TIMEOUT_MS);
+  };
   let reader: ReadableStreamDefaultReader<Uint8Array> | null = null;
   let contentText = "";
   let errorMsg: string | null = null;
 
   try {
-    const res = await fetch(`${config.baseUrl}/chat/completions`, {
+    const res = await fetch(`${mod.baseUrl}/chat/completions`, {
       method: "POST",
       headers: {
         "content-type": "application/json",
-        authorization: `Bearer ${config.apiKey}`,
-        "api-key": config.apiKey,
+        authorization: `Bearer ${mod.apiKey}`,
+        "api-key": mod.apiKey,
       },
       body: JSON.stringify(body),
       signal: ac.signal,
@@ -251,6 +308,10 @@ async function* chatCompletionsStream(args: {
       }
       throw new Error(m);
     }
+
+    // Headers received — re-arm the idle watchdog for the body phase
+    // (covers the JSON fallback below and the first streamed token).
+    resetIdle();
 
     // Fallback: some endpoints ignore `stream:true` and return a regular
     // JSON response. Detect by content-type and yield the content directly.
@@ -276,6 +337,7 @@ async function* chatCompletionsStream(args: {
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
+      resetIdle();
       buffer += decoder.decode(value, { stream: true });
 
       const lines = buffer.split("\n");
@@ -307,13 +369,16 @@ async function* chatCompletionsStream(args: {
       }
     }
   } catch (err) {
-    if ((err as Error)?.name === "AbortError") {
-      errorMsg = "aborted";
-    } else {
-      errorMsg = err instanceof Error ? err.message : String(err);
+    const name = (err as Error)?.name;
+    if (name === "AbortError" || name === "TimeoutError") {
+      errorMsg = timedOut ? "ai_timeout" : "aborted";
+      throw new Error(errorMsg);
     }
+    errorMsg = err instanceof Error ? err.message : String(err);
     throw err;
   } finally {
+    if (idleTimer) clearTimeout(idleTimer);
+    clearTimeout(totalTimer);
     reader?.cancel().catch(() => {});
     ac.abort();
     await db

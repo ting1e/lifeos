@@ -81,7 +81,7 @@ export async function POST(req: Request) {
         schema: MealLogSchema,
         temperature: 0.2,
         thinking: false,
-        maxTokens: 2048,
+        maxTokens: 8192,
         onChunk,
       });
       send({ type: "complete", data: { parsed: out } });
@@ -107,7 +107,7 @@ export async function POST(req: Request) {
         prompt,
         schema: MealLogSchema,
         temperature: 0.2,
-        maxTokens: 2048,
+        maxTokens: 8192,
         thinking: false,
         webSearch: true,
         onChunk,

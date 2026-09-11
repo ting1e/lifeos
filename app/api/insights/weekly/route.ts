@@ -136,6 +136,7 @@ export async function POST() {
       schema: InsightsSchema,
       temperature: 0.4,
       thinking: false,
+      maxTokens: 8192,
       onChunk,
     });
     send({ type: "complete", data: { insights: out } });

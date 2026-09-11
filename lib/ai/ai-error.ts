@@ -4,6 +4,7 @@
 // "insights_failed", "parse_failed", "transcribe_failed", "estimate_failed").
 export const AI_ERROR_CODES = new Set([
   "ai_not_configured",
+  "ai_timeout",
   "ai_failed",
   "generation_failed",
   "insights_failed",
