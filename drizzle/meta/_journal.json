@@ -120,6 +120,20 @@
       "when": 1789130446261,
       "tag": "0016_dry_justice",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1790565910553,
+      "tag": "0017_ai_providers_tasks",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1790565910554,
+      "tag": "0018_ai_kind_remap",
+      "breakpoints": true
     }
   ]
 }

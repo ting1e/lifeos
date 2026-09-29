@@ -2,6 +2,8 @@ import { eq, inArray } from "drizzle-orm";
 import fs from "node:fs/promises";
 import { db } from "@/lib/db/client";
 import {
+  aiProviders,
+  aiTaskConfigs,
   bodyMetrics,
   foodEntries,
   foodLibrary,
@@ -70,6 +72,9 @@ export async function GET() {
   const whoopStrainRows = await db.select().from(whoopStrain).where(eq(whoopStrain.userId, userId));
   const whoopWorkoutsRows = await db.select().from(whoopWorkouts).where(eq(whoopWorkouts.userId, userId));
 
+  const aiProvidersRows = await db.select().from(aiProviders).where(eq(aiProviders.userId, userId));
+  const aiTaskConfigsRows = await db.select().from(aiTaskConfigs).where(eq(aiTaskConfigs.userId, userId));
+
   const photos: Record<string, string> = {};
   for (const entry of foodEntriesRows) {
     if (entry.photoPath && !photos[entry.photoPath]) {
@@ -122,6 +127,8 @@ export async function GET() {
       whoopSleep: whoopSleepRows.map(stripUserId),
       whoopStrain: whoopStrainRows.map(stripUserId),
       whoopWorkouts: whoopWorkoutsRows.map(stripUserId),
+      aiProviders: aiProvidersRows.map(stripUserId),
+      aiTaskConfigs: aiTaskConfigsRows.map(stripUserId),
     },
     photos: Object.keys(photos).length > 0 ? photos : undefined,
   };

@@ -130,13 +130,10 @@ export async function POST() {
     const onChunk = createChunkSender(send);
     const out = await chatJsonStream({
       userId: user.id,
-      kind: "insights",
+      task: "weekly_insights",
       system,
       prompt,
       schema: InsightsSchema,
-      temperature: 0.4,
-      thinking: false,
-      maxTokens: 8192,
       onChunk,
     });
     send({ type: "complete", data: { insights: out } });

@@ -4,6 +4,8 @@ import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { db } from "@/lib/db/client";
 import {
+  aiProviders,
+  aiTaskConfigs,
   bodyMetrics,
   foodEntries,
   foodLibrary,
@@ -25,6 +27,7 @@ import {
 import { requireSession } from "@/lib/auth/session";
 import { writeUpload } from "@/lib/uploads";
 import { todayKey, ymdLocal } from "@/lib/utils/day";
+import { AI_TASKS, type AiTask } from "@/lib/ai/tasks";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -107,6 +110,8 @@ export async function POST(req: NextRequest) {
         await tx.delete(whoopSleep).where(eq(whoopSleep.userId, userId));
         await tx.delete(whoopStrain).where(eq(whoopStrain.userId, userId));
         await tx.delete(whoopWorkouts).where(eq(whoopWorkouts.userId, userId));
+        await tx.delete(aiTaskConfigs).where(eq(aiTaskConfigs.userId, userId));
+        await tx.delete(aiProviders).where(eq(aiProviders.userId, userId));
       }
 
       if (isObj(data.profile)) {
@@ -124,21 +129,6 @@ export async function POST(req: NextRequest) {
             goal: (p.goal as "cut" | "maintain" | "bulk" | null) ?? null,
             targetWeightKg: (p.targetWeightKg as string | null) ?? null,
             whoopEnabled: (p.whoopEnabled as boolean | null) ?? true,
-            aiBaseUrl: (p.aiBaseUrl as string | null) ?? null,
-            aiApiKey: (p.aiApiKey as string | null) ?? null,
-            aiTextModel: (p.aiTextModel as string | null) ?? null,
-            aiImageModel: (p.aiImageModel as string | null) ?? null,
-            aiAudioModel: (p.aiAudioModel as string | null) ?? null,
-            aiImageBaseUrl: (p.aiImageBaseUrl as string | null) ?? null,
-            aiImageApiKey: (p.aiImageApiKey as string | null) ?? null,
-            aiAudioBaseUrl: (p.aiAudioBaseUrl as string | null) ?? null,
-            aiAudioApiKey: (p.aiAudioApiKey as string | null) ?? null,
-            aiTextReasoning: (p.aiTextReasoning as string | null) ?? null,
-            aiTextMaxTokens: (p.aiTextMaxTokens as number | null) ?? null,
-            aiImageReasoning: (p.aiImageReasoning as string | null) ?? null,
-            aiImageMaxTokens: (p.aiImageMaxTokens as number | null) ?? null,
-            aiAudioReasoning: (p.aiAudioReasoning as string | null) ?? null,
-            aiAudioMaxTokens: (p.aiAudioMaxTokens as number | null) ?? null,
             navSettings: (p.navSettings as unknown | null) ?? null,
           })
           .onConflictDoUpdate({
@@ -153,25 +143,85 @@ export async function POST(req: NextRequest) {
               goal: sql`COALESCE(excluded."goal", "profile"."goal")`,
               targetWeightKg: sql`COALESCE(excluded."target_weight_kg", "profile"."target_weight_kg")`,
               whoopEnabled: sql`COALESCE(excluded."whoop_enabled", "profile"."whoop_enabled")`,
-              aiBaseUrl: sql`COALESCE(excluded."ai_base_url", "profile"."ai_base_url")`,
-              aiApiKey: sql`COALESCE(excluded."ai_api_key", "profile"."ai_api_key")`,
-              aiTextModel: sql`COALESCE(excluded."ai_text_model", "profile"."ai_text_model")`,
-              aiImageModel: sql`COALESCE(excluded."ai_image_model", "profile"."ai_image_model")`,
-              aiAudioModel: sql`COALESCE(excluded."ai_audio_model", "profile"."ai_audio_model")`,
-              aiImageBaseUrl: sql`COALESCE(excluded."ai_image_base_url", "profile"."ai_image_base_url")`,
-              aiImageApiKey: sql`COALESCE(excluded."ai_image_api_key", "profile"."ai_image_api_key")`,
-              aiAudioBaseUrl: sql`COALESCE(excluded."ai_audio_base_url", "profile"."ai_audio_base_url")`,
-              aiAudioApiKey: sql`COALESCE(excluded."ai_audio_api_key", "profile"."ai_audio_api_key")`,
-              aiTextReasoning: sql`COALESCE(excluded."ai_text_reasoning", "profile"."ai_text_reasoning")`,
-              aiTextMaxTokens: sql`COALESCE(excluded."ai_text_max_tokens", "profile"."ai_text_max_tokens")`,
-              aiImageReasoning: sql`COALESCE(excluded."ai_image_reasoning", "profile"."ai_image_reasoning")`,
-              aiImageMaxTokens: sql`COALESCE(excluded."ai_image_max_tokens", "profile"."ai_image_max_tokens")`,
-              aiAudioReasoning: sql`COALESCE(excluded."ai_audio_reasoning", "profile"."ai_audio_reasoning")`,
-              aiAudioMaxTokens: sql`COALESCE(excluded."ai_audio_max_tokens", "profile"."ai_audio_max_tokens")`,
               navSettings: sql`COALESCE(excluded."nav_settings", "profile"."nav_settings")`,
             },
           });
         stats.profile = true;
+      }
+
+      // AI providers + task configs. Provider ids are remapped so task rows
+      // point at the freshly inserted rows.
+      const providerIdMap: Record<string, string> = {};
+      if (Array.isArray(data.aiProviders)) {
+        let existingByName = new Map<string, string>();
+        if (mode === "merge") {
+          const existing = await tx
+            .select({ id: aiProviders.id, name: aiProviders.name })
+            .from(aiProviders)
+            .where(eq(aiProviders.userId, userId));
+          existingByName = new Map(existing.map((r) => [r.name, r.id]));
+        }
+        let imported = 0;
+        for (const r of data.aiProviders.filter(isObj)) {
+          const name = (r.name as string) ?? "imported provider";
+          const oldId = (r.id as string) ?? randomUUID();
+          const mapped = existingByName.get(name);
+          if (mapped) {
+            providerIdMap[oldId] = mapped;
+            continue;
+          }
+          const newId = randomUUID();
+          providerIdMap[oldId] = newId;
+          await tx.insert(aiProviders).values({
+            id: newId,
+            userId,
+            name,
+            baseUrl: (r.baseUrl as string) ?? "",
+            apiKey: (r.apiKey as string | null) ?? null,
+            protocol: "openai_compatible",
+            models: Array.isArray(r.models) ? (r.models as string[]) : [],
+            enabled: (r.enabled as boolean | null) ?? true,
+            createdAt: ts(r.createdAt),
+          });
+          existingByName.set(name, newId);
+          imported++;
+        }
+        stats.aiProviders = imported;
+      }
+
+      if (Array.isArray(data.aiTaskConfigs)) {
+        const taskValues = new Set<string>(AI_TASKS);
+        const rows = data.aiTaskConfigs
+          .filter(isObj)
+          .map((r) => ({
+            userId,
+            task: r.task as AiTask,
+            providerId: providerIdMap[r.providerId as string] ?? null,
+            modelId: (r.modelId as string) ?? "",
+            reasoningEffort: (r.reasoningEffort as string | null) ?? null,
+            maxTokens: (r.maxTokens as number | null) ?? null,
+          }))
+          .filter(
+            (r) =>
+              r.providerId !== null &&
+              r.modelId !== "" &&
+              taskValues.has(r.task),
+          );
+        for (const batch of chunks(rows, 500)) {
+          await tx
+            .insert(aiTaskConfigs)
+            .values(batch)
+            .onConflictDoUpdate({
+              target: [aiTaskConfigs.userId, aiTaskConfigs.task],
+              set: {
+                providerId: sql`excluded."provider_id"`,
+                modelId: sql`excluded."model_id"`,
+                reasoningEffort: sql`excluded."reasoning_effort"`,
+                maxTokens: sql`excluded."max_tokens"`,
+              },
+            });
+        }
+        stats.aiTaskConfigs = rows.length;
       }
 
       if (Array.isArray(data.bodyMetrics)) {

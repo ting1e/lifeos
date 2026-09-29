@@ -1,33 +1,33 @@
 import { db } from "@/lib/db/client";
 import { aiMessages } from "@/lib/db/schema";
-import {
-  getAiConfig,
-  requireModality,
-  type AiConfig,
-  type ModalityConfig,
-} from "@/lib/ai/config";
+import { resolveTaskConfig } from "@/lib/ai/resolver";
+import { TASK_DEFAULTS, type AiTask } from "@/lib/ai/tasks";
+import type { ResolvedTaskConfig } from "@/lib/ai/types";
 
-export type AiKind = "food_vision" | "plan" | "insights" | "freeform";
+export type { AiTask } from "@/lib/ai/tasks";
 
 export type ChatArgs = {
   userId: string;
-  kind: AiKind;
+  /** Business task — resolves provider/model/reasoning/tokens via lib/ai/resolver. */
+  task: AiTask;
   prompt: string;
   system?: string;
-  model?: string;
+  /** Overrides the task's built-in temperature. */
   temperature?: number;
+  /** Overrides the task config, then the task's built-in max_tokens. */
   maxTokens?: number;
   /**
    * Append `:online` to the resolved model id so OpenRouter's web-search
    * variant handles the request. Useful for nutrition lookups where the
    * model needs current portion / brand data. Ignored for non-OpenRouter
-   * endpoints.
+   * endpoints. Defaults to the task's built-in webSearch flag.
    */
   webSearch?: boolean;
   /**
    * For reasoning models (e.g. mimo-v2.5). When `false`, sends
    * `thinking:{type:"disabled"}` to skip reasoning tokens — faster, cheaper,
-   * but no chain-of-thought. Defaults to `true` (thinking enabled).
+   * but no chain-of-thought. Only applies when no reasoning_effort is
+   * configured for the task. Defaults to the task's built-in thinking flag.
    */
   thinking?: boolean;
 };
@@ -54,17 +54,16 @@ type ChatCompletionsResponse = {
   usage?: { total_tokens?: number; cost?: number };
 };
 
-function resolveModel(mod: ModalityConfig, override: string | undefined, webSearch: boolean | undefined): string {
-  const base = override ?? mod.model;
-  if (!webSearch || !mod.openrouter) return base;
+function resolveModel(config: ResolvedTaskConfig, webSearch: boolean): string {
+  const base = config.modelId;
+  if (!webSearch || !config.provider.openrouter) return base;
   return base.endsWith(":online") ? base : `${base}:online`;
 }
 
 /**
- * Apply the user-configured reasoning setting for a modality. OpenAI-style
- * only: the value is sent as `reasoning_effort` verbatim (e.g. low/medium/
- * high). Blank keeps per-feature behavior (`thinking:false` call sites still
- * disable reasoning).
+ * Apply the task-configured reasoning effort. OpenAI-style only: the value is
+ * sent as `reasoning_effort` verbatim (e.g. low/medium/high). Blank keeps
+ * per-task behavior (`thinking:false` call sites still disable reasoning).
  */
 function applyReasoning(
   body: Record<string, unknown>,
@@ -92,38 +91,45 @@ function normalizeUpstreamError(err: unknown): Error {
   return err instanceof Error ? err : new Error(String(err));
 }
 
-async function chatCompletions(args: {
-  userId: string;
-  kind: AiKind;
-  config: AiConfig;
-  modelKind: "text" | "image" | "audio";
+function requireConnection(config: ResolvedTaskConfig): void {
+  if (!config.provider.baseUrl || !config.provider.apiKey) {
+    throw new Error("ai_not_configured");
+  }
+}
+
+function buildBody(args: {
+  config: ResolvedTaskConfig;
+  task: AiTask;
   system?: string;
   content: ContentPart[];
-  sourcePath?: string;
   temperature?: number;
   maxTokens?: number;
   webSearch?: boolean;
-  modelOverride?: string;
   thinking?: boolean;
-}): Promise<ChatResult> {
-  const { userId, kind, config, modelKind, system, content, sourcePath, temperature, maxTokens, webSearch, modelOverride, thinking } = args;
-  const mod = requireModality(config, modelKind);
-  const model = resolveModel(mod, modelOverride, webSearch);
+  stream: boolean;
+}) {
+  const { config, task, system, content, temperature, maxTokens, webSearch, thinking, stream } = args;
+  const defaults = TASK_DEFAULTS[task];
 
   const messages: { role: string; content: unknown }[] = [];
   if (system) messages.push({ role: "system", content: system });
   messages.push({ role: "user", content });
 
   const body: Record<string, unknown> = {
-    model,
+    model: resolveModel(config, webSearch ?? defaults.webSearch ?? false),
     messages,
-    max_tokens: mod.maxTokens ?? maxTokens ?? 2048,
+    max_tokens: config.maxTokens ?? maxTokens ?? defaults.maxTokens,
   };
-  if (temperature !== undefined) body.temperature = temperature;
-  applyReasoning(body, mod.reasoning, thinking);
+  if (stream) body.stream = true;
+  const t = temperature ?? defaults.temperature;
+  if (t !== undefined) body.temperature = t;
+  applyReasoning(body, config.reasoningEffort, thinking ?? defaults.thinking);
+  return { body, model: body.model as string };
+}
 
-  // Audit-safe log: strip base64 payloads, keep the source file path instead.
-  const logContent = content.map((c) => {
+/** Audit-safe log: strip base64 payloads, keep the source file path instead. */
+function loggableContent(content: ContentPart[], sourcePath?: string) {
+  return content.map((c) => {
     if (c.type === "text") return c;
     if (c.type === "image_url")
       return { type: "image_url" as const, source: sourcePath ?? `[omitted ${c.image_url.url.length} chars]` };
@@ -133,16 +139,35 @@ async function chatCompletions(args: {
       format: c.input_audio.format,
     };
   });
+}
+
+async function chatCompletions(args: {
+  userId: string;
+  task: AiTask;
+  config: ResolvedTaskConfig;
+  system?: string;
+  content: ContentPart[];
+  sourcePath?: string;
+  temperature?: number;
+  maxTokens?: number;
+  webSearch?: boolean;
+  thinking?: boolean;
+}): Promise<ChatResult> {
+  const { userId, task, config, system, content, sourcePath, temperature, maxTokens, webSearch, thinking } = args;
+  requireConnection(config);
+  const { body, model } = buildBody({ config, task, system, content, temperature, maxTokens, webSearch, thinking, stream: false });
+
+  const logContent = loggableContent(content, sourcePath);
 
   let raw: ChatCompletionsResponse | null = null;
   let errorMsg: string | null = null;
   try {
-    const res = await fetch(`${mod.baseUrl}/chat/completions`, {
+    const res = await fetch(`${config.provider.baseUrl}/chat/completions`, {
       method: "POST",
       headers: {
         "content-type": "application/json",
-        authorization: `Bearer ${mod.apiKey}`,
-        "api-key": mod.apiKey,
+        authorization: `Bearer ${config.provider.apiKey}`,
+        "api-key": config.provider.apiKey,
       },
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(UPSTREAM_TOTAL_TIMEOUT_MS),
@@ -165,7 +190,7 @@ async function chatCompletions(args: {
       .insert(aiMessages)
       .values({
         userId,
-        kind,
+        kind: task,
         prompt: { model, system, content: logContent },
         response: (raw as object | null) ?? null,
         model,
@@ -180,40 +205,36 @@ async function chatCompletions(args: {
 }
 
 export async function chat(args: ChatArgs): Promise<ChatResult> {
-  const config = await getAiConfig(args.userId);
+  const config = await resolveTaskConfig(args.userId, args.task);
   return chatCompletions({
     userId: args.userId,
-    kind: args.kind,
+    task: args.task,
     config,
-    modelKind: "text",
     system: args.system,
     content: [{ type: "text", text: args.prompt }],
     temperature: args.temperature,
     maxTokens: args.maxTokens,
     webSearch: args.webSearch,
-    modelOverride: args.model,
     thinking: args.thinking,
   });
 }
 
 export async function vision(args: VisionArgs): Promise<ChatResult> {
-  const config = await getAiConfig(args.userId);
+  const config = await resolveTaskConfig(args.userId, args.task);
   const content: ContentPart[] = [
     ...args.imageUrls.map((url) => ({ type: "image_url", image_url: { url } } as ContentPart)),
     { type: "text", text: args.prompt },
   ];
   return chatCompletions({
     userId: args.userId,
-    kind: args.kind,
+    task: args.task,
     config,
-    modelKind: "image",
     system: args.system,
     content,
     sourcePath: args.sourcePath,
     temperature: args.temperature,
     maxTokens: args.maxTokens,
     webSearch: args.webSearch,
-    modelOverride: args.model,
     thinking: args.thinking,
   });
 }
@@ -222,45 +243,21 @@ export type StreamChunk = { reasoning?: string; content?: string };
 
 async function* chatCompletionsStream(args: {
   userId: string;
-  kind: AiKind;
-  config: AiConfig;
-  modelKind: "text" | "image" | "audio";
+  task: AiTask;
+  config: ResolvedTaskConfig;
   system?: string;
   content: ContentPart[];
   sourcePath?: string;
   temperature?: number;
   maxTokens?: number;
   webSearch?: boolean;
-  modelOverride?: string;
   thinking?: boolean;
 }): AsyncGenerator<StreamChunk> {
-  const { userId, kind, config, modelKind, system, content, sourcePath, temperature, maxTokens, webSearch, modelOverride, thinking } = args;
-  const mod = requireModality(config, modelKind);
-  const model = resolveModel(mod, modelOverride, webSearch);
+  const { userId, task, config, system, content, sourcePath, temperature, maxTokens, webSearch, thinking } = args;
+  requireConnection(config);
+  const { body, model } = buildBody({ config, task, system, content, temperature, maxTokens, webSearch, thinking, stream: true });
 
-  const messages: { role: string; content: unknown }[] = [];
-  if (system) messages.push({ role: "system", content: system });
-  messages.push({ role: "user", content });
-
-  const body: Record<string, unknown> = {
-    model,
-    messages,
-    max_tokens: mod.maxTokens ?? maxTokens ?? 2048,
-    stream: true,
-  };
-  if (temperature !== undefined) body.temperature = temperature;
-  applyReasoning(body, mod.reasoning, thinking);
-
-  const logContent = content.map((c) => {
-    if (c.type === "text") return c;
-    if (c.type === "image_url")
-      return { type: "image_url" as const, source: sourcePath ?? `[omitted ${c.image_url.url.length} chars]` };
-    return {
-      type: "input_audio" as const,
-      source: sourcePath ?? `[omitted ${c.input_audio.data.length} chars]`,
-      format: c.input_audio.format,
-    };
-  });
+  const logContent = loggableContent(content, sourcePath);
 
   const ac = new AbortController();
   let timedOut = false;
@@ -284,12 +281,12 @@ async function* chatCompletionsStream(args: {
   let errorMsg: string | null = null;
 
   try {
-    const res = await fetch(`${mod.baseUrl}/chat/completions`, {
+    const res = await fetch(`${config.provider.baseUrl}/chat/completions`, {
       method: "POST",
       headers: {
         "content-type": "application/json",
-        authorization: `Bearer ${mod.apiKey}`,
-        "api-key": mod.apiKey,
+        authorization: `Bearer ${config.provider.apiKey}`,
+        "api-key": config.provider.apiKey,
       },
       body: JSON.stringify(body),
       signal: ac.signal,
@@ -385,7 +382,7 @@ async function* chatCompletionsStream(args: {
       .insert(aiMessages)
       .values({
         userId,
-        kind,
+        kind: task,
         prompt: { model, system, content: logContent },
         response: { text: contentText },
         model,
@@ -397,40 +394,36 @@ async function* chatCompletionsStream(args: {
 }
 
 export async function* chatStream(args: ChatArgs): AsyncGenerator<StreamChunk> {
-  const config = await getAiConfig(args.userId);
+  const config = await resolveTaskConfig(args.userId, args.task);
   yield* chatCompletionsStream({
     userId: args.userId,
-    kind: args.kind,
+    task: args.task,
     config,
-    modelKind: "text",
     system: args.system,
     content: [{ type: "text", text: args.prompt }],
     temperature: args.temperature,
     maxTokens: args.maxTokens,
     webSearch: args.webSearch,
-    modelOverride: args.model,
     thinking: args.thinking,
   });
 }
 
 export async function* visionStream(args: VisionArgs): AsyncGenerator<StreamChunk> {
-  const config = await getAiConfig(args.userId);
+  const config = await resolveTaskConfig(args.userId, args.task);
   const content: ContentPart[] = [
     ...args.imageUrls.map((url) => ({ type: "image_url", image_url: { url } } as ContentPart)),
     { type: "text", text: args.prompt },
   ];
   yield* chatCompletionsStream({
     userId: args.userId,
-    kind: args.kind,
+    task: args.task,
     config,
-    modelKind: "image",
     system: args.system,
     content,
     sourcePath: args.sourcePath,
     temperature: args.temperature,
     maxTokens: args.maxTokens,
     webSearch: args.webSearch,
-    modelOverride: args.model,
     thinking: args.thinking,
   });
 }
@@ -456,7 +449,7 @@ export type TranscribeArgs = {
 };
 
 export async function transcribeAudio(args: TranscribeArgs): Promise<{ text: string; raw: unknown }> {
-  const config = await getAiConfig(args.userId);
+  const config = await resolveTaskConfig(args.userId, "audio_meal_parse");
   const format = audioFormat(args.contentType);
   const base64 = Buffer.from(args.audioBuffer).toString("base64");
   const content: ContentPart[] = [
@@ -464,13 +457,10 @@ export async function transcribeAudio(args: TranscribeArgs): Promise<{ text: str
   ];
   const { text, raw } = await chatCompletions({
     userId: args.userId,
-    kind: "freeform",
+    task: "audio_meal_parse",
     config,
-    modelKind: "audio",
     content,
     sourcePath: args.sourcePath,
-    temperature: 0,
-    maxTokens: 1024,
   });
   return { text, raw };
 }

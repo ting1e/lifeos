@@ -1,5 +1,5 @@
 // AI analysis error codes that may stem from misconfiguration.
-// Sourced from lib/ai/config.ts ("ai_not_configured") and the
+// Sourced from lib/ai/client.ts ("ai_not_configured") and the
 // app/api/**/route.ts catch blocks ("ai_failed", "generation_failed",
 // "insights_failed", "parse_failed", "transcribe_failed", "estimate_failed").
 export const AI_ERROR_CODES = new Set([

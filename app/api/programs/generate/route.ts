@@ -160,15 +160,10 @@ export async function POST(req: Request) {
     try {
       plan = await chatJsonStream({
         userId: user.id,
-        kind: "plan",
+        task: "workout_plan",
         system,
         prompt,
         schema: AiProgramSchema,
-        temperature: 0.5,
-        // Reasoning models burn a large share of the budget on thinking
-        // tokens before writing the JSON, so give it generous headroom.
-        maxTokens: 32768,
-        thinking: true,
         onChunk,
       });
     } catch (e) {

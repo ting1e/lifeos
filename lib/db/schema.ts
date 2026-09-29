@@ -15,7 +15,6 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
-import { sql } from "drizzle-orm";
 
 // ============================================================
 // ENUMS
@@ -46,10 +45,30 @@ export const preferenceKindEnum = pgEnum("preference_kind", [
 ]);
 export const workoutSourceEnum = pgEnum("workout_source", ["manual", "whoop"]);
 export const aiKindEnum = pgEnum("ai_kind", [
+  // legacy values (historical ai_messages rows)
   "food_vision",
   "plan",
   "insights",
   "freeform",
+  // AiTask values
+  "meal_parse",
+  "audio_meal_parse",
+  "weekly_insights",
+  "meal_plan",
+  "workout_plan",
+  "nutrition_lookup",
+]);
+export const aiTaskEnum = pgEnum("ai_task", [
+  "meal_parse",
+  "food_vision",
+  "audio_meal_parse",
+  "weekly_insights",
+  "meal_plan",
+  "workout_plan",
+  "nutrition_lookup",
+]);
+export const aiProviderProtocolEnum = pgEnum("ai_provider_protocol", [
+  "openai_compatible",
 ]);
 
 // ============================================================
@@ -99,21 +118,6 @@ export const profile = pgTable("profile", {
   goal: goalEnum("goal"),
   targetWeightKg: numeric("target_weight_kg", { precision: 5, scale: 1 }),
   whoopEnabled: boolean("whoop_enabled").notNull().default(true),
-  aiBaseUrl: text("ai_base_url"),
-  aiApiKey: text("ai_api_key"),
-  aiTextModel: text("ai_text_model"),
-  aiImageModel: text("ai_image_model"),
-  aiAudioModel: text("ai_audio_model"),
-  aiImageBaseUrl: text("ai_image_base_url"),
-  aiImageApiKey: text("ai_image_api_key"),
-  aiAudioBaseUrl: text("ai_audio_base_url"),
-  aiAudioApiKey: text("ai_audio_api_key"),
-  aiTextReasoning: text("ai_text_reasoning"),
-  aiTextMaxTokens: integer("ai_text_max_tokens"),
-  aiImageReasoning: text("ai_image_reasoning"),
-  aiImageMaxTokens: integer("ai_image_max_tokens"),
-  aiAudioReasoning: text("ai_audio_reasoning"),
-  aiAudioMaxTokens: integer("ai_audio_max_tokens"),
   healthSyncToken: text("health_sync_token"),
   navSettings: jsonb("nav_settings"),
   updatedAt: timestamp("updated_at", { withTimezone: true })
@@ -483,6 +487,64 @@ export const whoopWorkouts = pgTable(
 );
 
 // ============================================================
+// AI PROVIDERS + TASK CONFIGS
+// ============================================================
+// Providers own the connection (base URL, API key) and the fetched model
+// list. Task configs bind one business task (meal parse, weekly insights…)
+// to a provider + model + reasoning effort + token cap.
+
+export const aiProviders = pgTable(
+  "ai_providers",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    baseUrl: text("base_url").notNull(),
+    apiKey: text("api_key"),
+    protocol: aiProviderProtocolEnum("protocol").notNull().default("openai_compatible"),
+    /** Fetched (and user-selected) model ids offered by this provider. */
+    models: jsonb("models").$type<string[]>().notNull().default([]),
+    enabled: boolean("enabled").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => ({
+    userIdx: index("ai_providers_user_idx").on(t.userId),
+  }),
+);
+
+export const aiTaskConfigs = pgTable(
+  "ai_task_configs",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    task: aiTaskEnum("task").notNull(),
+    providerId: uuid("provider_id")
+      .notNull()
+      .references(() => aiProviders.id, { onDelete: "cascade" }),
+    modelId: text("model_id").notNull(),
+    /** "" / null = per-task default; otherwise sent as OpenAI reasoning_effort. */
+    reasoningEffort: text("reasoning_effort"),
+    /** null = per-task default; otherwise overrides max_tokens for this task. */
+    maxTokens: integer("max_tokens"),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.userId, t.task] }),
+    providerIdx: index("ai_task_configs_provider_idx").on(t.providerId),
+  }),
+);
+
+// ============================================================
 // AI LOG
 // ============================================================
 
@@ -531,3 +593,5 @@ export type WhoopSleep = typeof whoopSleep.$inferSelect;
 export type WhoopStrain = typeof whoopStrain.$inferSelect;
 export type WhoopWorkout = typeof whoopWorkouts.$inferSelect;
 export type AiMessage = typeof aiMessages.$inferSelect;
+export type AiProvider = typeof aiProviders.$inferSelect;
+export type AiTaskConfig = typeof aiTaskConfigs.$inferSelect;

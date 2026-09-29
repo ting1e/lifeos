@@ -82,16 +82,10 @@ export async function POST(req: Request) {
     const onChunk = createChunkSender(send);
     const out = await chatJsonStream({
       userId: user.id,
-      kind: "plan",
+      task: "meal_plan",
       system,
       prompt,
       schema: MealPlanSchema,
-      temperature: 0.5,
-      // Reasoning models burn a large share of the budget on thinking tokens
-      // before writing the JSON (MiMo exhausted 8192 with zero content), so
-      // keep parity with program generation.
-      maxTokens: 32768,
-      thinking: true,
       onChunk,
     });
 

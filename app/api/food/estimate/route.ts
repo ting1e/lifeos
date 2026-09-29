@@ -41,13 +41,12 @@ export async function POST(req: Request) {
     const { system, prompt } = foodVisionPrompt(user.locale);
     const out = await visionJson({
       userId: user.id,
-      kind: "food_vision",
+      task: "food_vision",
       system,
       prompt,
       imageUrls: [dataUri],
       sourcePath: safeName,
       schema: FoodVisionSchema,
-      temperature: 0.2,
     });
     return NextResponse.json({ estimate: out });
   } catch (e) {

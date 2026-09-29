@@ -73,15 +73,12 @@ export async function POST(req: Request) {
       });
       const out = await visionJsonStream({
         userId: user.id,
-        kind: "food_vision",
+        task: "food_vision",
         system,
         prompt,
         imageUrls: [dataUri],
         sourcePath: safeName,
         schema: MealLogSchema,
-        temperature: 0.2,
-        thinking: false,
-        maxTokens: 8192,
         onChunk,
       });
       send({ type: "complete", data: { parsed: out } });
@@ -102,13 +99,10 @@ export async function POST(req: Request) {
       });
       const out = await chatJsonStream({
         userId: user.id,
-        kind: "food_vision",
+        task: "meal_parse",
         system,
         prompt,
         schema: MealLogSchema,
-        temperature: 0.2,
-        maxTokens: 8192,
-        thinking: false,
         webSearch: true,
         onChunk,
       });

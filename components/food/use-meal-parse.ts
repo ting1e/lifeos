@@ -5,6 +5,8 @@ import { useT } from "@/lib/i18n/client";
 import { isAiError } from "@/lib/ai/ai-error";
 import { readAiStream } from "@/lib/ai/sse";
 import { audioBlobToWav } from "@/lib/audio/wav";
+import { prepareImageFile } from "@/lib/image/prepare";
+import { usePasteImage } from "./use-paste-image";
 
 export type ParsedItem = {
   name: string;
@@ -67,19 +69,25 @@ export function useMealParse(defaultMeal?: string) {
     setPhotoUploading(true);
     setError(null);
     try {
+      const prepared = await prepareImageFile(file);
       const fd = new FormData();
-      fd.append("file", file);
+      fd.append("file", prepared);
       const r = await fetch("/api/food/upload", { method: "POST", body: fd });
       const data = await r.json();
       if (!r.ok) throw new Error(data?.error ?? t("food.errUploadFailed"));
+      if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
       setPhotoPath(data.name);
-      setPhotoPreviewUrl(URL.createObjectURL(file));
+      setPhotoPreviewUrl(URL.createObjectURL(prepared));
     } catch (e) {
       fail(e instanceof Error ? e.message : String(e));
     } finally {
       setPhotoUploading(false);
     }
   }
+
+  // Clipboard image paste (Ctrl/Cmd+V) reuses the file-picker pipeline, so
+  // pasting replaces the current photo just like choosing a new file.
+  usePasteImage(uploadPhoto, { enabled: !parsing && !photoUploading });
 
   function removePhoto() {
     if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
