@@ -11,30 +11,64 @@ on:
   pull_request:
     branches: [main]
 
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lint-typecheck-build:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
-      - uses: pnpm/action-setup@v4
+      # Keep the required job successful for documentation-only PRs rather
+      # than skipping the workflow (which would leave required checks pending).
+      - name: Detect application changes
+        id: changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [[ -z "$BASE_SHA" || "$BASE_SHA" =~ ^0+$ ]]; then
+            echo 'app=true' >> "$GITHUB_OUTPUT"
+          else
+            changed_files=$(git diff --name-only "$BASE_SHA" HEAD)
+            if grep -qvE '(^docs/|\.md$|^$)' <<< "$changed_files"; then
+              echo 'app=true' >> "$GITHUB_OUTPUT"
+            else
+              echo 'app=false' >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
+      - uses: pnpm/action-setup@v6
+        if: steps.changes.outputs.app == 'true'
         with:
           version: 9.15.2
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
+        if: steps.changes.outputs.app == 'true'
         with:
           node-version: 24
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
+        if: steps.changes.outputs.app == 'true'
 
       - run: pnpm lint
+        if: steps.changes.outputs.app == 'true'
 
       - run: pnpm typecheck
+        if: steps.changes.outputs.app == 'true'
+
+      - name: Check migration history and schema coverage
+        if: steps.changes.outputs.app == 'true'
+        run: pnpm db:check && pnpm db:check-generated
 
       - name: Build
+        if: steps.changes.outputs.app == 'true'
         run: pnpm build
         env:
           DATABASE_URL: postgres://placeholder:placeholder@localhost:5432/placeholder

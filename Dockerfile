@@ -2,15 +2,12 @@
 FROM node:24-alpine AS deps
 WORKDIR /app
 RUN apk add --no-cache libc6-compat
-COPY package.json pnpm-lock.yaml* ./
-RUN corepack enable && \
-    (pnpm install --frozen-lockfile || pnpm install --no-frozen-lockfile)
+COPY package.json pnpm-lock.yaml ./
+RUN corepack enable && pnpm install --frozen-lockfile
 
 ### --- prod-deps (production deps only, no devDeps) ---
-FROM node:24-alpine AS prod-deps
-WORKDIR /app
-COPY package.json pnpm-lock.yaml* ./
-RUN corepack enable && pnpm install --prod --frozen-lockfile
+FROM deps AS prod-deps
+RUN pnpm prune --prod
 
 ### --- builder ---
 FROM node:24-alpine AS builder
@@ -19,15 +16,13 @@ ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN corepack enable && \
-    pnpm drizzle-kit generate && \
     pnpm build && \
-    pnpm exec tsc -p tsconfig.scripts.json
+    pnpm exec tsc -p tsconfig.scripts.json && \
+    rm -rf /app/.next/standalone/node_modules
 
 ### --- runner ---
 FROM node:24-alpine AS runner
 WORKDIR /app
-ARG VERSION=latest
-LABEL org.opencontainers.image.version="${VERSION}"
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
@@ -38,7 +33,10 @@ RUN apk add --no-cache bash su-exec && \
     addgroup -S nodejs && adduser -S nextjs -G nodejs -u 1001 && \
     mkdir -p /data/uploads && chown -R nextjs:nodejs /data
 
-# Next.js standalone output
+# Stable production dependencies, shared by Next.js and startup scripts.
+COPY --from=prod-deps --chown=nextjs:nodejs /app/node_modules ./node_modules
+
+# Next.js standalone output (uses the production dependencies above)
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
@@ -47,9 +45,6 @@ COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/dist-scripts ./dist-scripts
 COPY --from=builder --chown=nextjs:nodejs /app/drizzle ./drizzle
 
-# Production node_modules (superset of standalone's slim deps)
-COPY --from=prod-deps --chown=nextjs:nodejs /app/node_modules ./node_modules
-
 # Entrypoint: ensure uploads perms, then drop to non-root nextjs
 COPY docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh
@@ -57,6 +52,9 @@ RUN chmod +x docker-entrypoint.sh
 ENV UPLOADS_DIR=/data/uploads
 
 EXPOSE 3000
+
+ARG VERSION=latest
+LABEL org.opencontainers.image.version="${VERSION}"
 
 ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["sh", "-c", "node dist-scripts/scripts/migrate.js && node dist-scripts/scripts/bootstrap-admin.js && node dist-scripts/scripts/seed-exercises.js && node dist-scripts/scripts/apply-exercise-zh.js && node dist-scripts/scripts/seed-templates.js && node server.js"]

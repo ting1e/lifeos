@@ -1,26 +1,26 @@
 import type { Metadata, Viewport } from "next";
-import { Doto, Space_Grotesk, Space_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import { getLocale } from "@/lib/i18n/server";
 import "./globals.css";
 
-const doto = Doto({
-  subsets: ["latin"],
+const doto = localFont({
+  src: [{ path: "./fonts/doto.woff2", weight: "100 900", style: "normal" }],
   variable: "--font-doto",
-  weight: ["400", "700"],
   display: "swap",
 });
 
-const spaceGrotesk = Space_Grotesk({
-  subsets: ["latin"],
+const spaceGrotesk = localFont({
+  src: [{ path: "./fonts/space-grotesk.woff2", weight: "300 700", style: "normal" }],
   variable: "--font-space-grotesk",
-  weight: ["300", "400", "500", "700"],
   display: "swap",
 });
 
-const spaceMono = Space_Mono({
-  subsets: ["latin"],
+const spaceMono = localFont({
+  src: [
+    { path: "./fonts/space-mono-regular.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/space-mono-bold.woff2", weight: "700", style: "normal" },
+  ],
   variable: "--font-space-mono",
-  weight: ["400", "700"],
   display: "swap",
 });
 

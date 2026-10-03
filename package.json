@@ -11,6 +11,8 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
+    "db:check": "drizzle-kit check",
+    "db:check-generated": "node scripts/check-migrations.mjs",
     "db:migrate": "tsx scripts/migrate.ts",
     "db:studio": "drizzle-kit studio",
     "seed:exercises": "tsx scripts/seed-exercises.ts",

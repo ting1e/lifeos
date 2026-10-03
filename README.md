@@ -70,6 +70,8 @@ LifeOS 是我为自己搭建的自托管个人操作系统：记录每一次训�
 
 在 `.env` 里设置 `OPENAI_BASE_URL` + `OPENAI_API_KEY`（或之后在 `/profile` 设置），即可。
 
+在 `/profile` 的「服务商 + 任务配置」中可添加服务商，并为各项 AI 任务分别选择服务商、模型及推理强度、token 上限。`OPENAI_TEXT_MODEL`、`OPENAI_IMAGE_MODEL` 和 `OPENAI_AUDIO_MODEL` 仍是未配置时的服务端模型兜底，并非废弃配置。
+
 ## 功能特性
 
 | | |
@@ -92,6 +94,21 @@ LifeOS 是我为自己搭建的自托管个人操作系统：记录每一次训�
 docker compose up -d 
 # 打开 http://localhost:3000  ·  使用 ADMIN_USERNAME / ADMIN_PASSWORD 登录
 ```
+
+#### 更新已有部署
+
+数据库服务已运行时，只更新应用容器即可。更新前建议备份数据库：应用启动时会自动执行已提交的数据库迁移。预构建镜像目前支持 `linux/amd64`。
+
+```bash
+docker compose pull web
+docker compose up -d --no-deps web
+docker compose logs --tail=100 web
+
+# 确认更新正常后，可选：清理悬空镜像
+docker image prune -f
+```
+
+**不要在 pull 前把 `docker system prune -a` 当作常规更新步骤。** 它可能删除未被容器使用的旧镜像和构建缓存，降低后续拉取或回滚时的层复用率。需要保留旧镜像用于回滚时，可暂不清理；数据库迁移后的回滚还需评估数据库兼容性。
 
 ### 方案 B —— 开发模式（热重载）
 
@@ -187,6 +204,8 @@ pnpm dev                         # http://localhost:3000
 动作数据集（1,324 条记录，含图片 + GIF）来自 [`hasaneyldrm/exercises-dataset`](https://github.com/hasaneyldrm/exercises-dataset)。仅供教育用途 —— 媒体直接引用上游 raw URL，不在本仓库中重新分发。商业使用前请核实许可一致性。
 
 Nothing 风格的视觉语言灵感来自 [Nothing Design Skill](https://github.com/dominikmartn/nothing-design-skill)（瑞士派 + 工业风）。字体：Doto、Space Grotesk、Space Mono —— 均为开源。
+
+字体文件和许可证保存在 `app/fonts/`，通过 `next/font/local` 本地托管；构建及浏览器加载字体均无需访问 Google Fonts。
 
 ## 致谢
 
