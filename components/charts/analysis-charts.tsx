@@ -10,8 +10,9 @@ import {
 import { Card, CardLabel } from "@/components/ui/card";
 import { useT } from "@/lib/i18n/client";
 import { ymdLocal, todayKey } from "@/lib/utils/day";
+import { DayRangeSelector } from "@/components/ui/day-range-selector";
 
-type Range = "7" | "15" | "30" | "90" | "all";
+type Range = number | "all";
 
 type DayKcal = { date: string; kcal: number };
 type DayVolume = { date: string; volume: number };
@@ -33,10 +34,14 @@ export function AnalysisCharts({
   kcalTarget: number;
 }) {
   const t = useT();
-  const [range, setRange] = useState<Range>("30");
+  const [range, setRange] = useState<Range>(30);
 
-  const cutoff = range === "all" ? 0 : Date.now() - Number(range) * 86_400_000;
-  const inRange = (dateStr: string) => new Date(dateStr).getTime() >= cutoff;
+  const today = todayKey();
+  const start = new Date(today + "T00:00:00");
+  if (range !== "all") start.setDate(start.getDate() - range + 1);
+  const cutoff = ymdLocal(start);
+  const inRange = (dateStr: string) =>
+    (range === "all" || dateStr >= cutoff) && dateStr <= today;
 
   const filteredBm = bmSamples.filter((s) => inRange(s.recordedAt));
   const kcalSeries = kcalByDay.filter((d) => inRange(d.date));
@@ -44,10 +49,9 @@ export function AnalysisCharts({
   const volumeSeries = volumeByDay.filter((d) => inRange(d.date));
 
   const volMap = new Map(volumeSeries.map((d) => [d.date, d.volume]));
-  const today = todayKey();
   const fillStart = range === "all"
     ? (volumeByDay[0]?.date ?? today)
-    : ymdLocal(new Date(cutoff));
+    : cutoff;
   const filledVolumeSeries: DayVolume[] = [];
   {
     const iter = new Date(fillStart + "T00:00:00");
@@ -61,14 +65,13 @@ export function AnalysisCharts({
 
   const recSeries = recSamples.filter((d) => inRange(d.date));
 
-  const ranges: Array<{ key: Range; label: string }> = [
-    { key: "7", label: t("anal.range7") },
-    { key: "15", label: t("anal.range15") },
-    { key: "30", label: t("anal.range30") },
-    { key: "90", label: t("anal.range90") },
-    { key: "all", label: t("anal.rangeAll") },
+  const ranges: Array<{ value: Range; label: string }> = [
+    { value: 7, label: t("anal.range7") },
+    { value: 30, label: t("anal.range30") },
+    { value: 90, label: t("anal.range90") },
+    { value: "all", label: t("anal.rangeAll") },
   ];
-  const activeRangeLabel = ranges.find((r) => r.key === range)!.label;
+  const activeRangeLabel = range === "all" ? t("anal.rangeAll") : t("proj.days", { days: range });
 
   const noData = (
     <div className="font-mono text-base text-[color:var(--text-secondary)] py-6">
@@ -78,23 +81,7 @@ export function AnalysisCharts({
 
   return (
     <>
-      <div className="flex gap-2">
-        {ranges.map((r) => (
-          <button
-            key={r.key}
-            type="button"
-            onClick={() => setRange(r.key)}
-            aria-pressed={range === r.key}
-            className={`font-mono text-[13px] uppercase tracking-[0.1em] px-3 py-1.5 border ${
-              range === r.key
-                ? "border-[color:var(--text-display)] text-[color:var(--text-display)] bg-[color:var(--surface-raised)]"
-                : "border-[color:var(--border-visible)] text-[color:var(--text-secondary)] hover:border-[color:var(--text-display)] hover:text-[color:var(--text-display)]"
-            }`}
-          >
-            {r.label}
-          </button>
-        ))}
-      </div>
+      <DayRangeSelector label={t("anal.title")} value={range} onChange={setRange} options={ranges} />
 
       <BodyCompositionCharts samples={filteredBm} />
 

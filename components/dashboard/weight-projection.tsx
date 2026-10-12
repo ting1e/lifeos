@@ -12,7 +12,7 @@ import {
 } from "@/lib/nutrition/projection";
 import type { Activity, Sex } from "@/lib/nutrition";
 import { useT } from "@/lib/i18n/client";
-import type { DictKey } from "@/lib/i18n/dict";
+import { DayRangeSelector } from "@/components/ui/day-range-selector";
 import { ymdLocal, todayKey } from "@/lib/utils/day";
 
 type Props = {
@@ -30,18 +30,10 @@ type Mode = "intake" | "trend";
 
 // 0 = projection from today only (original behavior); N = history window of
 // the last N days with the projection anchored at its earliest record.
-type RangeKey = 0 | 7 | 15 | 30 | 90;
+type RangeKey = number;
 
 // Future projection horizon in days (counted from today, not from the anchor).
-const HORIZONS = [30, 60, 120, 240];
-
-const RANGES: Array<{ key: RangeKey; labelKey: DictKey }> = [
-  { key: 0, labelKey: "common.today" },
-  { key: 7, labelKey: "anal.range7" },
-  { key: 15, labelKey: "anal.range15" },
-  { key: 30, labelKey: "anal.range30" },
-  { key: 90, labelKey: "anal.range90" },
-];
+const HORIZONS = [30, 90];
 
 function dailyMinMap(samples: { date: string; weightKg: number }[]) {
   const dailyMin = new Map<string, number>();
@@ -317,20 +309,6 @@ export function WeightProjection(props: Props) {
     </button>
   );
 
-  const rangeBtn = (r: RangeKey, label: string) => (
-    <button
-      type="button"
-      onClick={() => setRange(r)}
-      className={`font-mono text-[12px] uppercase tracking-[0.08em] px-2 py-1 border ${
-        range === r
-          ? "border-[color:var(--text-display)] text-[color:var(--text-display)]"
-          : "border-[color:var(--border-visible)] text-[color:var(--text-secondary)]"
-      }`}
-    >
-      {label}
-    </button>
-  );
-
   return (
     <Card>
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
@@ -352,31 +330,31 @@ export function WeightProjection(props: Props) {
           )}
         </div>
         <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-1">
+          <div className="flex items-start gap-1">
             <span className="font-mono text-[12px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)] min-w-16">
               {t("proj.history")}
             </span>
-            {RANGES.map((r) => (
-              <span key={r.key}>{rangeBtn(r.key, t(r.labelKey))}</span>
-            ))}
+            <DayRangeSelector
+              label={t("proj.history")}
+              value={range}
+              onChange={(value) => { if (typeof value === "number") setRange(value); }}
+              options={[
+                { value: 0, label: t("common.today") },
+                { value: 30, label: t("anal.range30") },
+                { value: 90, label: t("anal.range90") },
+              ]}
+            />
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-start gap-1">
             <span className="font-mono text-[12px] uppercase tracking-[0.08em] text-[color:var(--text-secondary)] min-w-16">
               {t("proj.future")}
             </span>
-            {HORIZONS.map((h) => (
-              <button
-                key={h}
-                onClick={() => setDays(h)}
-                className={`font-mono text-[12px] uppercase tracking-[0.08em] px-2 py-1 border ${
-                  days === h
-                    ? "border-[color:var(--text-display)] text-[color:var(--text-display)]"
-                    : "border-[color:var(--border-visible)] text-[color:var(--text-secondary)]"
-                }`}
-              >
-                {t("proj.days", { days: h })}
-              </button>
-            ))}
+            <DayRangeSelector
+              label={t("proj.future")}
+              value={days}
+              onChange={(value) => { if (typeof value === "number") setDays(value); }}
+              options={HORIZONS.map((value) => ({ value, label: t("proj.days", { days: value }) }))}
+            />
           </div>
         </div>
       </div>
